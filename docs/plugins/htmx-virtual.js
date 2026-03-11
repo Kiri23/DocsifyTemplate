@@ -29,9 +29,23 @@
     }
 
     if (window.mermaid) {
+      // Convert <pre><code class="lang-mermaid"> → <div class="mermaid">
+      var mermaidCodes = target.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid');
+      mermaidCodes.forEach(function(codeEl) {
+        var pre = codeEl.parentElement;
+        var source = codeEl.textContent;
+        var container = document.createElement('div');
+        container.className = 'mermaid';
+        container.textContent = source;
+        pre.parentElement.replaceChild(container, pre);
+      });
       var mermaidEls = target.querySelectorAll('.mermaid');
       if (mermaidEls.length > 0) {
-        mermaid.init(undefined, mermaidEls);
+        if (typeof mermaid.run === 'function') {
+          mermaid.run({ nodes: mermaidEls });
+        } else {
+          mermaid.init(undefined, mermaidEls);
+        }
       }
     }
 
