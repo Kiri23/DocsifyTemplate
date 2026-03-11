@@ -1,0 +1,8 @@
+{
+  "name": "docsify-template",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "serve": "npx docsify-cli serve docs -p 3000"
+  }
+}

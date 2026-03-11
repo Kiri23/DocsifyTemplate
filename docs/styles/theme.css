@@ -1,0 +1,175 @@
+/* Windmar Docsify Theme Overrides */
+
+:root {
+  --theme-color: #0891b2;
+  --docsifyTintColor: #0891b2;
+}
+
+/* Sidebar */
+.sidebar {
+  border-right: 1px solid #e5e7eb;
+}
+
+.sidebar ul li a {
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.sidebar ul li a:hover,
+.sidebar ul li.active > a {
+  color: #0891b2;
+  font-weight: 600;
+}
+
+.sidebar .sidebar-nav > ul > li > a {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+/* App name / logo */
+.app-name-link {
+  color: #0891b2 !important;
+  font-weight: 700;
+}
+
+/* Content area */
+.markdown-section {
+  max-width: 920px;
+  padding: 2rem 2.5rem;
+}
+
+.markdown-section h1 {
+  color: #111827;
+  font-weight: 800;
+  margin-top: 0;
+}
+
+.markdown-section h2 {
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+  margin-top: 2.5rem;
+}
+
+.markdown-section h3 {
+  margin-top: 1.75rem;
+}
+
+/* Tables */
+.markdown-section table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.markdown-section table th {
+  background: #f9fafb;
+  font-weight: 600;
+  text-align: left;
+}
+
+.markdown-section table th,
+.markdown-section table td {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 0.75rem;
+}
+
+/* Code blocks - integrate with Prism tomorrow theme */
+.markdown-section pre {
+  border-radius: 0.5rem;
+}
+
+.markdown-section code {
+  font-size: 0.85rem;
+}
+
+/* Inline code */
+.markdown-section p code,
+.markdown-section li code,
+.markdown-section td code {
+  background: #f1f5f9;
+  color: #0e7490;
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+}
+
+/* Tabs - active state */
+.tab-btn {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.tab-btn:focus {
+  outline: 2px solid #0891b2;
+  outline-offset: -2px;
+}
+
+/* Mermaid diagrams */
+.mermaid {
+  text-align: center;
+  margin: 2rem 0;
+  padding: 1.5rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+  min-height: 150px;
+}
+
+/* Blockquotes — for tips/warnings */
+.markdown-section blockquote {
+  border-left: 4px solid #0891b2;
+  background: #f0f9ff;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: #374151;
+}
+
+.markdown-section blockquote p {
+  margin: 0;
+}
+
+/* Horizontal rules */
+.markdown-section hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 2rem 0;
+}
+
+/* Copy button on code blocks */
+.code-block-container {
+  position: relative;
+}
+
+/* Search input */
+.search input {
+  border-color: #d1d5db !important;
+}
+
+.search input:focus {
+  border-color: #0891b2 !important;
+  box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .markdown-section {
+    max-width: 100%;
+    padding: 1rem;
+  }
+
+  .mermaid {
+    padding: 0.75rem 0.5rem;
+  }
+}

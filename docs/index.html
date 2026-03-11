@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Docs</title>
+
+  <!-- Docsify theme -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+
+  <!-- Prism themes for code blocks -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
+
+  <!-- Tailwind CSS v4 browser -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-primary: #0891b2;
+      --color-brand: #95c22f;
+    }
+  </style>
+
+  <!-- Custom theme overrides -->
+  <link rel="stylesheet" href="styles/theme.css">
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- js-yaml for code fence components -->
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+
+  <!-- Components (register globals — must load before Docsify) -->
+  <script src="components/code-block.js"></script>
+  <script src="components/tabs.js"></script>
+  <script src="components/card-grid.js"></script>
+  <script src="components/entity-schema.js"></script>
+  <script src="components/api-endpoint.js"></script>
+  <script src="components/status-flow.js"></script>
+  <script src="components/region-toggle.js"></script>
+  <script src="components/directive-table.js"></script>
+  <script src="components/step-type.js"></script>
+  <script src="components/config-example.js"></script>
+
+  <script>
+    window.$docsify = {
+      name: 'My Docs',
+      loadSidebar: true,
+      subMaxLevel: 3,
+      search: {
+        placeholder: 'Search...',
+        noData: 'No results.',
+        depth: 6
+      },
+      auto2top: true
+    };
+  </script>
+
+  <!-- Custom plugins (must load before Docsify core — they push to $docsify.plugins) -->
+  <script src="plugins/component-renderer.js"></script>
+
+  <!-- Docsify core -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+
+  <!-- Docsify search plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+
+  <!-- Prism.js + languages -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markdown.min.js"></script>
+
+  <!-- HTMX -->
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.3/dist/htmx.min.js"></script>
+
+  <!-- HTMX virtual routes (loads after HTMX) -->
+  <script src="plugins/htmx-virtual.js"></script>
+
+  <!-- Mermaid -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: 'default' });
+  </script>
+</body>
+</html>

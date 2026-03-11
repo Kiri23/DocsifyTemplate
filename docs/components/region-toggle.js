@@ -1,0 +1,145 @@
+// Region Toggle Component — DOM-level directive processor for data-region
+// Registers window.processRegionDirectives
+
+window.processRegionDirectives = function processRegionDirectives() {
+  var directives = document.querySelectorAll('.markdown-section [data-region]');
+
+  directives.forEach(function(div) {
+    // Parse "PR=Puerto Rico, FL=Florida" → [{key:'pr', label:'Puerto Rico'}, ...]
+    var raw = div.getAttribute('data-region');
+    if (!raw) return;
+
+    var regions = raw.split(',').map(function(part) {
+      var eqIndex = part.indexOf('=');
+      if (eqIndex === -1) return null;
+      return {
+        key: part.substring(0, eqIndex).trim().toLowerCase(),
+        label: part.substring(eqIndex + 1).trim()
+      };
+    }).filter(Boolean);
+
+    if (regions.length === 0) return;
+
+    // Determine the heading level to match from the next sibling headings
+    var headingLevel = null;
+    var sibling = div.nextElementSibling;
+    while (sibling) {
+      var tagMatch = sibling.tagName && sibling.tagName.match(/^H(\d)$/);
+      if (tagMatch) {
+        headingLevel = parseInt(tagMatch[1]);
+        break;
+      }
+      sibling = sibling.nextElementSibling;
+    }
+
+    if (!headingLevel) return;
+
+    // Collect elements after the div, grouping by heading boundaries
+    var groups = [];
+    var currentGroup = null;
+    var collected = [];
+    sibling = div.nextElementSibling;
+
+    while (sibling) {
+      var tagMatch = sibling.tagName && sibling.tagName.match(/^H(\d)$/);
+      if (tagMatch) {
+        var level = parseInt(tagMatch[1]);
+        // Same level heading = new region boundary
+        if (level === headingLevel) {
+          if (currentGroup) groups.push(currentGroup);
+          currentGroup = { heading: sibling.textContent.trim(), elements: [sibling] };
+          collected.push(sibling);
+          sibling = sibling.nextElementSibling;
+          continue;
+        }
+        // Higher level heading (smaller number) = end of directive scope
+        if (level < headingLevel) break;
+      }
+
+      if (currentGroup) {
+        currentGroup.elements.push(sibling);
+        collected.push(sibling);
+      }
+      sibling = sibling.nextElementSibling;
+    }
+
+    if (currentGroup) groups.push(currentGroup);
+    if (groups.length === 0) return;
+
+    // Match groups to regions by label matching
+    var regionGroups = regions.map(function(region) {
+      var match = null;
+      groups.forEach(function(g) {
+        if (g.heading.toLowerCase().indexOf(region.label.toLowerCase()) !== -1 ||
+            region.label.toLowerCase().indexOf(g.heading.toLowerCase()) !== -1) {
+          match = g;
+        }
+      });
+      return { region: region, group: match };
+    });
+
+    // Build toggle UI
+    var toggleId = 'rt-' + Math.random().toString(36).substr(2, 6);
+
+    var toggleContainer = document.createElement('div');
+    toggleContainer.className = 'region-toggle rounded-lg border border-gray-200 bg-white my-4 overflow-hidden';
+
+    // Button bar
+    var buttonBar = document.createElement('div');
+    buttonBar.className = 'flex border-b border-gray-200 bg-gray-50';
+
+    regions.forEach(function(region, i) {
+      var btn = document.createElement('button');
+      btn.textContent = region.label;
+      btn.className = i === 0
+        ? 'rt-btn flex-1 px-4 py-2.5 text-sm font-medium bg-primary text-white transition-colors'
+        : 'rt-btn flex-1 px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors';
+      btn.setAttribute('data-rt-group', toggleId);
+      btn.setAttribute('data-rt-index', i);
+      btn.onclick = function() {
+        // Update button styles
+        var btns = buttonBar.querySelectorAll('.rt-btn');
+        btns.forEach(function(b) {
+          b.className = 'rt-btn flex-1 px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors';
+        });
+        btn.className = 'rt-btn flex-1 px-4 py-2.5 text-sm font-medium bg-primary text-white transition-colors';
+
+        // Show/hide panels
+        var panels = toggleContainer.querySelectorAll('.rt-panel');
+        panels.forEach(function(p, pi) {
+          p.style.display = pi === i ? 'block' : 'none';
+        });
+      };
+      buttonBar.appendChild(btn);
+    });
+
+    toggleContainer.appendChild(buttonBar);
+
+    // Content panels
+    regionGroups.forEach(function(rg, i) {
+      var panel = document.createElement('div');
+      panel.className = 'rt-panel p-4';
+      panel.style.display = i === 0 ? 'block' : 'none';
+
+      if (rg.group) {
+        rg.group.elements.forEach(function(el, elIdx) {
+          // Skip the heading itself (first element is the heading)
+          if (elIdx === 0) return;
+          panel.appendChild(el.cloneNode(true));
+        });
+      } else {
+        panel.innerHTML = '<p class="text-gray-500">No content for ' + rg.region.label + '</p>';
+      }
+
+      toggleContainer.appendChild(panel);
+    });
+
+    // Remove original elements from DOM
+    collected.forEach(function(el) {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
+
+    // Replace the directive div with the toggle container
+    div.parentNode.replaceChild(toggleContainer, div);
+  });
+};
