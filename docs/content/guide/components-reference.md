@@ -398,7 +398,7 @@ The copy button unescapes HTML entities before copying to clipboard.
 
 **File:** `components/region-toggle.js` — Registers `window.processRegionDirectives()`
 
-A DOM-level directive processor that creates toggle panels from headings. Originally built for a different project. Uses HTML `data-region` attributes instead of YAML code fences.
+A DOM-level directive processor that creates toggle panels from headings. Uses HTML `data-region` attributes instead of YAML code fences.
 
 **Usage in markdown:**
 ```html
@@ -413,4 +413,4 @@ Content for FL...
 
 The directive scans sibling headings, matches them to region labels, and replaces them with a button bar + panel switcher. Runs automatically in the `doneEach` hook.
 
-> This component was ported from another project. It works but follows a different pattern than the other components.
+> This component follows a different pattern than the others — it processes DOM directives rather than rendering from YAML.

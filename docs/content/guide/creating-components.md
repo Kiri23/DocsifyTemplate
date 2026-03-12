@@ -8,7 +8,7 @@ tags: [guide, components, custom]
 
 ## Quick Start
 
-A component is a JavaScript function that receives parsed YAML and returns an HTML string. That's it — no classes, no lifecycle, no build step.
+A component is a JavaScript function that receives parsed YAML and returns an HTML string.
 
 ### 1. Create the JS file
 
@@ -32,7 +32,7 @@ window.MyComponent = function MyComponent(data) {
 
 ### 2. Register it
 
-**Add the script to `docs/index.html`** (before Docsify core):
+**Add the script to `docs/index.html`** in the component section (after the existing component scripts, before `window.$docsify`):
 
 ```html
 <script src="components/my-component.js"></script>
@@ -70,7 +70,7 @@ Refresh the browser. Done.
 
 3. **Output is always an HTML string.** Return it, don't append to the DOM.
 
-4. **Use `var`, not `const`/`let`.** The existing components use ES5-style `var` and `function` for maximum browser compatibility. You can use modern syntax if you don't need to support older browsers.
+4. **`var` or `const`/`let` — your choice.** The existing components use ES5-style `var` and `function` but modern syntax works fine in current browsers. Be consistent within a file.
 
 5. **Style with Tailwind classes.** Tailwind v4 runs in the browser — all utility classes are available without a build step.
 

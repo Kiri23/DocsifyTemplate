@@ -30,15 +30,7 @@ graph TB
 
 3. **htmx-virtual.js** handles tab switching. When you click a tab, HTMX intercepts a fake HTTP request and swaps content from memory — no server, no page reload.
 
-### Why These Tools?
-
-| Tool | What it replaces | Why |
-|---|---|---|
-| Docsify | Docusaurus, VitePress, Gatsby | Zero build step. No SSG. Just serve a folder. |
-| Template literal functions | React/Vue components | No JSX, no bundler, no virtual DOM. Just strings. |
-| HTMX | React state + re-rendering | Tab switching in ~30 lines. No client-side framework. |
-| Tailwind (browser) | CSS modules, styled-components | All utilities available. No build step. |
-| js-yaml | Custom parsers | Full YAML spec for component data. |
+For more on [Docsify](https://docsify.js.org/) and [HTMX](https://htmx.org/), see their official docs.
 
 ## Technical Reference
 
@@ -78,12 +70,13 @@ graph LR
 - Calls `window.ComponentName(data)`
 - Replaces the `<pre>` block with returned HTML
 
-**B. Tab splitting (only for pages with frontmatter):**
+**B. Tab splitting (requires both frontmatter AND a `## Technical Reference` heading):**
 - Looks for `<h2>` containing "Technical Reference"
 - Splits HTML at that point into two sections
 - Stores both in `window.__pageSections`
 - Wraps content in tab UI using `window.Tabs()`
 - Shows Quick Start tab by default
+- If frontmatter exists but the heading is missing, all content stays in a single tab
 
 ```mermaid
 graph TD
@@ -140,18 +133,6 @@ The interceptor:
 4. Sets the target element's `innerHTML` directly
 5. Re-runs post-render hooks (syntax highlighting, mermaid, region directives)
 6. Cancels the HTMX request so no HTTP call is made
-
-#### Why Not Just Use JavaScript?
-
-HTMX gives us declarative tab switching in the HTML:
-
-```html
-<button hx-get="/api/switch/technical" hx-target="#tab-content" hx-swap="innerHTML">
-  Technical Reference
-</button>
-```
-
-This is easier to generate from a template literal function than wiring up event listeners manually. The `Tabs` component just builds these attributes — no event binding code needed.
 
 ### Data Flow Summary
 

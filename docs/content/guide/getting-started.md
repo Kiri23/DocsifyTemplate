@@ -8,7 +8,7 @@ tags: [guide, setup, overview]
 
 ## Quick Start
 
-DocsifyTemplate is a zero-build-step documentation framework. You write markdown, optionally drop in YAML code fences, and get interactive docs with search, tabs, diagrams, and data-driven components — no bundler, no compilation, no React.
+DocsifyTemplate is a zero-build-step documentation framework built on [Docsify](https://docsify.js.org/). You write markdown, optionally drop in YAML code fences, and get interactive docs with search, tabs, diagrams, and data-driven components.
 
 > **Heads up:** This framework was vibe coded. It works, it's in production, but rough edges exist. Contributions and improvements are welcome.
 
@@ -46,7 +46,12 @@ npm run serve
 
 ### Write Your First Page
 
-**1. Create a markdown file** anywhere under `docs/`:
+**1. Create a markdown file** under `docs/`. The file path becomes the URL:
+
+| File path | URL | Sidebar link |
+|---|---|---|
+| `docs/my-page.md` | `/#/my-page` | `/my-page` |
+| `docs/content/guide/foo.md` | `/#/content/guide/foo` | `/content/guide/foo` |
 
 ```markdown
 # My Page
@@ -61,7 +66,7 @@ This is a regular markdown page. It just works.
 * [My Page](/my-page)
 ```
 
-**3. Refresh the browser.** That's it. No build, no restart.
+**3. Refresh the browser.** That's it — no build, no restart.
 
 ### Add Your First Component
 
@@ -80,7 +85,7 @@ That YAML becomes a styled, clickable card grid. See the [Component Showcase](/c
 
 ### Add a Tabbed Page
 
-Want to split content for different audiences? Add frontmatter and use `## Quick Start` / `## Technical Reference` headings:
+Want to split content for different audiences? You need **both** frontmatter and the two specific headings:
 
 ````markdown
 ---
@@ -100,7 +105,9 @@ Simple explanation here...
 Deep technical details here...
 ````
 
-The framework automatically generates tab buttons and handles switching via HTMX — no page reload.
+The framework generates tab buttons and handles switching via HTMX — no page reload.
+
+**Both are required:** Frontmatter triggers the tab-splitting logic, and the `## Technical Reference` heading is where the split happens. Without frontmatter, no tabs. Without the heading, all content stays in one tab.
 
 ### Next Steps
 
@@ -142,7 +149,7 @@ docs/
 
 Components must be registered in **two places**:
 
-**1. `docs/index.html`** — add a `<script>` tag:
+**1. `docs/index.html`** — add a `<script>` tag in the component section (after the existing component scripts, before `window.$docsify`):
 
 ```html
 <script src="components/my-component.js"></script>
