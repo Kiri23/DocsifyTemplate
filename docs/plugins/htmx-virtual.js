@@ -23,6 +23,9 @@
 
     target.innerHTML = window.__pageSections[viewType];
 
+    // Apply zone class for visual differentiation
+    target.className = 'tab-zone-' + viewType;
+
     // Re-run post-render hooks on new content
     if (window.Prism) {
       Prism.highlightAll();
