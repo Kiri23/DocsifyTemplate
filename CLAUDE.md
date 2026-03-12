@@ -4,6 +4,16 @@
 
 Reusable zero-build-step interactive docs framework powered by Docsify with custom data-driven components. All components are agnostic: they receive generic YAML data via code fences and render HTML.
 
+## IMPORTANT: Design System Rules
+
+Before modifying ANY component or style, you MUST read `.interface-design/system.md` first. This file is the single source of truth for colors, spacing, typography, and patterns.
+
+**ALWAYS use CSS custom properties from `:root` in `theme.css`** when writing or changing styles. NEVER hardcode hex, rgb, or rgba values outside of `:root`. For alpha variants use the `rgb(var(--*-rgb) / alpha)` pattern — NOT raw `rgba()`.
+
+Check `:root` in `docs/styles/theme.css` for available variables. If you need a color that doesn't exist, add it as a variable to `:root` first.
+
+The goal is: duplicate this project, change only `:root`, get a different brand.
+
 ## The Core Idea
 
 **Template literal functions ARE React components** — without JSX, without a bundler, without a build step.
@@ -104,7 +114,7 @@ Standard ` ```mermaid ` fences work.
 
 ## Brand Colors
 
-- Primary: `#0891b2` (change in theme.css + index.html Tailwind theme)
+- Primary: `#0891b2` (change in theme.css `:root` + index.html Tailwind `@theme`)
 
 ## Running
 

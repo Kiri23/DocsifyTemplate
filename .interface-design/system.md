@@ -24,15 +24,16 @@ A documentation site serving two audiences: developers (precise reference) and n
 | `--accent` | `#0891b2` | Links, active tabs, sidebar active bar, icons |
 | `--accent-light` | `#ecfeff` | Blockquote bg, active sidebar bg, tab tint |
 | `--accent-text` | `#0e7490` | Inline code text, link hover |
+| `--accent-rgb` | `8 145 178` | Alpha variants via `rgb(var(--accent-rgb) / alpha)` — link underlines, focus rings, blockquote code |
 
 ### Technical Zone — Cool Slate
 | Token | Value | Usage |
 |---|---|---|
-| `#f8fafc` | — | Technical tab background |
-| `#6366f1` | — | Technical tab accent (indigo) |
-| `#1e293b` | — | Technical zone h2 (serif, 1.3rem) |
-| `#334155` | — | Technical zone h3 (serif, 1.1rem) |
-| `#475569` | — | Technical zone body text (serif, 0.95rem) |
+| `--tech-surface` | `#f8fafc` | Technical tab background |
+| `--tech-accent` | `#6366f1` | Technical tab accent (indigo border-left) |
+| `--tech-heading` | `#1e293b` | Technical zone h2 (serif, 1.3rem) |
+| `--tech-subheading` | `#334155` | Technical zone h3 (serif, 1.1rem) |
+| `--tech-text` | `#475569` | Technical zone body text (serif, 0.95rem) |
 
 ### Dark Component Palette
 | Token | Value | Usage |
@@ -52,9 +53,10 @@ A documentation site serving two audiences: developers (precise reference) and n
 ### Code Block
 | Token | Value | Usage |
 |---|---|---|
-| `#1e1e2e` | — | Code block background (Catppuccin-like) |
-| `rgba(255,255,255,0.08–0.25)` | — | Copy button states |
-| `#34d399` | — | Copy success color (emerald) |
+| `--code-bg` | `#1e1e2e` | Code block background (Catppuccin-like) |
+| `--code-overlay-rgb` | `255 255 255` | Copy button + scrollbar overlays (used with `rgb(var(--code-overlay-rgb) / alpha)`) |
+| `--success` | `#34d399` | Copy success color (emerald) |
+| `--success-rgb` | `52 211 153` | Copy success alpha variants |
 
 ### Tailwind Theme Tokens
 Defined in `index.html` `@theme` block: `primary`, `primary-light`, `brand`, `surface`, `surface-raised`, `border`, `border-strong`, `text-primary`, `text-secondary`, `text-muted`.
@@ -96,7 +98,8 @@ Defined in `index.html` `@theme` block: `primary`, `primary-light`, `brand`, `su
 ### Line Heights
 - Body prose: `1.8`
 - Quick Start zone: `1.85`
-- Technical zone: `1.65`
+- Technical zone body: `1.7`
+- Technical zone lists: `1.65`
 - Sidebar: `1.7`
 - Code blocks: `1.65`
 - h1: `1.15`
@@ -130,8 +133,8 @@ Most frequent values: `px-4` (8x), `py-2.5` (5x), `py-2` (5x), `px-2.5` (6x), `g
 ## Depth
 - **Borders over shadows** — 60+ border instances, 3 shadow instances.
 - **`shadow-md`** on dark component containers only (ambient depth).
-- **Single hover shadow** on card-grid: `shadow-[0_2px_12px_rgba(8,145,178,0.08)]`.
-- **Focus ring** on search: `box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12)`.
+- **Single hover shadow** on card-grid: `shadow-[0_2px_12px_rgba(8,145,178,0.08)]` (Tailwind inline, uses accent).
+- **Focus ring** on search: `box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.12)`.
 - **No shadows** on warm zone elements.
 
 ## Border Radius Scale
@@ -149,8 +152,8 @@ Most frequent values: `px-4` (8x), `py-2.5` (5x), `py-2` (5x), `px-2.5` (6x), `g
 ## Surfaces
 
 ### Two Temperature Zones
-1. **Quick Start / warm zone:** `#faf9f7` background, warm borders, stone text, serif prose, generous spacing.
-2. **Technical Reference / cool zone:** `#f8fafc` background, `3px solid #6366f1` left border, serif prose (same Newsreader family), tighter spacing, slightly smaller headings. Same site at different densities.
+1. **Quick Start / warm zone:** `--surface-page` background, warm borders, stone text, serif prose, generous spacing.
+2. **Technical Reference / cool zone:** `--tech-surface` background, `3px solid var(--tech-accent)` left border, serif prose (same Newsreader family), tighter spacing, slightly smaller headings. Same site at different densities.
 
 ### Component Container Pattern (dark) — 5 identical instances
 ```
@@ -202,7 +205,7 @@ bg-gray-800/60 px-4 py-2.5 border-b border-gray-700/60
 - Title: `text-base md:text-lg font-bold`, hover → `text-primary`.
 
 ### Code Blocks
-- Background: `#1e1e2e` (dark, Catppuccin-like).
+- Background: `var(--code-bg)` (`#1e1e2e`, Catppuccin-like).
 - Border: `1px solid var(--border-subtle)`, `rounded-[0.625rem]`.
 - Copy button: appears on hover (desktop), always visible (mobile).
 - Copy states: default transparent → hover brighter → `.copied` emerald.
@@ -252,7 +255,7 @@ bg-gray-800/60 px-4 py-2.5 border-b border-gray-700/60
 ## Accessibility
 - **Focus:** `outline: 2px solid var(--accent)`, `outline-offset: -2px` on tabs.
 - **Search focus:** `border-color: accent` + `3px` cyan ring.
-- **Links:** visible underline by default (`border-bottom: 1px solid rgba(8,145,178,0.3)`).
+- **Links:** visible underline by default (`text-decoration-color: rgb(var(--accent-rgb) / 0.3)`).
 - **Print:** sidebar, tabs, copy buttons hidden; content full-width.
 
 ## Color Substitutions from Defaults
@@ -266,4 +269,18 @@ bg-gray-800/60 px-4 py-2.5 border-b border-gray-700/60
 | `bg-green-500` POST | `bg-emerald-500` | Warmer green |
 | `shadow-lg` on dark components | `shadow-md` | Less aggressive |
 | `border-gray-700` hard | `border-gray-700/60` | Softer edges |
-| Transparent link underline | `rgba(8,145,178,0.3)` underline | Links always distinguishable |
+| Transparent link underline | `rgb(var(--accent-rgb) / 0.3)` underline | Links always distinguishable |
+
+## Rebranding
+
+All color values live exclusively in `:root` of `theme.css`. To rebrand:
+
+1. **Edit `:root` only** — no hardcoded hex/rgba values exist outside `:root`
+2. **RGB decomposition pattern** — tokens ending in `-rgb` (e.g. `--accent-rgb: 8 145 178`) enable alpha variants via `rgb(var(--accent-rgb) / 0.3)` without duplicating hex values
+3. **What to change:**
+   - Warm palette (`--surface-*`, `--border-*`, `--text-*`) — page warmth/coolness
+   - Accent (`--accent`, `--accent-light`, `--accent-text`, `--accent-rgb`) — brand color
+   - Tech zone (`--tech-*`) — technical tab personality
+   - Code block (`--code-bg`, `--code-overlay-rgb`) — code aesthetic
+   - Success (`--success`, `--success-rgb`) — confirmation color
+4. **Also update** `index.html` Tailwind `@theme` block to match (Tailwind classes in components use those tokens)
