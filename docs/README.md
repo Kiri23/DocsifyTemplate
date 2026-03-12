@@ -1,6 +1,70 @@
 # DocsifyTemplate
 
-A zero-build-step interactive documentation framework powered by **Docsify** with custom data-driven components. Write YAML in markdown code fences, get interactive HTML — no bundler, no compilation, no React.
+<div class="hero-tagline">
+
+Write YAML in markdown. Get interactive docs. No build step.
+
+</div>
+
+<div class="hero-subtext">
+
+A documentation framework powered by Docsify with 10 data-driven components. Clone it, write markdown, ship docs — no bundler, no React, no compilation.
+
+</div>
+
+## How It Works
+
+Write a component name as your code fence language, fill it with YAML, and the plugin renders it as interactive HTML:
+
+```side-by-side
+left:
+  title: "What you write"
+  language: markdown
+  content: |
+    ```card-grid
+    - title: "First Card"
+      description: "Rendered from YAML."
+      icon: "1"
+      href: "#/"
+    - title: "Second Card"
+      description: "No JavaScript needed."
+      icon: "2"
+      href: "#/"
+    ```
+right:
+  title: "What you get"
+  component: card-grid
+  data:
+    - title: "First Card"
+      description: "Rendered from YAML."
+      icon: "1"
+      href: "#/"
+    - title: "Second Card"
+      description: "No JavaScript needed."
+      icon: "2"
+      href: "#/"
+```
+
+## Features
+
+```card-grid
+- title: "10 Components"
+  description: "Cards, API endpoints, status flows, schemas, config examples, and more — all from YAML."
+  icon: "< />"
+  href: "#/content/guide/components-reference"
+- title: "Audience Tabs"
+  description: "Split any page into Quick Start and Technical Reference tabs with one frontmatter flag."
+  icon: "||"
+  href: "#/content/guide/architecture"
+- title: "Diagrams"
+  description: "Mermaid flowcharts, sequence diagrams, and entity relationships — inline in markdown."
+  icon: "~~~"
+  href: "#/content/examples/component-showcase"
+- title: "Zero Config"
+  description: "No webpack, no Vite, no build. Edit markdown, refresh browser, done."
+  icon: "0"
+  href: "#/content/guide/getting-started"
+```
 
 ## Quick Start
 
@@ -11,51 +75,7 @@ npm run serve
 # → http://localhost:3000
 ```
 
-## Features
-
-```card-grid
-- title: "Data-Driven Components"
-  description: "10 reusable components rendered from YAML code fences — no build step required."
-  icon: "< />"
-  href: "#/content/guide/components-reference"
-- title: "Tab Navigation"
-  description: "Split pages into Quick Start / Technical tabs using YAML frontmatter."
-  icon: "||"
-  href: "#/content/guide/architecture"
-- title: "Mermaid Diagrams"
-  description: "Flowcharts, sequence diagrams, and more — rendered inline from markdown."
-  icon: "~~~"
-  href: "#/content/examples/component-showcase"
-- title: "Full-Text Search"
-  description: "Built-in Docsify search across all your documentation pages."
-  icon: "? /"
-  href: "#/"
-```
-
-## How It Works
-
-Write markdown with YAML code fences. The component renderer plugin transforms them into interactive HTML:
-
-````markdown
-```card-grid
-- title: "My Card"
-  description: "A description"
-  icon: "1"
-  href: "#/some-page"
-```
-````
-
-## Where to Go
-
-| I want to... | Go to |
-|---|---|
-| Set up the project and write my first page | [Getting Started](/content/guide/getting-started) |
-| See what components are available | [Components Reference](/content/guide/components-reference) |
-| See live rendered examples | [Component Showcase](/content/examples/component-showcase) |
-| Build my own component | [Creating Components](/content/guide/creating-components) |
-| Understand how the framework works internally | [Architecture](/content/guide/architecture) |
-| Add tabs to a page | [Getting Started → Add a Tabbed Page](/content/guide/getting-started) |
-| Look up a component's YAML schema | [Components Reference → Technical Reference](/content/guide/components-reference) |
+Then open `docs/README.md` and start writing. See the [Getting Started guide](/content/guide/getting-started) for your first page and component.
 
 ## Documentation
 

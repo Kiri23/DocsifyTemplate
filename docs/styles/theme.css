@@ -30,6 +30,41 @@
   --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', ui-monospace, monospace;
 }
 
+/* ── Hero section (landing page) ── */
+.hero-tagline {
+  font-family: var(--font-prose);
+  font-size: 1.65rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin: -0.5rem 0 1rem;
+}
+
+.hero-subtext {
+  font-family: var(--font-ui);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text-tertiary);
+  margin-bottom: 2.5rem;
+  max-width: 640px;
+}
+
+@media (max-width: 768px) {
+  .hero-tagline {
+    font-size: 1.35rem;
+  }
+  .hero-subtext {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-tagline {
+    font-size: 1.2rem;
+  }
+}
+
 /* ── Page background ── */
 body {
   background: var(--surface-page) !important;
