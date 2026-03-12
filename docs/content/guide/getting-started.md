@@ -171,7 +171,7 @@ The renderer converts the kebab-case name to PascalCase and calls `window.MyComp
 
 ```mermaid
 graph LR
-    A["YAML code fence"] --> B["Docsify renders as<br/>pre > code.lang-name"]
+    A["\`\`\`component-name<br/>YAML content<br/>\`\`\`"] --> B["Docsify renders as<br/>pre > code.lang-name"]
     B --> C["component-renderer.js<br/>finds registered names"]
     C --> D["js-yaml parses YAML"]
     D --> E["window.ComponentName(data)"]

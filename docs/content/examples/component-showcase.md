@@ -290,6 +290,19 @@ annotations:
     text: "Cache TTL in seconds. Set to 0 to disable caching."
 ```
 
+### Side by Side
+
+Two-panel comparison layout:
+
+```side-by-side
+left:
+  title: "Before"
+  content: "Old code here"
+right:
+  title: "After"
+  content: "New code here"
+```
+
 ### Mermaid — Sequence Diagram
 
 ```mermaid

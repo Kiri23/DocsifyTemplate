@@ -7,7 +7,7 @@
   var FRONTMATTER_REGEX = /^---\s*\n([\s\S]*?)\n---/;
 
   // Code fence component registry — these "languages" get parsed as YAML and rendered
-  var COMPONENT_REGISTRY = ['entity-schema', 'api-endpoint', 'status-flow', 'directive-table', 'step-type', 'config-example', 'card-grid'];
+  var COMPONENT_REGISTRY = ['entity-schema', 'api-endpoint', 'status-flow', 'directive-table', 'step-type', 'config-example', 'card-grid', 'side-by-side'];
 
   function hasFrontmatter(markdown) {
     return FRONTMATTER_REGEX.test(markdown);

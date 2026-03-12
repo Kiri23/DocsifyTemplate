@@ -10,7 +10,7 @@ tags: [reference, components, api]
 
 DocsifyTemplate includes 10 components split into two categories:
 
-**Registry components** (7) — used as YAML code fences in markdown. Write YAML, get interactive HTML:
+**Registry components** (8) — used as YAML code fences in markdown. Write YAML, get interactive HTML:
 
 ````markdown
 ```component-name
@@ -141,6 +141,37 @@ Sync steps get a green badge, async gets blue. Click "Config Example" to expand 
 
 ---
 
+### Comparison
+
+#### Side by Side
+
+Two-panel layout for showing input vs. output, before vs. after, or any content that benefits from direct comparison. Supports three panel modes: plain text, syntax-highlighted code, and live component rendering:
+
+````yaml
+```side-by-side
+left:
+  title: "YAML Input"
+  language: "yaml"
+  content: |
+    name: "User"
+    fields:
+      - name: "email"
+        type: "string"
+right:
+  title: "Live Preview"
+  component: "entity-schema"
+  data:
+    name: "User"
+    fields:
+      - name: "email"
+        type: "string"
+```
+````
+
+Panels sit side-by-side on desktop and stack vertically on mobile. Each panel can be plain text (`content`), a code block (`content` + `language`), or a live component (`component` + `data`).
+
+---
+
 ### Reference
 
 #### Directive Table
@@ -191,7 +222,7 @@ Click a state button to see its trigger, next states, and side effects. States a
 
 ### Registry Components — Full Schema
 
-These 7 components are registered in `COMPONENT_REGISTRY` and available as YAML code fences.
+These 8 components are registered in `COMPONENT_REGISTRY` and available as YAML code fences.
 
 #### card-grid
 
@@ -205,6 +236,25 @@ Renders as `window.CardGrid(data)`. Input is an **array** (not an object).
 | `href` | string | no | Link target (defaults to `#`) |
 
 **Renders:** Responsive grid — `grid-cols-1` → `md:grid-cols-2` → `lg:grid-cols-3`. Each card is an `<a>` tag.
+
+```side-by-side
+left:
+  title: "YAML"
+  language: "yaml"
+  content: |
+    - title: "Dashboard"
+      description: "View your metrics"
+      icon: "📊"
+      href: "#"
+right:
+  title: "Rendered"
+  component: "card-grid"
+  data:
+    - title: "Dashboard"
+      description: "View your metrics"
+      icon: "📊"
+      href: "#"
+```
 
 ---
 
@@ -230,6 +280,31 @@ Renders as `window.EntitySchema(data)`. Input is an **object**.
 
 **Renders:** Dark card with expandable rows. Click row → toggle description + enum values.
 
+```side-by-side
+left:
+  title: "YAML"
+  language: "yaml"
+  content: |
+    name: "User"
+    parent: "BaseEntity"
+    fields:
+      - name: "email"
+        type: "string"
+        required: true
+        description: "Must be unique"
+right:
+  title: "Rendered"
+  component: "entity-schema"
+  data:
+    name: "User"
+    parent: "BaseEntity"
+    fields:
+      - name: "email"
+        type: "string"
+        required: true
+        description: "Must be unique"
+```
+
 ---
 
 #### api-endpoint
@@ -254,6 +329,34 @@ Renders as `window.ApiEndpoint(data)`. Input is an **object**.
 
 **Renders:** Collapsible card. Header shows method badge (color-coded) + path. Click → toggle params table + response code.
 
+```side-by-side
+left:
+  title: "YAML"
+  language: "yaml"
+  content: |
+    method: "POST"
+    path: "/api/v1/users"
+    description: "Create a new user"
+    params:
+      - name: "email"
+        type: "string"
+        required: true
+    response: |
+      { "id": "usr_123" }
+right:
+  title: "Rendered"
+  component: "api-endpoint"
+  data:
+    method: "POST"
+    path: "/api/v1/users"
+    description: "Create a new user"
+    params:
+      - name: "email"
+        type: "string"
+        required: true
+    response: '{ "id": "usr_123" }'
+```
+
 ---
 
 #### status-flow
@@ -275,6 +378,39 @@ Renders as `window.StatusFlow(data)`. Input is an **object**.
 | `effects` | array | no | Side effects that occur on entry |
 
 **Renders:** Horizontal flow of pill buttons with arrows. Click state → toggle detail panel (trigger, next states, effects). Cycles through 6 colors.
+
+```side-by-side
+left:
+  title: "YAML"
+  language: "yaml"
+  content: |
+    states:
+      - id: "draft"
+        label: "Draft"
+        trigger: "User creates record"
+        next: ["review"]
+      - id: "review"
+        label: "Review"
+        trigger: "User submits"
+        next: ["approved"]
+      - id: "approved"
+        label: "Approved"
+right:
+  title: "Rendered"
+  component: "status-flow"
+  data:
+    states:
+      - id: "draft"
+        label: "Draft"
+        trigger: "User creates record"
+        next: ["review"]
+      - id: "review"
+        label: "Review"
+        trigger: "User submits"
+        next: ["approved"]
+      - id: "approved"
+        label: "Approved"
+```
 
 ---
 
@@ -308,6 +444,35 @@ Renders as `window.DirectiveTable(data)`. Input is an **object**.
 
 **Renders:** Searchable table with collapsible categories. Search filters by name + description. Max height 600px with scroll.
 
+```side-by-side
+left:
+  title: "YAML"
+  language: "yaml"
+  content: |
+    title: "Options"
+    searchable: true
+    categories:
+      - name: "Display"
+        directives:
+          - name: "ui:widget"
+            type: "string"
+            description: "Override default widget"
+            default: "text"
+right:
+  title: "Rendered"
+  component: "directive-table"
+  data:
+    title: "Options"
+    searchable: true
+    categories:
+      - name: "Display"
+        directives:
+          - name: "ui:widget"
+            type: "string"
+            description: "Override default widget"
+            default: "text"
+```
+
 ---
 
 #### step-type
@@ -333,6 +498,33 @@ Renders as `window.StepType(data)`. Input is an **object**.
 
 **Renders:** Card with sync (green) or async (blue) badge. Properties table + collapsible "Config Example" section.
 
+```side-by-side
+left:
+  title: "YAML"
+  language: "yaml"
+  content: |
+    name: "SendEmail"
+    category: "async"
+    description: "Sends email notifications"
+    properties:
+      - name: "to"
+        type: "string"
+        required: true
+        description: "Recipient address"
+right:
+  title: "Rendered"
+  component: "step-type"
+  data:
+    name: "SendEmail"
+    category: "async"
+    description: "Sends email notifications"
+    properties:
+      - name: "to"
+        type: "string"
+        required: true
+        description: "Recipient address"
+```
+
 ---
 
 #### config-example
@@ -354,6 +546,81 @@ Renders as `window.ConfigExample(data)`. Input is an **object**.
 | `text` | string | yes | Annotation text |
 
 **Renders:** Code block with line numbers. Annotated lines get a cyan background + numbered badge. Click badge → toggle annotation panel. Only one annotation visible at a time.
+
+```side-by-side
+left:
+  title: "YAML"
+  language: "yaml"
+  content: |
+    title: "Server Config"
+    language: "json"
+    code: |
+      {
+        "port": 3000,
+        "env": "production"
+      }
+    annotations:
+      - line: 2
+        text: "Port 1024-65535"
+right:
+  title: "Rendered"
+  component: "config-example"
+  data:
+    title: "Server Config"
+    language: "json"
+    code: "{\n  \"port\": 3000,\n  \"env\": \"production\"\n}"
+    annotations:
+      - line: 2
+        text: "Port 1024-65535"
+```
+
+---
+
+#### side-by-side
+
+Renders as `window.SideBySide(data)`. Input is an **object**.
+
+| Key | Type | Required | Description |
+|---|---|---|---|
+| `left` | object | no | Left panel configuration |
+| `right` | object | no | Right panel configuration |
+
+**Panel object (left / right):**
+
+| Key | Type | Required | Description |
+|---|---|---|---|
+| `title` | string | no | Panel heading (uppercase, small text) |
+| `content` | string | no | Panel body text (preserves whitespace). Used as code source when `language` is set |
+| `language` | string | no | If set, renders `content` as a syntax-highlighted code block |
+| `component` | string | no | Name of a registry component to render live (e.g. `"entity-schema"`) |
+| `data` | any | no | Data passed to `component` function. Required when `component` is set |
+
+**Panel modes:** Plain text (`content` only), code block (`content` + `language`), or live component (`component` + `data`).
+
+**Renders:** Two equal-width panels in a flex row. Stacks vertically (`flex-col`) on mobile, side-by-side (`md:flex-row`) on desktop. Each panel is a bordered card.
+
+```side-by-side
+left:
+  title: "YAML"
+  language: "yaml"
+  content: |
+    left:
+      title: "Before"
+      content: "Old code here"
+    right:
+      title: "After"
+      content: "New code here"
+right:
+  title: "Rendered"
+  component: "side-by-side"
+  data:
+    left:
+      title: "Before"
+      content: "Old code here"
+    right:
+      title: "After"
+      content: "New code here"
+```
 
 ---
 
