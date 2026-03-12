@@ -256,11 +256,14 @@ body {
   text-decoration-color: rgba(8, 145, 178, 0.3);
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
-  transition: text-decoration-color 0.15s ease, color 0.15s ease;
+  transition: text-decoration-color 0.2s var(--ease-out-quart),
+              text-decoration-thickness 0.2s var(--ease-out-quart),
+              color 0.15s ease;
 }
 
 .markdown-section a:hover {
   text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
   color: var(--accent-text);
 }
 

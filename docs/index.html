@@ -93,7 +93,7 @@
               var text = code.textContent;
               if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(function() {
-                  btn.textContent = 'Copied';
+                  btn.textContent = '\u2713 Copied';
                   btn.classList.add('copied');
                   setTimeout(function() {
                     btn.textContent = 'Copy';
@@ -113,7 +113,7 @@
                 ta.select();
                 try {
                   document.execCommand('copy');
-                  btn.textContent = 'Copied';
+                  btn.textContent = '\u2713 Copied';
                   btn.classList.add('copied');
                   setTimeout(function() {
                     btn.textContent = 'Copy';
@@ -131,6 +131,15 @@
         });
       }
     ]);
+  </script>
+
+  <!-- Console greeting for devs -->
+  <script>
+    console.log(
+      '%cDocsifyTemplate',
+      'font-size:1.5rem;font-weight:800;color:#0891b2'
+    );
+    console.log('Write YAML, get docs. No build step.\nhttps://github.com/Kiri23/DocsifyTemplate');
   </script>
 
   <!-- Docsify core -->
