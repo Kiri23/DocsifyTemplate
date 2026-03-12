@@ -1,8 +1,10 @@
-/* DocsifyTemplate Theme — Warm Light
-   Warm paper tones for reading, cool precision for code.
+/* DocsifyTemplate Theme — Editorial Warmth
+   Serif prose for PMs, precise code for devs.
+   Warm paper tones with a Newsreader editorial feel.
    Primary accent: cyan-600 (#0891b2)
-   Text: stone palette for warmth
 */
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..800;1,6..72,300..800&display=swap');
 
 :root {
   --theme-color: #0891b2;
@@ -21,6 +23,11 @@
   --accent: #0891b2;
   --accent-light: #ecfeff;
   --accent-text: #0e7490;
+
+  /* Font stacks */
+  --font-prose: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', ui-monospace, monospace;
 }
 
 /* ── Page background ── */
@@ -36,42 +43,71 @@ body {
 .sidebar {
   border-right: 1px solid var(--border-subtle);
   background: var(--surface-page) !important;
+  font-family: var(--font-ui);
 }
 
 .sidebar ul li a {
   color: var(--text-secondary);
   font-size: 0.875rem;
   line-height: 1.7;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease;
+  display: block;
+  padding: 0.15rem 0.75rem;
+  border-radius: 0.375rem;
+  margin: 0.05rem 0.5rem;
 }
 
 .sidebar ul li a:hover {
   color: var(--accent);
+  background: var(--accent-light);
 }
 
+/* Active page — left accent bar + tinted background */
 .sidebar ul li.active > a {
   color: var(--accent);
   font-weight: 600;
+  background: var(--accent-light);
+  box-shadow: inset 3px 0 0 var(--accent);
+  border-radius: 0;
+  border-radius: 0 0.375rem 0.375rem 0;
+  margin-left: 0;
+  padding-left: calc(0.75rem + 0.5rem);
 }
 
+/* Top-level sidebar categories */
 .sidebar .sidebar-nav > ul > li > a {
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
   color: var(--text-muted);
-  margin-top: 1.25rem;
+  margin-top: 1.5rem;
+  padding: 0.25rem 0.75rem;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.sidebar .sidebar-nav > ul > li > a:hover {
+  background: none !important;
+  color: var(--text-tertiary);
 }
 
 .sidebar .sidebar-nav > ul > li:first-child > a {
   margin-top: 0;
 }
 
+/* Sub-items indent */
+.sidebar .sidebar-nav > ul > li > ul {
+  padding-left: 0;
+}
+
 /* App name / logo */
 .app-name-link {
   color: var(--text-primary) !important;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  font-size: 1.1rem !important;
+  font-family: var(--font-prose) !important;
 }
 
 /* ── Content area ── */
@@ -79,7 +115,9 @@ body {
   max-width: 960px;
   padding: 2.5rem 3rem;
   color: var(--text-secondary);
-  line-height: 1.75;
+  font-family: var(--font-prose);
+  font-size: 1.05rem;
+  line-height: 1.8;
 }
 
 /* ── Typography ── */
@@ -87,12 +125,13 @@ body {
   color: var(--text-primary);
   font-weight: 800;
   margin-top: 0;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  font-size: 2rem;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  font-size: 2.25rem;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--border-subtle);
-  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-default);
+  margin-bottom: 1.75rem;
+  font-family: var(--font-prose);
 }
 
 .markdown-section h2 {
@@ -100,38 +139,46 @@ body {
   font-weight: 700;
   border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 0.5rem;
-  margin-top: 2.5rem;
-  font-size: 1.375rem;
-  letter-spacing: -0.01em;
+  margin-top: 3rem;
+  font-size: 1.5rem;
+  letter-spacing: -0.015em;
+  font-family: var(--font-prose);
 }
 
 .markdown-section h3 {
   color: var(--text-primary);
   font-weight: 600;
-  margin-top: 2rem;
-  font-size: 1.125rem;
+  margin-top: 2.25rem;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+  font-family: var(--font-prose);
 }
 
 .markdown-section h4 {
   color: var(--text-secondary);
   font-weight: 600;
-  margin-top: 1.5rem;
+  margin-top: 1.75rem;
+  font-size: 1.05rem;
+  font-family: var(--font-ui);
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .markdown-section p {
-  margin: 1rem 0;
+  margin: 1.15rem 0;
   color: var(--text-secondary);
 }
 
 .markdown-section a {
   color: var(--accent);
   text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.15s ease;
+  border-bottom: 1px solid rgba(8, 145, 178, 0.3);
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .markdown-section a:hover {
   border-bottom-color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* ── Lists ── */
@@ -140,7 +187,11 @@ body {
 }
 
 .markdown-section li {
-  margin: 0.35rem 0;
+  margin: 0.4rem 0;
+}
+
+.markdown-section li::marker {
+  color: var(--text-muted);
 }
 
 /* ── Tables ── */
@@ -148,17 +199,18 @@ body {
   border-collapse: collapse;
   width: 100%;
   font-size: 0.875rem;
-  margin: 1.25rem 0;
+  margin: 1.5rem 0;
+  font-family: var(--font-ui);
 }
 
 .markdown-section table th {
   background: var(--surface-raised);
   font-weight: 600;
   text-align: left;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
 }
 
 .markdown-section table th,
@@ -179,12 +231,20 @@ body {
 .markdown-section pre {
   border-radius: 0.625rem;
   border: 1px solid var(--border-subtle);
-  margin: 1.25rem 0;
+  margin: 1.5rem 0;
+  position: relative;
+  background: #1e1e2e !important;
+}
+
+.markdown-section pre code {
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  line-height: 1.65;
 }
 
 .markdown-section code {
   font-size: 0.85rem;
-  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
 }
 
 /* Inline code */
@@ -195,10 +255,52 @@ body {
 .markdown-section h4 code {
   background: var(--surface-raised);
   color: var(--accent-text);
-  padding: 0.15em 0.45em;
+  padding: 0.2em 0.45em;
   border-radius: 0.3rem;
-  font-size: 0.84em;
+  font-size: 0.82em;
   border: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+}
+
+/* ── Copy button on code blocks ── */
+.code-copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+  font-family: var(--font-ui);
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  opacity: 0;
+  z-index: 2;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.markdown-section pre:hover .code-copy-btn {
+  opacity: 1;
+}
+
+.code-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.code-copy-btn.copied {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.3);
+  background: rgba(52, 211, 153, 0.1);
+}
+
+/* Code block container (from CodeBlock component) */
+.code-block-container {
+  position: relative;
 }
 
 /* ── Tabs ── */
@@ -206,6 +308,7 @@ body {
   cursor: pointer;
   border: none;
   background: none;
+  font-family: var(--font-ui) !important;
 }
 
 .tab-btn:focus {
@@ -214,11 +317,79 @@ body {
   border-radius: 0.25rem;
 }
 
+/* Tab bar — override component inline styles for polish */
+.tab-bar {
+  font-family: var(--font-ui) !important;
+}
+
+/* ── Tab zone visual differentiation ── */
+
+/* Quick Start zone — warm, spacious, generous */
+.tab-zone-quick-start {
+  background: var(--surface-page) !important;
+  padding: 2rem 0 !important;
+}
+
+.tab-zone-quick-start h2 {
+  font-size: 1.5rem !important;
+  color: var(--text-primary) !important;
+}
+
+.tab-zone-quick-start h3 {
+  font-size: 1.2rem !important;
+}
+
+.tab-zone-quick-start p {
+  font-size: 1.05rem !important;
+  line-height: 1.85 !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Technical Reference zone — cooler, denser, precise */
+.tab-zone-technical {
+  background: #f8fafc !important;
+  padding: 1.5rem 0 1.5rem 1.5rem !important;
+  border-left: 3px solid #6366f1 !important;
+  margin-left: -0.5rem !important;
+}
+
+.tab-zone-technical h2 {
+  font-size: 1.25rem !important;
+  color: #1e293b !important;
+  font-family: var(--font-ui) !important;
+  letter-spacing: -0.01em;
+}
+
+.tab-zone-technical h3 {
+  font-size: 1.05rem !important;
+  color: #334155 !important;
+  font-family: var(--font-ui) !important;
+}
+
+.tab-zone-technical p {
+  font-size: 0.9rem !important;
+  line-height: 1.65 !important;
+  color: #475569 !important;
+}
+
+.tab-zone-technical table {
+  font-size: 0.825rem !important;
+}
+
+.tab-zone-technical code {
+  font-size: 0.78rem !important;
+}
+
+.tab-zone-technical li {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
 /* ── Mermaid diagrams ── */
 .mermaid {
   text-align: center;
-  margin: 1.5rem 0;
-  padding: 1.75rem 1.25rem;
+  margin: 1.75rem 0;
+  padding: 2rem 1.5rem;
   background: var(--surface-raised);
   border: 1px solid var(--border-subtle);
   border-radius: 0.75rem;
@@ -235,32 +406,30 @@ body {
 .markdown-section blockquote {
   border-left: 3px solid var(--accent);
   background: var(--accent-light);
-  padding: 0.85rem 1.15rem;
-  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
   border-radius: 0 0.5rem 0.5rem 0;
   color: var(--text-secondary);
-  font-size: 0.925rem;
+  font-size: 0.95rem;
+  font-style: italic;
 }
 
 .markdown-section blockquote p {
   margin: 0;
+  font-style: italic;
 }
 
 .markdown-section blockquote code {
   background: rgba(8, 145, 178, 0.08);
   border-color: rgba(8, 145, 178, 0.15);
+  font-style: normal;
 }
 
 /* ── Horizontal rules ── */
 .markdown-section hr {
   border: none;
   border-top: 1px solid var(--border-subtle);
-  margin: 2.5rem 0;
-}
-
-/* ── Copy button on code blocks ── */
-.code-block-container {
-  position: relative;
+  margin: 3rem 0;
 }
 
 /* ── Search ── */
@@ -268,6 +437,7 @@ body {
   border-color: var(--border-default) !important;
   background: var(--surface-page) !important;
   border-radius: 0.5rem !important;
+  font-family: var(--font-ui) !important;
 }
 
 .search input:focus {
@@ -282,32 +452,116 @@ body {
 /* ── Strong/Bold ── */
 .markdown-section strong {
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 700;
 }
 
-/* ── Numbered steps pattern — bold numbered text ── */
+/* ── Numbered steps pattern ── */
 .markdown-section p strong:first-child {
   color: var(--text-primary);
+}
+
+/* ── Scrollbar for dark components ── */
+.markdown-section pre::-webkit-scrollbar {
+  height: 6px;
+}
+
+.markdown-section pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.markdown-section pre::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.markdown-section pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Print ── */
+@media print {
+  .sidebar, .app-nav, .tab-bar, .code-copy-btn {
+    display: none !important;
+  }
+  .markdown-section {
+    max-width: 100%;
+    padding: 0;
+  }
 }
 
 /* ── Mobile ── */
 @media (max-width: 768px) {
   .markdown-section {
     max-width: 100%;
-    padding: 1.25rem 1rem;
+    padding: 1.5rem 1.25rem;
+    font-size: 1rem;
   }
 
   .markdown-section h1 {
-    font-size: 1.625rem;
+    font-size: 1.75rem;
+  }
+
+  .markdown-section h2 {
+    font-size: 1.3rem;
+    margin-top: 2rem;
+  }
+
+  .markdown-section h3 {
+    font-size: 1.1rem;
   }
 
   .mermaid {
-    padding: 0.75rem 0.5rem;
+    padding: 1rem 0.75rem;
+  }
+
+  /* Tabs: scroll horizontally on small screens */
+  .tab-bar nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-bar {
+    margin-left: -1.25rem !important;
+    margin-right: -1.25rem !important;
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+
+  /* Code blocks: prevent horizontal scroll by wrapping */
+  .markdown-section pre {
+    border-radius: 0.5rem;
+    font-size: 0.78rem;
+  }
+
+  .markdown-section pre code {
+    font-size: 0.75rem;
+  }
+
+  /* Copy button always visible on mobile (no hover) */
+  .code-copy-btn {
+    opacity: 1;
+  }
+
+  /* Technical zone: reduce left padding on mobile */
+  .tab-zone-technical {
+    padding-left: 1rem !important;
+    margin-left: 0 !important;
   }
 }
 
 @media (max-width: 480px) {
   .markdown-section {
-    padding: 1rem 0.75rem;
+    padding: 1.25rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .markdown-section h1 {
+    font-size: 1.5rem;
+  }
+
+  .tab-btn {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    font-size: 0.8rem !important;
   }
 }

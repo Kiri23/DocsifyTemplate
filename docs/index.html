@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DocsifyTemplate</title>
 
+  <!-- Font preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <!-- Docsify theme -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
 
@@ -66,6 +70,42 @@
 
   <!-- Custom plugins (must load before Docsify core — they push to $docsify.plugins) -->
   <script src="plugins/component-renderer.js"></script>
+
+  <!-- Copy button plugin — adds copy buttons to all code blocks -->
+  <script>
+    window.$docsify = window.$docsify || {};
+    window.$docsify.plugins = (window.$docsify.plugins || []).concat([
+      function copyButtonPlugin(hook) {
+        hook.doneEach(function() {
+          var pres = document.querySelectorAll('.markdown-section pre');
+          pres.forEach(function(pre) {
+            if (pre.querySelector('.code-copy-btn')) return;
+            var code = pre.querySelector('code');
+            if (!code) return;
+            // Skip mermaid and component-rendered blocks
+            if (code.classList.contains('lang-mermaid') || code.classList.contains('language-mermaid')) return;
+
+            pre.style.position = 'relative';
+            var btn = document.createElement('button');
+            btn.className = 'code-copy-btn';
+            btn.textContent = 'Copy';
+            btn.addEventListener('click', function() {
+              var text = code.textContent;
+              navigator.clipboard.writeText(text).then(function() {
+                btn.textContent = 'Copied';
+                btn.classList.add('copied');
+                setTimeout(function() {
+                  btn.textContent = 'Copy';
+                  btn.classList.remove('copied');
+                }, 2000);
+              });
+            });
+            pre.appendChild(btn);
+          });
+        });
+      }
+    ]);
+  </script>
 
   <!-- Docsify core -->
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
