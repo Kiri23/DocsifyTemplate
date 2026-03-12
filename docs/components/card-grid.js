@@ -13,7 +13,7 @@ window.CardGrid = function CardGrid(cards) {
       var icon = card.icon || '';
       var href = card.href || '#';
 
-      return '<a href="' + href + '" class="block bg-surface rounded-xl p-5 md:p-6 min-h-[120px] border border-border hover:border-primary/40 hover:shadow-[0_2px_12px_rgba(8,145,178,0.08)] transition-all duration-200 group no-underline" style="text-decoration:none">' +
+      return '<a href="' + href + '" class="block bg-surface rounded-xl p-5 md:p-6 min-h-[120px] border border-border hover:border-primary/40 hover:shadow-[0_2px_12px_rgba(8,145,178,0.08)] hover:-translate-y-0.5 transition-all duration-200 group no-underline" style="text-decoration:none">' +
         '<div class="text-2xl md:text-3xl mb-2 md:mb-3 opacity-70 group-hover:opacity-100 transition-opacity" style="font-family: ui-monospace, monospace; color: #0891b2;">' + icon + '</div>' +
         '<h3 class="text-base md:text-lg font-bold text-text-primary mb-1 md:mb-1.5 group-hover:text-primary transition-colors" style="border: none; margin-top: 0; padding: 0;">' + title + '</h3>' +
         '<p class="text-sm text-text-muted leading-relaxed" style="margin: 0;">' + description + '</p>' +

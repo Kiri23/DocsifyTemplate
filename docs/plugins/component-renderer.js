@@ -226,6 +226,39 @@
             htmx.process(section);
           }
         }
+
+        // Scroll-reveal: animate h2 sections on landing page into view
+        var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!reducedMotion) {
+          var sections = document.querySelectorAll('.markdown-section > h2');
+          sections.forEach(function(h2) {
+            // Collect h2 + its sibling content until next h2
+            var els = [h2];
+            var next = h2.nextElementSibling;
+            while (next && next.tagName !== 'H2') {
+              els.push(next);
+              next = next.nextElementSibling;
+            }
+            // Wrap in a scroll-reveal container
+            var wrapper = document.createElement('div');
+            wrapper.className = 'scroll-reveal';
+            h2.parentNode.insertBefore(wrapper, h2);
+            els.forEach(function(el) { wrapper.appendChild(el); });
+          });
+
+          var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+              }
+            });
+          }, { threshold: 0.15 });
+
+          document.querySelectorAll('.scroll-reveal').forEach(function(el) {
+            observer.observe(el);
+          });
+        }
       });
     }
   ]);

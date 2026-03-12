@@ -30,6 +30,11 @@
   --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', ui-monospace, monospace;
 }
 
+/* ── Easing tokens ── */
+:root {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
 /* ── Hero section (landing page) ── */
 .hero-tagline {
   font-family: var(--font-prose);
@@ -39,6 +44,7 @@
   color: var(--text-primary);
   letter-spacing: -0.02em;
   margin: -0.5rem 0 1rem;
+  animation: hero-enter 600ms var(--ease-out-quart) both;
 }
 
 .hero-subtext {
@@ -48,6 +54,47 @@
   color: var(--text-tertiary);
   margin-bottom: 2.5rem;
   max-width: 640px;
+  animation: hero-enter 600ms var(--ease-out-quart) 100ms both;
+}
+
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Scroll reveal ── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 500ms var(--ease-out-quart), transform 500ms var(--ease-out-quart);
+}
+
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Tab content crossfade ── */
+.tab-zone-quick-start,
+.tab-zone-technical {
+  animation: tab-fade 250ms var(--ease-out-quart) both;
+}
+
+@keyframes tab-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
