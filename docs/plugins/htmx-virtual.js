@@ -21,9 +21,11 @@
     var target = document.getElementById('tab-content');
     if (!target) return;
 
+    // Clear zone class, swap content, then re-apply to re-trigger animation
+    target.className = '';
     target.innerHTML = window.__pageSections[viewType];
-
-    // Apply zone class for visual differentiation
+    // Force reflow so the browser sees the class removal before re-adding
+    void target.offsetHeight;
     target.className = 'tab-zone-' + viewType;
 
     // Re-run post-render hooks on new content
