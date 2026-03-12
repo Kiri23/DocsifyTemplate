@@ -33,7 +33,7 @@ window.SideBySide = function SideBySide(data) {
     var panelData = panel.data != null ? panel.data : null;
 
     var titleHtml = title
-      ? '<div class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2 pb-2 border-b border-gray-200">' + title + '</div>'
+      ? '<div class="text-xs font-semibold uppercase tracking-wide text-text-muted mb-2 pb-2 border-b border-border">' + title + '</div>'
       : '';
 
     var bodyHtml;
@@ -51,11 +51,11 @@ window.SideBySide = function SideBySide(data) {
       bodyHtml = '<pre class="!m-0 !rounded-md !bg-gray-900"><code class="language-' + language + '">' + escapeHtml(content) + '</code></pre>';
     } else {
       // Mode 1: plain text
-      bodyHtml = '<div class="text-sm text-gray-800 whitespace-pre-wrap break-words">' + content + '</div>';
+      bodyHtml = '<div class="text-sm text-text-secondary whitespace-pre-wrap break-words">' + content + '</div>';
     }
 
     return '<div class="flex-1 min-w-0">' +
-      '<div class="bg-white border border-gray-200 rounded-lg p-4 h-full">' +
+      '<div class="bg-surface border border-border rounded-lg p-4 h-full">' +
         titleHtml +
         bodyHtml +
       '</div>' +

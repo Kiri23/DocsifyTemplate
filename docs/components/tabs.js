@@ -44,43 +44,17 @@ window.Tabs = function Tabs(tabs, targetId) {
               'if(content){content.className=\'tab-zone-\'+zone;}' +
               'document.querySelectorAll(\'.tab-btn\').forEach(function(b){' +
                 'b.className=\'tab-btn relative px-6 py-3.5 text-sm tracking-wide transition-all duration-200 text-[#78716c] hover:text-[#44403c] hover:bg-[#efedeb] font-medium\';' +
+                'b.setAttribute(\'aria-selected\',\'false\');' +
               '});' +
               'var isTech=zone===\'technical\';' +
               'this.className=\'tab-btn relative px-6 py-3.5 text-sm tracking-wide transition-all duration-200 \'+(isTech?\'border-b-[3px] border-[#6366f1] text-[#6366f1] bg-white font-bold\':\'border-b-[3px] border-[#0891b2] text-[#0891b2] bg-white font-bold\');' +
+              'this.setAttribute(\'aria-selected\',\'true\');' +
             '" ' +
-            'role="tab" type="button">' +
+            'role="tab" aria-selected="' + (isActive ? 'true' : 'false') + '" type="button">' +
             icon + tab.label +
             '</button>';
         }).join('')}
       </nav>
     </div>
-    <style>
-      /* Quick Start zone — warm, spacious, approachable */
-      .tab-zone-quick-start {
-        background: #faf9f7;
-        padding: 2rem 0;
-        font-size: 1rem;
-        line-height: 1.8;
-      }
-      .tab-zone-quick-start h2 { color: #1c1917; font-size: 1.5rem; }
-      .tab-zone-quick-start h3 { color: #1c1917; font-size: 1.2rem; }
-      .tab-zone-quick-start p { color: #44403c; }
-
-      /* Technical Reference zone — cool, dense, precise */
-      .tab-zone-technical {
-        background: #f8fafc;
-        padding: 1.5rem 0;
-        font-size: 0.9rem;
-        line-height: 1.65;
-        border-left: 3px solid #6366f1;
-        padding-left: 1.5rem;
-        margin-left: -0.5rem;
-      }
-      .tab-zone-technical h2 { color: #1e293b; font-size: 1.25rem; letter-spacing: -0.01em; }
-      .tab-zone-technical h3 { color: #334155; font-size: 1.05rem; }
-      .tab-zone-technical p { color: #475569; font-size: 0.9rem; }
-      .tab-zone-technical table { font-size: 0.825rem; }
-      .tab-zone-technical code { font-size: 0.8rem; }
-    </style>
   `;
 };

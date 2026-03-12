@@ -180,7 +180,7 @@
           { label: 'Technical Reference', href: '/api/switch/technical', active: false }
         ], 'tab-content');
 
-        var enhanced = tabs + '<div id="tab-content" class="tab-zone-quick-start">' + quickStartHtml + '</div>';
+        var enhanced = tabs + '<div id="tab-content" class="tab-zone-quick-start" role="tabpanel">' + quickStartHtml + '</div>';
         next(enhanced);
       });
 

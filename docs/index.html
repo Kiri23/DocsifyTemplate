@@ -91,14 +91,40 @@
             btn.textContent = 'Copy';
             btn.addEventListener('click', function() {
               var text = code.textContent;
-              navigator.clipboard.writeText(text).then(function() {
-                btn.textContent = 'Copied';
-                btn.classList.add('copied');
-                setTimeout(function() {
-                  btn.textContent = 'Copy';
-                  btn.classList.remove('copied');
-                }, 2000);
-              });
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                  btn.textContent = 'Copied';
+                  btn.classList.add('copied');
+                  setTimeout(function() {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                  }, 2000);
+                }, function() {
+                  btn.textContent = 'Failed';
+                  setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+                });
+              } else {
+                // Fallback for older browsers / insecure contexts
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                  document.execCommand('copy');
+                  btn.textContent = 'Copied';
+                  btn.classList.add('copied');
+                  setTimeout(function() {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                  }, 2000);
+                } catch(e) {
+                  btn.textContent = 'Failed';
+                  setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+                }
+                document.body.removeChild(ta);
+              }
             });
             pre.appendChild(btn);
           });
