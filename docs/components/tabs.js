@@ -1,25 +1,26 @@
-// Tabs Component — vanilla JS + HTMX, no Alpine.js
+// Tabs Component — warm/cool split for Getting Started vs Technical Reference
 // Registers window.Tabs
 
 window.Tabs = function Tabs(tabs, targetId) {
   targetId = targetId || 'tab-content';
 
   return `
-    <div class="border-b border-gray-200 mb-6">
-      <nav class="flex space-x-4" role="tablist">
+    <div class="mb-8 border-b-2 border-border">
+      <nav class="flex gap-1" role="tablist">
         ${tabs.map(function(tab) {
-          var activeClass = tab.active
-            ? 'border-b-3 border-primary text-primary'
-            : 'text-gray-600 hover:text-gray-900';
+          var isActive = tab.active;
+          var activeClass = isActive
+            ? 'border-b-[3px] border-primary text-primary bg-primary-light/60'
+            : 'text-text-muted hover:text-text-secondary hover:bg-surface-raised';
 
           var htmxAttrs = tab.href
             ? 'hx-get="' + tab.href + '" hx-target="#' + targetId + '" hx-swap="innerHTML"'
             : '';
 
           return '<button ' +
-            'class="tab-btn px-4 md:px-6 py-3 md:py-4 min-h-[44px] text-sm md:text-base font-medium transition-colors duration-200 ' + activeClass + '" ' +
+            'class="tab-btn relative px-5 md:px-7 py-3 md:py-3.5 min-h-[44px] text-sm font-semibold tracking-wide transition-all duration-200 rounded-t-lg ' + activeClass + '" ' +
             htmxAttrs + ' ' +
-            'onclick="document.querySelectorAll(\'.tab-btn\').forEach(function(b){b.classList.remove(\'border-b-3\',\'border-primary\',\'text-primary\');b.classList.add(\'text-gray-600\')});this.classList.add(\'border-b-3\',\'border-primary\',\'text-primary\');this.classList.remove(\'text-gray-600\');" ' +
+            'onclick="document.querySelectorAll(\'.tab-btn\').forEach(function(b){b.classList.remove(\'border-b-[3px]\',\'border-primary\',\'text-primary\',\'bg-primary-light/60\');b.classList.add(\'text-text-muted\')});this.classList.add(\'border-b-[3px]\',\'border-primary\',\'text-primary\',\'bg-primary-light/60\');this.classList.remove(\'text-text-muted\');" ' +
             'role="tab" type="button">' +
             tab.label +
             '</button>';

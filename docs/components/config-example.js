@@ -9,16 +9,13 @@ window.ConfigExample = function ConfigExample(data) {
 
   var id = 'ce-' + Math.random().toString(36).substr(2, 6);
 
-  // Split code into lines
   var lines = code.split('\n');
 
-  // Build line number → annotation map
   var annotationMap = {};
   annotations.forEach(function(ann, idx) {
     annotationMap[ann.line] = { index: idx + 1, text: ann.text };
   });
 
-  // Render lines with annotation markers
   var codeLines = lines.map(function(line, i) {
     var lineNum = i + 1;
     var ann = annotationMap[lineNum];
@@ -43,26 +40,24 @@ window.ConfigExample = function ConfigExample(data) {
     '</div>';
   }).join('');
 
-  // Annotation panels
   var annotationPanels = annotations.map(function(ann, idx) {
     var panelId = id + '-ann-' + (idx + 1);
-    return '<div id="' + panelId + '" class="hidden px-4 py-3 bg-gray-800/80 border-l-2 border-cyan-500 mx-4 my-2 rounded-r">' +
+    return '<div id="' + panelId + '" class="hidden px-4 py-3 bg-gray-800/60 border-l-2 border-cyan-500 mx-4 my-2 rounded-r-lg">' +
       '<div class="flex items-start gap-2">' +
         '<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-cyan-500 text-white text-xs font-bold flex-shrink-0 mt-0.5">' + (idx + 1) + '</span>' +
-        '<span class="text-gray-300 text-sm">' + ann.text + '</span>' +
+        '<span class="text-gray-300 text-sm leading-relaxed">' + ann.text + '</span>' +
       '</div>' +
     '</div>';
   }).join('');
 
-  // Title bar
   var titleHtml = title
-    ? '<div class="bg-gray-800 px-4 py-2.5 border-b border-gray-700 flex items-center justify-between">' +
+    ? '<div class="bg-gray-800/80 px-4 py-2.5 border-b border-gray-700/60 flex items-center justify-between">' +
         '<span class="font-semibold text-gray-200 text-sm">' + title + '</span>' +
         '<span class="text-gray-500 text-xs">' + annotations.length + ' annotation' + (annotations.length !== 1 ? 's' : '') + '</span>' +
       '</div>'
     : '';
 
-  return '<div class="rounded-lg overflow-hidden border border-gray-700 bg-gray-900 my-4 shadow-lg" id="' + id + '">' +
+  return '<div class="rounded-xl overflow-hidden border border-gray-700/60 bg-gray-900 my-5 shadow-md" id="' + id + '">' +
     titleHtml +
     '<div class="py-3 font-mono text-sm leading-relaxed overflow-x-auto">' +
       codeLines +
@@ -76,7 +71,6 @@ window._ceToggle = function(containerId, annotationIndex) {
   var panel = document.getElementById(containerId + '-ann-' + annotationIndex);
   if (!panel) return;
 
-  // Hide all other annotations in this container
   var container = document.getElementById(containerId + '-annotations');
   if (container) {
     var panels = container.querySelectorAll('[id^="' + containerId + '-ann-"]');
