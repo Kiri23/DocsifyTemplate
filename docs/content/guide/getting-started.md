@@ -164,11 +164,11 @@ The renderer converts the kebab-case name to PascalCase and calls `window.MyComp
 
 ```mermaid
 graph LR
-    A["```component-name<br/>YAML content<br/>```"] --> B["Docsify renders as<br/>&lt;pre&gt;&lt;code class='lang-component-name'&gt;"]
+    A["YAML code fence"] --> B["Docsify renders as<br/>pre > code.lang-name"]
     B --> C["component-renderer.js<br/>finds registered names"]
     C --> D["js-yaml parses YAML"]
-    D --> E["Calls window.ComponentName(data)"]
-    E --> F["HTML string replaces &lt;pre&gt; block"]
+    D --> E["window.ComponentName(data)"]
+    E --> F["HTML replaces pre block"]
 ```
 
 ### CDN Dependencies
@@ -209,9 +209,11 @@ Change both to match your brand.
 
 ### Frontmatter Limitations
 
-The frontmatter parser in `component-renderer.js` is a simple regex-based parser — **not** the full js-yaml library. It handles:
+The frontmatter parser in `component-renderer.js` uses a simple regex-based parser instead of js-yaml. It handles:
 
 - Simple key-value pairs: `type: guide`
 - Arrays: `tags: [tag1, tag2]`
 
 It does **not** handle nested objects, multiline values, or complex YAML features. This only affects frontmatter — code fence components use the full js-yaml parser and support the complete YAML spec.
+
+> Switching frontmatter parsing to js-yaml would remove these limitations. PRs welcome.
