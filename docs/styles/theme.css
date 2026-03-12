@@ -454,35 +454,45 @@ body {
 }
 
 .tab-zone-technical h2 {
-  font-size: 1.25rem !important;
+  font-size: 1.3rem !important;
   color: #1e293b !important;
-  font-family: var(--font-ui) !important;
+  font-family: var(--font-prose) !important;
   letter-spacing: -0.01em;
+  margin-top: 2.25rem;
+  padding-bottom: 0.4rem;
 }
 
 .tab-zone-technical h3 {
-  font-size: 1.05rem !important;
+  font-size: 1.1rem !important;
   color: #334155 !important;
-  font-family: var(--font-ui) !important;
+  font-family: var(--font-prose) !important;
+  margin-top: 1.75rem;
 }
 
 .tab-zone-technical p {
-  font-size: 0.9rem !important;
-  line-height: 1.65 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.7 !important;
   color: #475569 !important;
+  font-family: var(--font-prose) !important;
 }
 
 .tab-zone-technical table {
-  font-size: 0.825rem !important;
+  font-size: 0.875rem !important;
+}
+
+.tab-zone-technical table td,
+.tab-zone-technical table th {
+  font-family: var(--font-prose) !important;
 }
 
 .tab-zone-technical code {
-  font-size: 0.78rem !important;
+  font-size: 0.8rem !important;
 }
 
 .tab-zone-technical li {
-  font-size: 0.9rem;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  font-family: var(--font-prose);
 }
 
 /* ── Mermaid diagrams ── */

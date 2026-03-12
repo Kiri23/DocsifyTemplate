@@ -30,9 +30,9 @@ A documentation site serving two audiences: developers (precise reference) and n
 |---|---|---|
 | `#f8fafc` | — | Technical tab background |
 | `#6366f1` | — | Technical tab accent (indigo) |
-| `#1e293b` | — | Technical zone h2 |
-| `#334155` | — | Technical zone h3 |
-| `#475569` | — | Technical zone body text |
+| `#1e293b` | — | Technical zone h2 (serif, 1.3rem) |
+| `#334155` | — | Technical zone h3 (serif, 1.1rem) |
+| `#475569` | — | Technical zone body text (serif, 0.95rem) |
 
 ### Dark Component Palette
 | Token | Value | Usage |
@@ -58,6 +58,12 @@ A documentation site serving two audiences: developers (precise reference) and n
 
 ### Tailwind Theme Tokens
 Defined in `index.html` `@theme` block: `primary`, `primary-light`, `brand`, `surface`, `surface-raised`, `border`, `border-strong`, `text-primary`, `text-secondary`, `text-muted`.
+
+### Hero Section
+| Token | Value | Usage |
+|---|---|---|
+| `.hero-tagline` | Newsreader `1.65rem`, weight 600, `-0.02em` | Landing page value prop |
+| `.hero-subtext` | UI font `1.05rem`, `--text-tertiary`, max-width 640px | Supporting description |
 
 ## Typography
 
@@ -131,18 +137,20 @@ Most frequent values: `px-4` (8x), `py-2.5` (5x), `py-2` (5x), `px-2.5` (6x), `g
 ## Border Radius Scale
 | Token | CSS | Tailwind | Usage (count) |
 |---|---|---|---|
-| Container | `0.75rem` | `rounded-xl` | Dark components, cards (7x) |
+| Container | `0.75rem` | `rounded-xl` | Dark components, cards (8x) |
 | Inner | `0.5rem` | `rounded-lg` | Code blocks, mermaid, inner panels (5x) |
-| Badge | `0.375rem` | `rounded-md` | Badges, method labels (5x) |
+| Badge | `0.375rem` | `rounded-md` | Badges, sidebar links (7x) |
 | Inline | `0.3rem` | — | Inline code |
 | Button | `0.35rem` | — | Copy button |
 | Tab focus | `0.25rem` | — | Focus outline |
+
+> **Known inconsistency:** Light-mode radius has 7 distinct values (0.25–0.75rem). Dark-mode is consistent (`rounded-xl`/`rounded-lg`/`rounded-md`). Consider consolidating light-mode to the same 3-tier scale.
 
 ## Surfaces
 
 ### Two Temperature Zones
 1. **Quick Start / warm zone:** `#faf9f7` background, warm borders, stone text, serif prose, generous spacing.
-2. **Technical Reference / cool zone:** `#f8fafc` background, `3px solid #6366f1` left border, sans-serif headings, tighter spacing, smaller font sizes.
+2. **Technical Reference / cool zone:** `#f8fafc` background, `3px solid #6366f1` left border, serif prose (same Newsreader family), tighter spacing, slightly smaller headings. Same site at different densities.
 
 ### Component Container Pattern (dark) — 5 identical instances
 ```
@@ -217,6 +225,12 @@ bg-gray-800/60 px-4 py-2.5 border-b border-gray-700/60
 
 ### Uppercase Labels
 - `text-xs font-semibold uppercase tracking-wider text-gray-500`.
+
+### Side-by-Side
+- Two-panel flex layout: `flex-col md:flex-row gap-4`.
+- Panel: `bg-surface border border-border rounded-lg p-4`.
+- Three modes: plain text, syntax-highlighted code, live component render.
+- Used on landing page for YAML-input → rendered-output demo.
 
 ### Blockquotes
 - `border-left: 3px solid accent`, `bg-accent-light`.
