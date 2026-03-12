@@ -83,13 +83,13 @@
 /* ── Tab content crossfade ── */
 .tab-zone-quick-start,
 .tab-zone-technical {
-  animation: tab-fade 250ms var(--ease-out-quart) both;
+  animation: tab-fade 350ms var(--ease-out-quart) both;
 }
 
 @keyframes tab-fade {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
