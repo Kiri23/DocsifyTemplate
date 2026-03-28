@@ -91,6 +91,21 @@
     return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
+  // Capture rendered Mermaid SVGs from the DOM into files object.
+  // The Lua filter handles replacing mermaid code fences with image refs.
+  // SVGs are named mermaid-0.svg, mermaid-1.svg, etc.
+  function captureMermaidSVGs(files) {
+    var svgElements = document.querySelectorAll('.markdown-section .mermaid svg');
+    var count = 0;
+    svgElements.forEach(function (svg, idx) {
+      var svgStr = new XMLSerializer().serializeToString(svg);
+      var filename = 'mermaid-' + idx + '.svg';
+      files[filename] = new Blob([svgStr], { type: 'image/svg+xml' });
+      count++;
+    });
+    return count;
+  }
+
   // Format definitions
   var FORMAT_DEFS = [
     { value: 'pdf',           label: 'PDF',                    to: 'typst',    filter: 'filters/typst-components.lua', template: 'templates/branded.typ', ext: '.pdf',  mime: 'application/pdf' },
@@ -167,6 +182,9 @@
           options.template = templateName;
         }
 
+        // Capture rendered Mermaid SVGs from the DOM
+        captureMermaidSVGs(files);
+
         // Add title metadata from the page
         var h1 = document.querySelector('.markdown-section h1');
         if (h1) {
@@ -190,6 +208,15 @@
           var typstBytes = new TextEncoder().encode(result.stdout);
           $typst.mapShadow('/main.typ', typstBytes);
           $typst.mapShadow('main.typ', typstBytes);
+
+          // Map SVG files (mermaid diagrams) to Typst virtual FS
+          for (var fname in files) {
+            if (fname.endsWith('.svg')) {
+              var svgArray = new Uint8Array(await files[fname].arrayBuffer());
+              $typst.mapShadow('/' + fname, svgArray);
+              $typst.mapShadow(fname, svgArray);
+            }
+          }
 
           status.textContent = 'Generating PDF…';
           var pdfData = await $typst.pdf({ mainFilePath: '/main.typ' });

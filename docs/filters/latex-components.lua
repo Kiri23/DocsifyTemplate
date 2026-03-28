@@ -232,9 +232,12 @@ function CodeBlock(block)
     local latex = component_map[cls](block.text)
     return raw(latex)
   end
-  -- Mermaid: skip (can't render in PDF yet)
+  -- Mermaid: SVGs captured from DOM by latex-export.js as mermaid-N.svg
   if cls == "mermaid" then
-    return {}
+    mermaid_counter = (mermaid_counter or 0)
+    local filename = "mermaid-" .. mermaid_counter .. ".svg"
+    mermaid_counter = mermaid_counter + 1
+    return raw("\\includegraphics[width=\\textwidth]{" .. filename .. "}")
   end
   return nil
 end

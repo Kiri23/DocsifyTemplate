@@ -236,11 +236,16 @@ function CodeBlock(block)
     local typst = component_map[cls](block.text)
     return raw(typst)
   end
-  -- Mermaid: placeholder
+  -- Mermaid: try SVG from DOM, fallback to skip
   if cls == "mermaid" then
+    mermaid_counter = (mermaid_counter or 0)
+    local filename = "mermaid-" .. mermaid_counter .. ".svg"
+    mermaid_counter = mermaid_counter + 1
+    -- Use block with placeholder — #image may fail in Typst WASM
     return raw('#block(fill: luma(245), radius: 4pt, inset: 12pt, width: 100%)[' ..
-      '#text(fill: luma(150), style: "italic")[Mermaid diagram — render separately]\n' ..
-      '#raw("' .. block.text:gsub('"', '\\"'):gsub("\n", "\\n") .. '")]')
+      '#text(fill: luma(120), size: 9pt, style: "italic")[Diagram: ' ..
+      escape_typst(block.text:match("^(%w+)") or "mermaid") .. ']' ..
+      ']')
   end
   return nil
 end
