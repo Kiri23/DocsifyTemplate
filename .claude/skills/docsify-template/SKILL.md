@@ -1,6 +1,6 @@
 ---
 name: docsify-template
-description: "Develop and extend the DocsifyTemplate framework — create components, modify plugins, style themes, author content pages. Use when working on any file in this project: components, plugins, styles, content markdown, index.html, or design system."
+description: "Develop and extend the DocsifyTemplate framework — create components, modify plugins, style themes, author content pages, create export filters. Use when working on any file in this project: components, plugins, styles, content markdown, index.html, design system, Lua filters, or LaTeX templates."
 ---
 
 # DocsifyTemplate Platform Skill
@@ -88,6 +88,30 @@ Content task?
    └─ references/authoring/gotchas.md
 ```
 
+### "I need to create or modify export filters, templates, or formats"
+
+```
+Export task?
+├─ Create a new Lua filter (new output format)
+│  └─ references/export/patterns.md (filter creation pattern)
+├─ Create a new LaTeX template (new branding)
+│  └─ references/export/patterns.md (template creation)
+├─ Add a new format to the Export dropdown
+│  └─ references/export/configuration.md (FORMAT_DEFS)
+├─ Modify how a component renders in LaTeX/LLM
+│  └─ references/export/api.md (renderer functions + component_map)
+├─ Rebrand the PDF output (colors, header, logo)
+│  └─ references/export/configuration.md (brand colors mapping)
+├─ Understand the export pipeline end-to-end
+│  └─ references/export/REFERENCE.md (architecture + pattern)
+├─ Fix export producing empty output or errors
+│  └─ references/export/gotchas.md (API gotchas, $ escaping)
+├─ Add a new component to existing filters
+│  └─ references/export/patterns.md (adding components to all filters)
+└─ Update Pandoc WASM version
+   └─ references/export/configuration.md (pandoc.wasm setup)
+```
+
 ## Product Index
 
 | Product | Entry File | Description |
@@ -96,6 +120,7 @@ Content task?
 | Plugins | `references/plugins/REFERENCE.md` | Core rendering pipeline: component-renderer, htmx-virtual, latex-export |
 | Styling | `references/styling/REFERENCE.md` | Design system, CSS custom properties, theme.css, rebranding |
 | Authoring | `references/authoring/REFERENCE.md` | Writing content pages, using components in markdown, sidebar |
+| Export | `references/export/REFERENCE.md` | Pandoc WASM pipeline: Lua filters, LaTeX templates, LLM text, single-source-many-outputs |
 
 ## Troubleshooting Index
 
@@ -108,6 +133,12 @@ Content task?
 | Plugin hook not firing | `references/plugins/gotchas.md` |
 | Mermaid diagram not rendering | `references/plugins/gotchas.md` |
 | LaTeX export button missing/broken | `references/plugins/gotchas.md` |
+| Export downloads empty file (0 bytes) | `references/export/gotchas.md` |
+| Export error "Unknown option lua-filter" | `references/export/gotchas.md` |
+| Export error "Could not find data file" | `references/export/gotchas.md` |
+| Component appears as raw YAML in export | `references/export/gotchas.md` |
+| `$` in content breaks LaTeX export | `references/export/gotchas.md` |
+| pandoc.wasm fails to load (CORS) | `references/export/gotchas.md` |
 | Sidebar link goes nowhere | `references/authoring/gotchas.md` |
 | Mobile layout broken | `references/styling/gotchas.md` |
 | Component interactivity not working | `references/components/gotchas.md` |
