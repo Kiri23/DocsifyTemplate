@@ -91,19 +91,46 @@
     return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
-  // Capture rendered Mermaid SVGs from the DOM into files object.
-  // The Lua filter handles replacing mermaid code fences with image refs.
-  // SVGs are named mermaid-0.svg, mermaid-1.svg, etc.
-  function captureMermaidSVGs(files) {
+  // Capture rendered Mermaid SVGs from the DOM.
+  // Cleans foreignObject → native SVG <text> so Typst can render text.
+  function captureMermaidSVGs() {
+    var svgs = [];
     var svgElements = document.querySelectorAll('.markdown-section .mermaid svg');
-    var count = 0;
-    svgElements.forEach(function (svg, idx) {
-      var svgStr = new XMLSerializer().serializeToString(svg);
-      var filename = 'mermaid-' + idx + '.svg';
-      files[filename] = new Blob([svgStr], { type: 'image/svg+xml' });
-      count++;
+    svgElements.forEach(function (svg) {
+      // Clone to avoid modifying the DOM
+      var clone = svg.cloneNode(true);
+      // Replace foreignObject (HTML text) with SVG <text> elements
+      clone.querySelectorAll('foreignObject').forEach(function (fo) {
+        var textContent = fo.textContent.trim();
+        var svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        var x = parseFloat(fo.getAttribute('x') || '0');
+        var y = parseFloat(fo.getAttribute('y') || '0');
+        var w = parseFloat(fo.getAttribute('width') || '100');
+        var h = parseFloat(fo.getAttribute('height') || '20');
+        svgText.setAttribute('x', String(x + w / 2));
+        svgText.setAttribute('y', String(y + h / 2 + 5));
+        svgText.setAttribute('text-anchor', 'middle');
+        svgText.setAttribute('dominant-baseline', 'middle');
+        svgText.setAttribute('font-size', '14');
+        svgText.setAttribute('font-family', 'sans-serif');
+        svgText.textContent = textContent;
+        fo.parentNode.replaceChild(svgText, fo);
+      });
+      var svgStr = new XMLSerializer().serializeToString(clone);
+      svgs.push(svgStr);
     });
-    return count;
+    return svgs;
+  }
+
+  // Replace %%MERMAID_SVG_N%% placeholders in Typst source with image.decode
+  function inlineMermaidSVGs(typstSource, svgs) {
+    return typstSource.replace(/%%MERMAID_SVG_(\d+)%%/g, function (match, idx) {
+      var i = parseInt(idx);
+      if (i >= svgs.length) return '';
+      // Escape the SVG string for Typst: backslashes and quotes
+      var escaped = svgs[i].replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      return '#image.decode("' + escaped + '", width: 80%)';
+    });
   }
 
   // Format definitions
@@ -183,7 +210,7 @@
         }
 
         // Capture rendered Mermaid SVGs from the DOM
-        captureMermaidSVGs(files);
+        var mermaidSVGs = captureMermaidSVGs();
 
         // Add title metadata from the page
         var h1 = document.querySelector('.markdown-section h1');
@@ -201,25 +228,37 @@
 
         // PDF: compile Typst source → PDF via Typst WASM
         if (fmt.value === 'pdf') {
+          console.log('--- Typst source ---');
+          console.log(result.stdout);
+          console.log('--- Files ---');
+          console.log(Object.keys(files));
           status.textContent = 'Compiling PDF…';
           await ensureTypst(status);
 
+          // Inline Mermaid SVGs into Typst source (replaces %%MERMAID_SVG_N%% placeholders)
+          var typstSource = inlineMermaidSVGs(result.stdout, mermaidSVGs);
+
           $typst.resetShadow();
-          var typstBytes = new TextEncoder().encode(result.stdout);
+          var typstBytes = new TextEncoder().encode(typstSource);
           $typst.mapShadow('/main.typ', typstBytes);
           $typst.mapShadow('main.typ', typstBytes);
 
-          // Map SVG files (mermaid diagrams) to Typst virtual FS
-          for (var fname in files) {
-            if (fname.endsWith('.svg')) {
-              var svgArray = new Uint8Array(await files[fname].arrayBuffer());
-              $typst.mapShadow('/' + fname, svgArray);
-              $typst.mapShadow(fname, svgArray);
-            }
-          }
-
           status.textContent = 'Generating PDF…';
-          var pdfData = await $typst.pdf({ mainFilePath: '/main.typ' });
+          var pdfData;
+          try {
+            pdfData = await $typst.pdf({ mainFilePath: '/main.typ' });
+          } catch (typstErr) {
+            var errStr = String(typstErr);
+            var msgMatch = errStr.match(/message:\s*"([^"]+)"/);
+            var typstMsg = msgMatch ? msgMatch[1] : errStr;
+            // Download the .typ source for debugging
+            var debugBlob = new Blob([result.stdout], { type: 'text/plain' });
+            var debugA = document.createElement('a');
+            debugA.href = URL.createObjectURL(debugBlob);
+            debugA.download = getPageName() + '-debug.typ';
+            debugA.click();
+            throw new Error('Typst: ' + typstMsg + ' | SVGs: ' + mermaidSVGs.length);
+          }
 
           if (!pdfData || pdfData.length === 0) {
             throw new Error('Typst produced empty PDF output');
