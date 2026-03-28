@@ -94,6 +94,31 @@ Additional components (used differently, not in registry):
 - **CodeBlock** — inline syntax highlight + copy button
 - **RegionToggle** — DOM-level `data-region` directive processor
 
+## LaTeX Export (Pandoc WASM)
+
+Every page includes an "Export to LaTeX" button that converts the current Markdown to LaTeX (or HTML, RST, Org) using Pandoc compiled to WebAssembly. The conversion runs entirely in the browser — no server needed.
+
+The `pandoc.wasm` binary (~56MB) is stored via Git LFS. After cloning, ensure you have the actual binary:
+
+```bash
+# Install git-lfs if you don't have it
+# macOS: brew install git-lfs
+# Ubuntu: apt install git-lfs
+# Termux: pkg install git-lfs
+
+git lfs install
+git lfs pull
+```
+
+If you cloned without LFS, or the file is missing, download it manually:
+
+```bash
+curl -L -o docs/pandoc.wasm \
+  "https://pandoc.org/app/pandoc.wasm?sha1=f0b56b0bce5b0c504d66b4c6e45d9fdf67f41da1"
+```
+
+The WASM loads lazily — only when the user clicks "Export to LaTeX" — so it doesn't affect page load.
+
 ## CDN Dependencies
 
 | Dep | Purpose |
@@ -113,9 +138,12 @@ docs/
 ├── _sidebar.md             # Navigation tree
 ├── README.md               # Home page
 ├── components/             # Data-driven template literal components
+├── pandoc.wasm              # Pandoc WASM binary (Git LFS, ~56MB)
 ├── plugins/
 │   ├── component-renderer.js  # Code fence → component pipeline + tabs
-│   └── htmx-virtual.js        # HTMX /api/switch/* interceptor
+│   ├── htmx-virtual.js        # HTMX /api/switch/* interceptor
+│   ├── latex-export.js        # "Export to LaTeX" button plugin
+│   └── pandoc.js              # Official Pandoc WASI interface
 ├── styles/
 │   └── theme.css           # Theme overrides
 └── content/                # Your documentation pages

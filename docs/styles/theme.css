@@ -603,6 +603,62 @@ body {
   background: rgb(var(--code-overlay-rgb) / 0.25);
 }
 
+/* ── LaTeX export bar ── */
+.latex-export-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1.5rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.5rem;
+  font-family: var(--font-ui);
+}
+
+.latex-export-btn {
+  padding: 0.35rem 0.85rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 0.35rem;
+  font-size: 0.8rem;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.latex-export-btn:hover:not(:disabled) {
+  background: var(--accent-text);
+}
+
+.latex-export-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.latex-export-select {
+  padding: 0.3rem 0.5rem;
+  background: var(--surface-page);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.35rem;
+  font-size: 0.8rem;
+  font-family: var(--font-ui);
+}
+
+.latex-export-status {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@media print {
+  .latex-export-bar {
+    display: none !important;
+  }
+}
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -613,7 +669,7 @@ body {
 
 /* ── Print ── */
 @media print {
-  .sidebar, .app-nav, .tab-bar, .code-copy-btn {
+  .sidebar, .app-nav, .tab-bar, .code-copy-btn, .latex-export-bar {
     display: none !important;
   }
   .markdown-section {
