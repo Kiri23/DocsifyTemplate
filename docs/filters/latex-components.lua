@@ -232,11 +232,9 @@ function CodeBlock(block)
     local latex = component_map[cls](block.text)
     return raw(latex)
   end
-  -- Mermaid: replace with placeholder
+  -- Mermaid: skip (can't render in PDF yet)
   if cls == "mermaid" then
-    return raw("\\mermaidbegin\n\\begin{verbatim}\n" ..
-      escape_verbatim(block.text) ..
-      "\n\\end{verbatim}\n\\mermaidend")
+    return {}
   end
   return nil
 end
