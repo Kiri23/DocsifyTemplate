@@ -1,12 +1,24 @@
-/* latex-export.js — "Export to LaTeX" button for Docsify pages
-   Lazy-loads pandoc.wasm (~56MB) only when the user clicks the button.
-   Uses the official jgm/pandoc WASI interface (pandoc.js).
+/* latex-export.js — Export button for Docsify pages
+   Supports: LaTeX (branded), LLM Text, plain LaTeX/HTML/RST/Org.
+   Lazy-loads pandoc.wasm (~56MB) only on first click.
+   Lua filters transform YAML code fence components into proper output.
 */
 (function () {
   var pandocConvert = null;
   var loading = false;
 
-  // Lazy-load pandoc.js only on first click
+  // Cache for filter/template files (fetched once)
+  var filterCache = {};
+
+  async function fetchText(path) {
+    if (filterCache[path]) return filterCache[path];
+    var res = await fetch(path);
+    if (!res.ok) throw new Error('Could not fetch ' + path + ' (' + res.status + ')');
+    var text = await res.text();
+    filterCache[path] = text;
+    return text;
+  }
+
   async function ensurePandoc(statusEl) {
     if (pandocConvert) return true;
     if (loading) return false;
@@ -26,10 +38,7 @@
     }
   }
 
-  // Get the raw markdown for the current page from Docsify's internal cache
   function getCurrentMarkdown() {
-    // Docsify stores the raw markdown in its virtual file system
-    // We can re-fetch the current page's .md file
     var path = window.location.hash.replace('#/', '') || 'README';
     if (path.indexOf('?') !== -1) path = path.split('?')[0];
     if (!path.endsWith('.md')) path += '.md';
@@ -39,27 +48,42 @@
     });
   }
 
+  // Strip Docsify-specific YAML frontmatter (---\n...\n---)
+  function stripFrontmatter(md) {
+    if (md.trimStart().startsWith('---')) {
+      var end = md.indexOf('\n---', 4);
+      if (end !== -1) {
+        return md.slice(end + 4).trimStart();
+      }
+    }
+    return md;
+  }
+
+  // Format definitions: [value, label, pandocFormat, filterPath, templatePath, ext, mime]
+  var FORMAT_DEFS = [
+    { value: 'latex-branded', label: 'LaTeX (Branded)',       to: 'latex',    filter: 'filters/latex-components.lua', template: 'templates/branded.tex', ext: '.tex',  mime: 'text/x-tex' },
+    { value: 'llm',           label: 'LLM Text',              to: 'markdown', filter: 'filters/llm-components.lua',   template: null,                    ext: '.md',   mime: 'text/markdown' },
+    { value: 'latex',         label: 'LaTeX (plain)',          to: 'latex',    filter: null,                           template: null,                    ext: '.tex',  mime: 'text/x-tex' },
+    { value: 'html',          label: 'HTML',                   to: 'html',    filter: null,                           template: null,                    ext: '.html', mime: 'text/html' },
+    { value: 'rst',           label: 'reStructuredText',       to: 'rst',     filter: null,                           template: null,                    ext: '.rst',  mime: 'text/plain' },
+    { value: 'org',           label: 'Org Mode',               to: 'org',     filter: null,                           template: null,                    ext: '.org',  mime: 'text/plain' },
+  ];
+
   function createExportUI() {
     var container = document.createElement('div');
     container.className = 'latex-export-bar';
 
     var btn = document.createElement('button');
     btn.className = 'latex-export-btn';
-    btn.textContent = 'Export to LaTeX';
-    btn.title = 'Convert this page to LaTeX using Pandoc (runs in browser)';
+    btn.textContent = 'Export';
+    btn.title = 'Convert this page using Pandoc (runs in browser)';
 
     var formatSelect = document.createElement('select');
     formatSelect.className = 'latex-export-select';
-    var formats = [
-      ['latex', 'LaTeX'],
-      ['html', 'HTML'],
-      ['rst', 'reStructuredText'],
-      ['org', 'Org Mode'],
-    ];
-    formats.forEach(function (f) {
+    FORMAT_DEFS.forEach(function (f) {
       var opt = document.createElement('option');
-      opt.value = f[0];
-      opt.textContent = f[1];
+      opt.value = f.value;
+      opt.textContent = f.label;
       formatSelect.appendChild(opt);
     });
 
@@ -75,22 +99,61 @@
       var ready = await ensurePandoc(status);
       if (!ready) return;
 
+      var fmt = FORMAT_DEFS.find(function (f) { return f.value === formatSelect.value; });
+      if (!fmt) return;
+
       btn.disabled = true;
       btn.textContent = 'Converting…';
+      status.style.display = '';
+      status.textContent = '';
+
       try {
         var md = await getCurrentMarkdown();
-        var format = formatSelect.value;
-        var result = await pandocConvert(
-          { from: 'markdown', to: format, standalone: true },
-          md,
-          {}
-        );
-        downloadResult(result.stdout, format);
-        btn.textContent = 'Export to LaTeX';
+        md = stripFrontmatter(md);
+
+        // Build pandoc options
+        var options = { from: 'markdown', to: fmt.to, standalone: true };
+        var files = {};
+
+        // Load and attach Lua filter if needed
+        if (fmt.filter) {
+          status.textContent = 'Loading filter…';
+          var filterCode = await fetchText(fmt.filter);
+          files['filter.lua'] = new Blob([filterCode], { type: 'text/plain' });
+          options.filters = ['filter.lua'];
+        }
+
+        // Load and attach template if needed
+        if (fmt.template) {
+          status.textContent = 'Loading template…';
+          var templateCode = await fetchText(fmt.template);
+          files['branded.tex'] = new Blob([templateCode], { type: 'text/plain' });
+          options.template = 'branded.tex';
+        }
+
+        // Add title metadata from the page
+        var h1 = document.querySelector('.markdown-section h1');
+        if (h1) {
+          options['metadata'] = { title: h1.textContent.trim() };
+        }
+
+        status.textContent = 'Converting…';
+        var result = await pandocConvert(options, md, files);
+
+        if (result.stderr) console.warn('pandoc stderr:', result.stderr);
+        if (result.warnings && result.warnings.length) {
+          console.warn('pandoc warnings:', result.warnings);
+        }
+
+        downloadResult(result.stdout, fmt);
+        status.textContent = '';
+        status.style.display = 'none';
+        btn.textContent = 'Export';
       } catch (err) {
         status.style.display = '';
         status.textContent = 'Error: ' + err.message;
-        btn.textContent = 'Export to LaTeX';
+        console.error('Export error:', err);
+        btn.textContent = 'Export';
       }
       btn.disabled = false;
     });
@@ -98,16 +161,13 @@
     return container;
   }
 
-  function downloadResult(text, format) {
-    var ext = { latex: '.tex', html: '.html', rst: '.rst', org: '.org' }[format] || '.txt';
-    var mime = { latex: 'text/x-tex', html: 'text/html', rst: 'text/plain', org: 'text/plain' }[format] || 'text/plain';
-    var blob = new Blob([text], { type: mime });
+  function downloadResult(text, fmt) {
+    var blob = new Blob([text], { type: fmt.mime });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    // Use page title or path for filename
     var name = (document.querySelector('.markdown-section h1') || {}).textContent || 'document';
     name = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    a.download = name + ext;
+    a.download = name + fmt.ext;
     a.click();
     URL.revokeObjectURL(a.href);
   }
@@ -117,11 +177,9 @@
   window.$docsify.plugins = (window.$docsify.plugins || []).concat([
     function latexExportPlugin(hook) {
       hook.doneEach(function () {
-        // Remove old export bar if present
         var old = document.querySelector('.latex-export-bar');
         if (old) old.remove();
 
-        // Add export bar at the top of the content area
         var section = document.querySelector('.markdown-section');
         if (!section) return;
 

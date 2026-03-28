@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Export Debug</title></head>
+<body>
+<h1>Pandoc WASM Export Debug</h1>
+<pre id="log" style="white-space:pre-wrap; background:#111; color:#0f0; padding:1rem; font-size:12px;"></pre>
+<script type="module">
+const log = document.getElementById('log');
+function l(msg) { log.textContent += msg + '\n'; console.log(msg); }
+
+try {
+  l('1. Loading pandoc.js...');
+  const { convert } = await import('./plugins/pandoc.js');
+  l('2. Pandoc loaded OK');
+
+  const md = `# Test Page
+
+Some intro text with **bold** and *italic*.
+
+\`\`\`card-grid
+- title: "Users API"
+  description: "Manage user accounts"
+  icon: "U"
+- title: "Products"
+  description: "Product catalog"
+  icon: "P"
+\`\`\`
+
+## Code Example
+
+\`\`\`python
+def hello():
+    print("Hello!")
+\`\`\`
+`;
+
+  // Test A: plain (no filter)
+  l('\n--- Test A: plain markdown → latex ---');
+  const testA = await convert({ from: 'markdown', to: 'latex' }, md, {});
+  l('stdout: ' + testA.stdout.length + ' chars');
+  l('stderr: ' + (testA.stderr || '(none)'));
+  l(testA.stdout.substring(0, 300));
+
+  // Test B: with Lua filter (correct API: "filters" not "lua-filter")
+  l('\n--- Test B: latex + lua filter ---');
+  const filterCode = await fetch('./filters/latex-components.lua').then(r => r.text());
+  l('Filter: ' + filterCode.length + ' chars');
+
+  try {
+    const testB = await convert(
+      { from: 'markdown', to: 'latex', filters: ['filter.lua'] },
+      md,
+      { 'filter.lua': new Blob([filterCode], { type: 'text/plain' }) }
+    );
+    l('stdout: ' + testB.stdout.length + ' chars');
+    l('stderr: ' + (testB.stderr || '(none)'));
+    l(testB.stdout.substring(0, 500));
+  } catch(e) {
+    l('ERROR: ' + e.message);
+  }
+
+  // Test C: with template (correct API: filename as key)
+  l('\n--- Test C: latex + template ---');
+  const templateCode = await fetch('./templates/branded.tex').then(r => r.text());
+  l('Template: ' + templateCode.length + ' chars');
+
+  try {
+    const testC = await convert(
+      { from: 'markdown', to: 'latex', standalone: true, template: 'branded.tex',
+        metadata: { title: 'Test Doc' } },
+      '# Hello\n\nWorld',
+      { 'branded.tex': new Blob([templateCode], { type: 'text/plain' }) }
+    );
+    l('stdout: ' + testC.stdout.length + ' chars');
+    l('stderr: ' + (testC.stderr || '(none)'));
+    l(testC.stdout.substring(0, 500));
+  } catch(e) {
+    l('ERROR: ' + e.message);
+  }
+
+  // Test D: LLM filter
+  l('\n--- Test D: LLM filter ---');
+  const llmFilter = await fetch('./filters/llm-components.lua').then(r => r.text());
+
+  try {
+    const testD = await convert(
+      { from: 'markdown', to: 'markdown', filters: ['llm.lua'] },
+      md,
+      { 'llm.lua': new Blob([llmFilter], { type: 'text/plain' }) }
+    );
+    l('stdout: ' + testD.stdout.length + ' chars');
+    l('stderr: ' + (testD.stderr || '(none)'));
+    l(testD.stdout.substring(0, 500));
+  } catch(e) {
+    l('ERROR: ' + e.message);
+  }
+
+  // Test E: FULL — filter + template together
+  l('\n--- Test E: filter + template combined ---');
+  try {
+    const testE = await convert(
+      { from: 'markdown', to: 'latex', standalone: true,
+        filters: ['filter.lua'], template: 'branded.tex',
+        metadata: { title: 'Full Test' } },
+      md,
+      {
+        'filter.lua': new Blob([filterCode], { type: 'text/plain' }),
+        'branded.tex': new Blob([templateCode], { type: 'text/plain' })
+      }
+    );
+    l('stdout: ' + testE.stdout.length + ' chars');
+    l('stderr: ' + (testE.stderr || '(none)'));
+    l(testE.stdout.substring(0, 800));
+  } catch(e) {
+    l('ERROR: ' + e.message);
+  }
+
+} catch(e) {
+  l('FATAL: ' + e.message + '\n' + e.stack);
+}
+</script>
+</body>
+</html>

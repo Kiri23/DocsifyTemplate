@@ -1,0 +1,228 @@
+%% branded.tex — Pandoc LaTeX template for DocsifyTemplate
+%% Brand colors and component environments match the web theme.
+%% Usage: pandoc -f markdown -t latex --template=branded.tex
+
+\documentclass[11pt, a4paper]{article}
+
+%% ── Packages ──
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{etoolbox}
+
+\tcbuselibrary{skins, breakable}
+
+%% ── Brand Colors (from theme.css :root) ──
+\definecolor{accent}{HTML}{0891B2}
+\definecolor{accentlight}{HTML}{ECFEFF}
+\definecolor{accenttext}{HTML}{0E7490}
+\definecolor{surfacepage}{HTML}{FAF9F7}
+\definecolor{surfaceraised}{HTML}{F5F5F4}
+\definecolor{bordersubtle}{HTML}{E7E5E4}
+\definecolor{textprimary}{HTML}{1C1917}
+\definecolor{textsecondary}{HTML}{44403C}
+\definecolor{textmuted}{HTML}{A8A29E}
+\definecolor{techaccent}{HTML}{6366F1}
+\definecolor{success}{HTML}{34D399}
+
+%% Method colors
+\definecolor{methodget}{HTML}{3B82F6}
+\definecolor{methodpost}{HTML}{22C55E}
+\definecolor{methodput}{HTML}{F59E0B}
+\definecolor{methodpatch}{HTML}{F97316}
+\definecolor{methoddelete}{HTML}{EF4444}
+
+%% ── Hyperref ──
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accenttext,
+  urlcolor=accent,
+  citecolor=accent,
+  pdfborder={0 0 0}
+}
+
+%% ── Header / Footer ──
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{textmuted}{\small $if(title)$$title$$else$Documentation$endif$}}
+\fancyhead[R]{\textcolor{accent}{\small\textbf{DocsifyTemplate}}}
+\fancyfoot[C]{\textcolor{textmuted}{\small\thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{bordersubtle}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrulewidth}{0pt}
+
+%% ── Listings styles ──
+\lstdefinestyle{code}{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{surfaceraised},
+  frame=single,
+  rulecolor=\color{bordersubtle},
+  breaklines=true,
+  numbers=left,
+  numberstyle=\tiny\color{textmuted},
+  numbersep=8pt,
+  tabsize=2,
+  showstringspaces=false,
+  keywordstyle=\color{techaccent}\bfseries,
+  stringstyle=\color{accenttext},
+  commentstyle=\color{textmuted}\itshape,
+}
+
+\lstdefinestyle{response}{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{surfaceraised},
+  frame=single,
+  rulecolor=\color{bordersubtle},
+  breaklines=true,
+  tabsize=2,
+  showstringspaces=false,
+}
+
+\lstset{style=code}
+
+%% ── Custom commands ──
+\newcommand{\required}{{\textcolor{methoddelete}{\footnotesize\textbf{required}}}}
+\newcommand{\typebadge}[1]{{\footnotesize\colorbox{surfaceraised}{\texttt{#1}}}}
+\newcommand{\asyncbadge}{{\textcolor{techaccent}{\footnotesize\textbf{async}}}}
+\newcommand{\syncbadge}{{\textcolor{accent}{\footnotesize\textbf{sync}}}}
+
+%% ── Component environments ──
+
+% Card Grid
+\newenvironment{cardgrid}{%
+  \vspace{1em}%
+  \begin{tcolorbox}[colback=surfaceraised, colframe=bordersubtle, arc=4pt, boxrule=0.5pt, breakable]%
+}{%
+  \end{tcolorbox}%
+  \vspace{0.5em}%
+}
+\newcommand{\card}[3]{%  #1=icon #2=title #3=description
+  \noindent\textbf{#1\enspace#2}\\
+  {\small\textcolor{textsecondary}{#3}}\\[0.6em]%
+}
+
+% Entity Schema
+\newenvironment{entityschema}[1]{%
+  \vspace{1em}%
+  \begin{tcolorbox}[colback=white, colframe=accent, title={\textbf{#1}}, fonttitle=\large, coltitle=white, colbacktitle=accent, arc=4pt, boxrule=0.5pt, breakable, left=2mm, right=2mm]%
+}{%
+  \end{tcolorbox}%
+  \vspace{0.5em}%
+}
+
+% API Endpoint
+\newcommand{\methodcolor}[1]{%
+  \ifstrequal{#1}{GET}{\colorbox{methodget!15}{\textcolor{methodget}{\textbf{\small #1}}}}{}%
+  \ifstrequal{#1}{POST}{\colorbox{methodpost!15}{\textcolor{methodpost}{\textbf{\small #1}}}}{}%
+  \ifstrequal{#1}{PUT}{\colorbox{methodput!15}{\textcolor{methodput}{\textbf{\small #1}}}}{}%
+  \ifstrequal{#1}{PATCH}{\colorbox{methodpatch!15}{\textcolor{methodpatch}{\textbf{\small #1}}}}{}%
+  \ifstrequal{#1}{DELETE}{\colorbox{methoddelete!15}{\textcolor{methoddelete}{\textbf{\small #1}}}}{}%
+}
+
+\newenvironment{apiendpoint}[2]{%  #1=METHOD #2=path
+  \vspace{1em}%
+  \begin{tcolorbox}[colback=white, colframe=bordersubtle, arc=4pt, boxrule=0.5pt, breakable, left=3mm]%
+  \methodcolor{#1}\enspace{\ttfamily\textbf{#2}}\\[0.5em]%
+}{%
+  \end{tcolorbox}%
+  \vspace{0.5em}%
+}
+
+% Status Flow
+\newenvironment{statusflow}{%
+  \vspace{1em}%
+  \begin{tcolorbox}[colback=surfaceraised, colframe=bordersubtle, arc=4pt, boxrule=0.5pt, breakable]%
+  \begin{center}%
+}{%
+  \end{center}%
+  \end{tcolorbox}%
+  \vspace{0.5em}%
+}
+\newcommand{\state}[5]{%  #1=label #2=trigger #3=next #4=effects #5=arrow
+  \fcolorbox{accent}{accentlight}{\textbf{#1}}%
+  #5%
+}
+
+% Step Type
+\newenvironment{steptype}[2]{%  #1=name #2=badge
+  \vspace{1em}%
+  \begin{tcolorbox}[colback=white, colframe=accent!50, arc=4pt, boxrule=0.5pt, breakable, title={\textbf{#1}\enspace#2}, coltitle=textprimary, colbacktitle=accentlight]%
+}{%
+  \end{tcolorbox}%
+  \vspace{0.5em}%
+}
+
+% Annotation list
+\newenvironment{annotationlist}{%
+  \vspace{0.5em}%
+  \begin{description}[style=nextline, font=\normalfont\small\textcolor{accent}]%
+}{%
+  \end{description}%
+}
+\newcommand{\annotation}[2]{%  #1=line number #2=text
+  \item[\tikz\node[circle, fill=accent, text=white, inner sep=1.5pt, font=\tiny\bfseries]{#1};] {\small #2}%
+}
+
+% Side by Side
+\newenvironment{sidebyside}{%
+  \vspace{1em}%
+  \noindent%
+}{%
+  \vspace{0.5em}%
+}
+
+% Mermaid placeholder
+\newenvironment{mermaidplaceholder}{%
+  \vspace{1em}%
+  \begin{tcolorbox}[colback=surfaceraised, colframe=textmuted, arc=4pt, boxrule=0.5pt]%
+  \textcolor{textmuted}{\small\textit{[Mermaid diagram — render separately]}}\\[0.3em]%
+  {\ttfamily\scriptsize%
+}{%
+  }%
+  \end{tcolorbox}%
+  \vspace{0.5em}%
+}
+
+%% ── Title setup ──
+$if(title)$
+\title{%
+  {\textcolor{accent}{\rule{\textwidth}{2pt}}}\\[1em]%
+  {\Huge\textbf{\textcolor{textprimary}{$title$}}}\\[0.5em]%
+  $if(subtitle)${\Large\textcolor{textsecondary}{$subtitle$}}\\[0.5em]$endif$%
+  {\textcolor{accent}{\rule{\textwidth}{2pt}}}%
+}
+$endif$
+$if(author)$\author{$author$}$endif$
+\date{$if(date)$$date$$else$\today$endif$}
+
+%% ── Document ──
+\begin{document}
+
+$if(title)$
+\maketitle
+\thispagestyle{empty}
+\newpage
+$endif$
+
+$if(toc)$
+\tableofcontents
+\newpage
+$endif$
+
+$body$
+
+\end{document}
