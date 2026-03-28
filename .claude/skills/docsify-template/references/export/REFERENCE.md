@@ -78,6 +78,12 @@ In the browser, `component-renderer.js` transforms YAML fences into interactive 
 ### Shared YAML Parser
 Pandoc's Lua environment has NO built-in YAML parser. The parser lives in a single file (`yaml-parser.lua`) and is concatenated with each filter at runtime by `latex-export.js`. This eliminates duplication — fix a parser bug once, all filters get it.
 
+### Mermaid Diagrams in Export
+Mermaid diagrams are captured as SVGs from the rendered DOM before export. The SVGs are cleaned (foreignObject → native SVG text) and inlined into the output:
+- **PDF (Typst):** Lua filter emits `%%MERMAID_SVG_N%%` placeholders → `latex-export.js` replaces with `#image.decode(svgString)` → Typst renders inline
+- **LaTeX:** Lua filter emits `\includegraphics{mermaid-N.svg}` → SVG files passed alongside .tex
+- **LLM:** Mermaid code blocks pass through as-is (LLMs can read mermaid syntax)
+
 ### Open/Closed Principle
 
 Both filters follow the Open/Closed Principle — closed for modification, open for extension:

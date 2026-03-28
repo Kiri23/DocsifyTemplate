@@ -126,6 +126,18 @@ catch(e) {
 }
 ```
 
+### Mermaid SVGs in PDF: foreignObject text invisible
+
+Mermaid renders text inside `<foreignObject>` (HTML-in-SVG). Typst can render the SVG shapes but ignores the HTML text inside foreignObject.
+
+**Fix (already implemented):** `latex-export.js` clones each Mermaid SVG, replaces all `<foreignObject>` with native `<svg:text>` elements, then inlines the cleaned SVG via `#image.decode()`.
+
+### Typst WASM `mapShadow` access denied for images
+
+`$typst.mapShadow("file.svg", bytes)` maps files to the virtual FS, but `#image("file.svg")` throws "access denied" when trying to read them.
+
+**Fix (already implemented):** Don't use `#image()` with file references in Typst WASM. Instead, use `#image.decode(svgString, width: 80%)` to inline the SVG content directly into the Typst source. The Lua filter emits `%%MERMAID_SVG_N%%` placeholders, and `latex-export.js` replaces them with `#image.decode(...)` calls containing the actual SVG string.
+
 ### Font availability in Typst WASM
 
 Typst WASM bundles "New Computer Modern" fonts. Custom fonts need to be mapped via `$typst.mapShadow()` as font files before compilation.
