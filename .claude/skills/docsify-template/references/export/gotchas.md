@@ -27,7 +27,9 @@ Check `result.stderr` — it contains the error message. Common causes:
 
 ### No YAML parser in Pandoc Lua
 
-Pandoc's Lua environment does NOT include a YAML library. You must embed a parser in each filter. `dofile()` and `require()` do not work in WASM (no filesystem access at the Lua level).
+Pandoc's Lua environment does NOT include a YAML library. The parser lives in `yaml-parser.lua` and is concatenated with each filter at runtime by `latex-export.js`. `dofile()` and `require()` do not work in WASM (no filesystem access at the Lua level), which is why we concatenate in JS instead.
+
+Filter files start with `-- REQUIRES: yaml-parser.lua` and assume `trim()`, `parse_yaml()`, `parse_value()` are available as globals.
 
 ### `$` breaks Pandoc template engine
 

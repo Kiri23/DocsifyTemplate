@@ -6,7 +6,7 @@
 
 Copy `llm-components.lua` (simpler) as a starting point. Every filter needs:
 
-1. The embedded YAML parser (~120 lines, copy verbatim from existing filter)
+1. No YAML parser needed — `yaml-parser.lua` is injected automatically by `latex-export.js`
 2. Format functions that receive parsed data and return output
 3. A `component_map` dispatching class names to format functions
 4. A `CodeBlock` handler (copy verbatim — it's the CLOSED part)

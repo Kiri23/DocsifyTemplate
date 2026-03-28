@@ -40,10 +40,12 @@ def hello():
   l('stderr: ' + (testA.stderr || '(none)'));
   l(testA.stdout.substring(0, 300));
 
-  // Test B: with Lua filter (correct API: "filters" not "lua-filter")
+  // Test B: with Lua filter (parser + filter concatenated)
   l('\n--- Test B: latex + lua filter ---');
-  const filterCode = await fetch('./filters/latex-components.lua').then(r => r.text());
-  l('Filter: ' + filterCode.length + ' chars');
+  const parserCode = await fetch('./filters/yaml-parser.lua').then(r => r.text());
+  const latexFilterCode = await fetch('./filters/latex-components.lua').then(r => r.text());
+  const filterCode = parserCode + '\n' + latexFilterCode;
+  l('Parser: ' + parserCode.length + ' chars, Filter: ' + latexFilterCode.length + ' chars, Combined: ' + filterCode.length + ' chars');
 
   try {
     const testB = await convert(
@@ -77,9 +79,11 @@ def hello():
     l('ERROR: ' + e.message);
   }
 
-  // Test D: LLM filter
+  // Test D: LLM filter (parser + filter concatenated)
   l('\n--- Test D: LLM filter ---');
-  const llmFilter = await fetch('./filters/llm-components.lua').then(r => r.text());
+  const llmFilterCode = await fetch('./filters/llm-components.lua').then(r => r.text());
+  const llmFilter = parserCode + '\n' + llmFilterCode;
+  l('LLM filter combined: ' + llmFilter.length + ' chars');
 
   try {
     const testD = await convert(

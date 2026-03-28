@@ -29,8 +29,9 @@ Downloaded file (.tex, .md, .html, etc.)
 | `docs/plugins/latex-export.js` | Docsify plugin: export button, format selector, orchestrates conversion |
 | `docs/plugins/pandoc.js` | Official Pandoc WASI interface (from jgm/pandoc repo) |
 | `docs/pandoc.wasm` | Pandoc binary compiled to WebAssembly (~56MB, Git LFS) |
-| `docs/filters/latex-components.lua` | Lua filter: YAML components → branded LaTeX environments |
-| `docs/filters/llm-components.lua` | Lua filter: YAML components → clean semantic markdown |
+| `docs/filters/yaml-parser.lua` | Shared YAML parser (~160 lines), injected into all filters at runtime |
+| `docs/filters/latex-components.lua` | Lua filter: YAML components → branded LaTeX macros (no parser) |
+| `docs/filters/llm-components.lua` | Lua filter: YAML components → clean semantic markdown (no parser) |
 | `docs/templates/branded.tex` | LaTeX template with brand colors, header/footer, custom environments |
 
 ## The Pattern
@@ -64,8 +65,8 @@ In the browser, `component-renderer.js` transforms YAML fences into interactive 
   ↓ LLM filter: card_grid()    → - **Users API**: Manage users
 ```
 
-### Embedded YAML Parser
-Pandoc's Lua environment has NO built-in YAML parser. Each filter embeds a ~120-line Lua parser that handles the subset our components use: key-value pairs, arrays of objects, multiline strings (`|`), inline arrays (`[a, b]`), booleans, numbers.
+### Shared YAML Parser
+Pandoc's Lua environment has NO built-in YAML parser. The parser lives in a single file (`yaml-parser.lua`) and is concatenated with each filter at runtime by `latex-export.js`. This eliminates duplication — fix a parser bug once, all filters get it.
 
 ### Open/Closed Principle
 

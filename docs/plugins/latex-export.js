@@ -116,10 +116,13 @@
         var files = {};
 
         // Load and attach Lua filter if needed
+        // Concatenates shared yaml-parser.lua + filter-specific code
         if (fmt.filter) {
           status.textContent = 'Loading filter…';
+          var parserCode = await fetchText('filters/yaml-parser.lua');
           var filterCode = await fetchText(fmt.filter);
-          files['filter.lua'] = new Blob([filterCode], { type: 'text/plain' });
+          var combined = parserCode + '\n' + filterCode;
+          files['filter.lua'] = new Blob([combined], { type: 'text/plain' });
           options.filters = ['filter.lua'];
         }
 
