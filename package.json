@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "serve": "npx docsify-cli serve docs -p 3000"
+    "serve": "npx docsify-cli serve docs -p 3009"
   }
 }
