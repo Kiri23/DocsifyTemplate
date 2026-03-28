@@ -6,44 +6,45 @@
 
 Copy `llm-components.lua` (simpler) as a starting point. Every filter needs:
 
-1. The embedded YAML parser (~120 lines, copy verbatim)
-2. A renderers table with a function per component
-3. A `CodeBlock` handler that dispatches by class name
-4. A return statement: `return {{CodeBlock = CodeBlock}}`
+1. The embedded YAML parser (~120 lines, copy verbatim from existing filter)
+2. Format functions that receive parsed data and return output
+3. A `component_map` dispatching class names to format functions
+4. A `CodeBlock` handler (copy verbatim — it's the CLOSED part)
+5. A return statement: `return {{CodeBlock = CodeBlock}}`
 
-### 2. Add renderer functions
+### 2. Add format functions (the OPEN part)
 
-Each renderer receives the raw YAML text and returns either:
-
-**For LaTeX output** — a string passed to `pandoc.RawBlock("latex", str)`:
+**For LaTeX output** — emit pure data macros, define rendering in template:
 ```lua
+-- Filter (CLOSED after writing):
 function renderers.card_grid(text)
   local cards = parse_yaml(text)
-  local out = {"\\begin{cardgrid}"}
+  local out = {"\\cardgridbegin"}
   for _, card in ipairs(cards) do
-    out[#out+1] = string.format("\\card{%s}{%s}",
-      escape_latex(card.title), escape_latex(card.description))
+    out[#out+1] = string.format("\\card{%s}{%s}{%s}",
+      escape_latex(card.icon), escape_latex(card.title), escape_latex(card.description))
   end
-  out[#out+1] = "\\end{cardgrid}"
+  out[#out+1] = "\\cardgridend"
   return table.concat(out, "\n")
 end
+
+-- Template (OPEN — edit freely):
+-- \newcommand{\card}[3]{ ...any LaTeX you want... }
 ```
 
-**For markdown/text output** — a string passed through `pandoc.read()` for re-processing:
+**For markdown/text output** — format functions receive parsed data table:
 ```lua
-function renderers.card_grid(text)
-  local cards = parse_yaml(text)
+-- Format function (OPEN — edit freely):
+function fmt.card_grid(data)  -- data is already parsed
   local out = {}
-  for _, card in ipairs(cards) do
+  for _, card in ipairs(data) do
     out[#out+1] = "- **" .. card.title .. "**: " .. card.description
   end
   return table.concat(out, "\n")
 end
 
--- In CodeBlock handler:
-local md = renderers.card_grid(block.text)
-local doc = pandoc.read(md, "markdown")
-return doc.blocks  -- Returns parsed AST nodes
+-- Dispatcher (CLOSED — don't edit):
+-- parse_yaml(block.text) → fmt.card_grid(data) → pandoc.read(md) → AST
 ```
 
 ### 3. Register the filter in latex-export.js

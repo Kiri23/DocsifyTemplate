@@ -119,18 +119,37 @@ Both filters embed these parsing functions:
 
 ### Component Renderers
 
-Each filter has a `renderers` table mapping component names to functions:
+Both filters have a `component_map` dispatching by code fence class name. The architecture differs:
 
+**LaTeX filter** — renderers emit macro calls (data only), template defines rendering:
+```lua
+-- Filter emits:          Template defines:
+-- \card{U}{Title}{Desc}  \newcommand{\card}[3]{ ...tcolorbox... }
+-- \apiparam{n}{t}{req}   \newcommand{\apiparam}[3]{ ...tabular... }
+```
+
+**LLM filter** — `fmt.*` functions receive parsed data tables, return markdown:
+```lua
+-- Dispatcher parses YAML, then calls:
+function fmt.card_grid(data)     -- data = [{title, description, icon}]
+  -- returns "- **Title**: Description\n..."
+end
+function fmt.api_endpoint(data)  -- data = {method, path, params, response}
+  -- returns "### POST `/path`\n..."
+end
+```
+
+The `component_map` (CLOSED) routes to format functions (OPEN):
 ```lua
 local component_map = {
-  ["card-grid"]       = renderers.card_grid,
-  ["entity-schema"]   = renderers.entity_schema,
-  ["api-endpoint"]    = renderers.api_endpoint,
-  ["status-flow"]     = renderers.status_flow,
-  ["directive-table"] = renderers.directive_table,
-  ["step-type"]       = renderers.step_type,
-  ["config-example"]  = renderers.config_example,
-  ["side-by-side"]    = renderers.side_by_side,
+  ["card-grid"]       = fmt.card_grid,
+  ["entity-schema"]   = fmt.entity_schema,
+  ["api-endpoint"]    = fmt.api_endpoint,
+  ["status-flow"]     = fmt.status_flow,
+  ["directive-table"] = fmt.directive_table,
+  ["step-type"]       = fmt.step_type,
+  ["config-example"]  = fmt.config_example,
+  ["side-by-side"]    = fmt.side_by_side,
 }
 ```
 
@@ -147,19 +166,59 @@ The `branded.tex` template uses Pandoc template syntax (`$if(var)$...$endif$`):
 | `$toc$` | `metadata.toc` | Table of contents |
 | `$body$` | Conversion output | Document content |
 
-## LaTeX Custom Environments
+## LaTeX Macro Contract (Filter → Template)
 
-Defined in `branded.tex`, used by `latex-components.lua`:
+The Lua filter emits these macros with pure data arguments. The template (`branded.tex`) defines what they render. To change appearance, edit only the `\newcommand` definitions in the template.
 
-| Environment | Arguments | Component |
-|-------------|-----------|-----------|
-| `cardgrid` | — | card-grid |
-| `entityschema` | `{Name extends Parent}` | entity-schema |
-| `apiendpoint` | `{METHOD}{/path}` | api-endpoint |
-| `statusflow` | — | status-flow |
-| `steptype` | `{Name}{\asyncbadge}` | step-type |
-| `sidebyside` | — | side-by-side |
-| `mermaidplaceholder` | — | mermaid (placeholder) |
-| `annotationlist` | — | config-example annotations |
+| Macro | Args | Emitted by | Component |
+|-------|------|-----------|-----------|
+| `\cardgridbegin` | — | card-grid | Container open |
+| `\card` | `{icon}{title}{desc}` | card-grid | Single card |
+| `\cardgridend` | — | card-grid | Container close |
+| `\entitybegin` | `{name}{parent}` | entity-schema | Header |
+| `\entityfield` | `{name}{type}{req}{desc}{values}` | entity-schema | Field row |
+| `\entityend` | — | entity-schema | Close |
+| `\apibegin` | `{method}{path}` | api-endpoint | Header with method badge |
+| `\apidesc` | `{text}` | api-endpoint | Description |
+| `\apiparam` | `{name}{type}{required}` | api-endpoint | Parameter |
+| `\apiresponse` | `{code}` | api-endpoint | Response block |
+| `\apiend` | — | api-endpoint | Close |
+| `\flowbegin` | — | status-flow | Container open |
+| `\flowstate` | `{label}{trigger}{next}{effects}{islast}` | status-flow | State node |
+| `\flowend` | — | status-flow | Container close |
+| `\directivebegin` | `{title}` | directive-table | Table header |
+| `\directivecategory` | `{name}` | directive-table | Category row |
+| `\directive` | `{name}{type}{default}{desc}` | directive-table | Directive row |
+| `\directiveend` | — | directive-table | Table close |
+| `\stepbegin` | `{name}{category}` | step-type | Header with badge |
+| `\stepdesc` | `{text}` | step-type | Description |
+| `\stepprop` | `{name}{type}{req}{desc}` | step-type | Property |
+| `\stepexample` | `{code}` | step-type | Code example |
+| `\stepend` | — | step-type | Close |
+| `\configbegin` | `{title}{language}` | config-example | Header |
+| `\configcode` | `{code}` | config-example | Code block |
+| `\configannotation` | `{line}{text}` | config-example | Annotation |
+| `\configend` | — | config-example | Close |
+| `\sidebegin` | — | side-by-side | Container open |
+| `\sidepanel` | `{title}{content}{language}` | side-by-side | Panel |
+| `\sideend` | — | side-by-side | Container close |
+| `\mermaidbegin` | — | mermaid | Placeholder open |
+| `\mermaidend` | — | mermaid | Placeholder close |
 
-Custom commands: `\card`, `\state`, `\annotation`, `\required`, `\typebadge`, `\asyncbadge`, `\syncbadge`, `\methodcolor`.
+Utility macros (defined in template, used by component macros):
+`\required`, `\typebadge`, `\methodcolor`.
+
+## LLM Format Functions Contract
+
+Each `fmt.*` function in `llm-components.lua` receives a parsed Lua table and returns markdown. The data schemas match the YAML input:
+
+| Function | Input data | Returns |
+|----------|-----------|---------|
+| `fmt.card_grid` | `[{title, description, icon}]` | Bullet list |
+| `fmt.entity_schema` | `{name, parent, fields: [{name, type, required, description, values}]}` | Heading + table |
+| `fmt.api_endpoint` | `{method, path, description, params: [{name, type, required}], response}` | Heading + params + code |
+| `fmt.status_flow` | `{states: [{label, trigger, next, effects}]}` | Flow line + details |
+| `fmt.directive_table` | `{title, categories: [{name, directives: [{name, type, default, description}]}]}` | Flat table |
+| `fmt.step_type` | `{name, category, description, properties: [{name, type, required, description}], example}` | Heading + list + code |
+| `fmt.config_example` | `{title, language, code, annotations: [{line, text}]}` | Code + annotations |
+| `fmt.side_by_side` | `{left: {title, content, language}, right: {...}}` | Two labeled sections |

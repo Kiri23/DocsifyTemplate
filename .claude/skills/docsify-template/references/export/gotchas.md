@@ -31,9 +31,11 @@ Pandoc's Lua environment does NOT include a YAML library. You must embed a parse
 
 ### `$` breaks Pandoc template engine
 
-Dollar signs in `RawBlock("latex", ...)` content are interpreted as Pandoc template variables, NOT passed through as literal text. This breaks JSON with `${variable}` patterns.
+Dollar signs in templates AND in `RawBlock("latex", ...)` content are interpreted as Pandoc template variables, NOT passed through as literal text.
 
-**Fix:** Use `escape_verbatim()` which replaces `$` with `\$` for content inside verbatim/lstlisting blocks.
+**In templates:** Use `$$` to produce a literal `$`. Example: `$$\rightarrow$$` not `$\rightarrow$`.
+
+**In filter output:** Use `escape_verbatim()` which replaces `$` with `\$` for content inside verbatim blocks (response/example code).
 
 ### `{}` in code blocks
 

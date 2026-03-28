@@ -66,3 +66,20 @@ In the browser, `component-renderer.js` transforms YAML fences into interactive 
 
 ### Embedded YAML Parser
 Pandoc's Lua environment has NO built-in YAML parser. Each filter embeds a ~120-line Lua parser that handles the subset our components use: key-value pairs, arrays of objects, multiline strings (`|`), inline arrays (`[a, b]`), booleans, numbers.
+
+### Open/Closed Principle
+
+Both filters follow the Open/Closed Principle — closed for modification, open for extension:
+
+**LaTeX filter** (`latex-components.lua`):
+- **CLOSED**: YAML parser + dispatcher + `escape_latex()` helpers. Never edit.
+- **OPEN**: Renderers emit pure data macros (`\card{icon}{title}{desc}`). To change appearance, edit the `\newcommand{\card}[3]{...}` definition in `branded.tex`. The filter never needs to change.
+
+**LLM filter** (`llm-components.lua`):
+- **CLOSED**: YAML parser + dispatcher (parses YAML, calls format function, re-parses result as markdown). Never edit.
+- **OPEN**: `fmt.*` functions at the top of the file. Each receives a parsed Lua table and returns a markdown string. Edit these to change how components appear in LLM output.
+
+```
+LaTeX: Filter emits macros  →  Template defines macros  →  Change template only
+LLM:   Dispatcher parses    →  fmt.* formats data       →  Change fmt.* only
+```

@@ -1,6 +1,21 @@
 %% branded.tex — Pandoc LaTeX template for DocsifyTemplate
-%% Brand colors and component environments match the web theme.
-%% Usage: pandoc -f markdown -t latex --template=branded.tex
+%%
+%% ARCHITECTURE: Open/Closed Principle
+%% The Lua filter (latex-components.lua) emits pure data macros.
+%% This template defines HOW those macros render.
+%% To change component appearance: edit macros HERE.
+%% The Lua filter never needs to change.
+%%
+%% MACRO CONTRACT (filter → template):
+%%   Card Grid:       \cardgridbegin, \card{icon}{title}{desc}, \cardgridend
+%%   Entity Schema:   \entitybegin{name}{parent}, \entityfield{name}{type}{req}{desc}{values}, \entityend
+%%   API Endpoint:    \apibegin{method}{path}, \apidesc{text}, \apiparam{name}{type}{req}, \apiresponse{code}, \apiend
+%%   Status Flow:     \flowbegin, \flowstate{label}{trigger}{next}{effects}{islast}, \flowend
+%%   Directive Table: \directivebegin{title}, \directivecategory{name}, \directive{name}{type}{default}{desc}, \directiveend
+%%   Step Type:       \stepbegin{name}{category}, \stepdesc{text}, \stepprop{name}{type}{req}{desc}, \stepexample{code}, \stepend
+%%   Config Example:  \configbegin{title}{lang}, \configcode{code}, \configannotation{line}{text}, \configend
+%%   Side by Side:    \sidebegin, \sidepanel{title}{content}{language}, \sideend
+%%   Mermaid:         \mermaidbegin, \mermaidend (wraps verbatim)
 
 \documentclass[11pt, a4paper]{article}
 
@@ -27,6 +42,7 @@
 \tcbuselibrary{skins, breakable}
 
 %% ── Brand Colors (from theme.css :root) ──
+%% Change these to rebrand the entire document.
 \definecolor{accent}{HTML}{0891B2}
 \definecolor{accentlight}{HTML}{ECFEFF}
 \definecolor{accenttext}{HTML}{0E7490}
@@ -38,8 +54,6 @@
 \definecolor{textmuted}{HTML}{A8A29E}
 \definecolor{techaccent}{HTML}{6366F1}
 \definecolor{success}{HTML}{34D399}
-
-%% Method colors
 \definecolor{methodget}{HTML}{3B82F6}
 \definecolor{methodpost}{HTML}{22C55E}
 \definecolor{methodput}{HTML}{F59E0B}
@@ -81,50 +95,12 @@
   stringstyle=\color{accenttext},
   commentstyle=\color{textmuted}\itshape,
 }
-
-\lstdefinestyle{response}{
-  basicstyle=\ttfamily\small,
-  backgroundcolor=\color{surfaceraised},
-  frame=single,
-  rulecolor=\color{bordersubtle},
-  breaklines=true,
-  tabsize=2,
-  showstringspaces=false,
-}
-
 \lstset{style=code}
 
-%% ── Custom commands ──
+%% ── Shared utility macros ──
 \newcommand{\required}{{\textcolor{methoddelete}{\footnotesize\textbf{required}}}}
 \newcommand{\typebadge}[1]{{\footnotesize\colorbox{surfaceraised}{\texttt{#1}}}}
-\newcommand{\asyncbadge}{{\textcolor{techaccent}{\footnotesize\textbf{async}}}}
-\newcommand{\syncbadge}{{\textcolor{accent}{\footnotesize\textbf{sync}}}}
 
-%% ── Component environments ──
-
-% Card Grid
-\newenvironment{cardgrid}{%
-  \vspace{1em}%
-  \begin{tcolorbox}[colback=surfaceraised, colframe=bordersubtle, arc=4pt, boxrule=0.5pt, breakable]%
-}{%
-  \end{tcolorbox}%
-  \vspace{0.5em}%
-}
-\newcommand{\card}[3]{%  #1=icon #2=title #3=description
-  \noindent\textbf{#1\enspace#2}\\
-  {\small\textcolor{textsecondary}{#3}}\\[0.6em]%
-}
-
-% Entity Schema
-\newenvironment{entityschema}[1]{%
-  \vspace{1em}%
-  \begin{tcolorbox}[colback=white, colframe=accent, title={\textbf{#1}}, fonttitle=\large, coltitle=white, colbacktitle=accent, arc=4pt, boxrule=0.5pt, breakable, left=2mm, right=2mm]%
-}{%
-  \end{tcolorbox}%
-  \vspace{0.5em}%
-}
-
-% API Endpoint
 \newcommand{\methodcolor}[1]{%
   \ifstrequal{#1}{GET}{\colorbox{methodget!15}{\textcolor{methodget}{\textbf{\small #1}}}}{}%
   \ifstrequal{#1}{POST}{\colorbox{methodpost!15}{\textcolor{methodpost}{\textbf{\small #1}}}}{}%
@@ -133,69 +109,177 @@
   \ifstrequal{#1}{DELETE}{\colorbox{methoddelete!15}{\textcolor{methoddelete}{\textbf{\small #1}}}}{}%
 }
 
-\newenvironment{apiendpoint}[2]{%  #1=METHOD #2=path
+%% ════════════════════════════════════════════════════════════════
+%% COMPONENT MACROS — Edit these to change how components render.
+%% The Lua filter emits calls to these macros with pure data args.
+%% ════════════════════════════════════════════════════════════════
+
+%% ── Card Grid ──
+\newcommand{\cardgridbegin}{%
   \vspace{1em}%
-  \begin{tcolorbox}[colback=white, colframe=bordersubtle, arc=4pt, boxrule=0.5pt, breakable, left=3mm]%
-  \methodcolor{#1}\enspace{\ttfamily\textbf{#2}}\\[0.5em]%
-}{%
+  \begin{tcolorbox}[colback=surfaceraised, colframe=bordersubtle, arc=4pt, boxrule=0.5pt, breakable]%
+}
+\newcommand{\card}[3]{% #1=icon #2=title #3=description
+  \noindent\textbf{#1\enspace#2}\\
+  {\small\textcolor{textsecondary}{#3}}\\[0.6em]%
+}
+\newcommand{\cardgridend}{%
   \end{tcolorbox}%
   \vspace{0.5em}%
 }
 
-% Status Flow
-\newenvironment{statusflow}{%
+%% ── Entity Schema ──
+\newcommand{\entitybegin}[2]{% #1=name #2=parent (may be empty)
+  \vspace{1em}%
+  \begin{tcolorbox}[colback=white, colframe=accent,
+    title={\textbf{#1}\ifstrempty{#2}{}{ \textit{\small extends #2}}},
+    fonttitle=\large, coltitle=white, colbacktitle=accent,
+    arc=4pt, boxrule=0.5pt, breakable, left=2mm, right=2mm]%
+  \begin{tabularx}{\textwidth}{l l c X}
+    \toprule
+    \textbf{Field} & \textbf{Type} & \textbf{Req.} & \textbf{Description} \\
+    \midrule
+}
+\newcommand{\entityfield}[5]{% #1=name #2=type #3=required #4=desc #5=values
+  \texttt{#1} & \typebadge{#2} &
+  \ifstrequal{#3}{true}{\required}{} &
+  #4\ifstrempty{#5}{}{ \texttt{\small #5}} \\
+}
+\newcommand{\entityend}{%
+    \bottomrule
+  \end{tabularx}
+  \end{tcolorbox}%
+  \vspace{0.5em}%
+}
+
+%% ── API Endpoint ──
+\newcommand{\apibegin}[2]{% #1=method #2=path
+  \vspace{1em}%
+  \begin{tcolorbox}[colback=white, colframe=bordersubtle, arc=4pt, boxrule=0.5pt, breakable, left=3mm]%
+  \methodcolor{#1}\enspace{\ttfamily\textbf{#2}}\\[0.5em]%
+}
+\newcommand{\apidesc}[1]{% #1=description
+  #1\\[0.3em]%
+}
+\newcommand{\apiparam}[3]{% #1=name #2=type #3=required
+  \texttt{#1} \typebadge{#2} \ifstrequal{#3}{true}{\required}{}\\
+}
+\newcommand{\apiresponse}[1]{% #1=response code
+  \vspace{0.3em}\textbf{Response:}%
+  \begin{verbatim}
+#1
+  \end{verbatim}
+}
+\newcommand{\apiend}{%
+  \end{tcolorbox}%
+  \vspace{0.5em}%
+}
+
+%% ── Status Flow ──
+\newcommand{\flowbegin}{%
   \vspace{1em}%
   \begin{tcolorbox}[colback=surfaceraised, colframe=bordersubtle, arc=4pt, boxrule=0.5pt, breakable]%
   \begin{center}%
-}{%
+}
+\newcommand{\flowstate}[5]{% #1=label #2=trigger #3=next #4=effects #5=islast
+  \fcolorbox{accent}{accentlight}{\textbf{#1}}%
+  \ifstrequal{#5}{true}{}{ $$\rightarrow$$ }%
+}
+\newcommand{\flowend}{%
   \end{center}%
   \end{tcolorbox}%
   \vspace{0.5em}%
 }
-\newcommand{\state}[5]{%  #1=label #2=trigger #3=next #4=effects #5=arrow
-  \fcolorbox{accent}{accentlight}{\textbf{#1}}%
-  #5%
+
+%% ── Directive Table ──
+\newcommand{\directivebegin}[1]{% #1=title
+  \vspace{1em}%
+  \subsection*{#1}%
+  \begin{longtable}{l l p{0.5\textwidth}}
+    \toprule
+    \textbf{Directive} & \textbf{Type} & \textbf{Description} \\
+    \midrule
+    \endhead
+}
+\newcommand{\directivecategory}[1]{% #1=category name
+  \multicolumn{3}{l}{\textbf{\textcolor{accent}{#1}}} \\
+  \midrule
+}
+\newcommand{\directive}[4]{% #1=name #2=type #3=default #4=description
+  \texttt{#1} & \typebadge{#2} & #4\ifstrempty{#3}{}{ (default: \texttt{#3})} \\
+}
+\newcommand{\directiveend}{%
+    \bottomrule
+  \end{longtable}%
+  \vspace{0.5em}%
 }
 
-% Step Type
-\newenvironment{steptype}[2]{%  #1=name #2=badge
+%% ── Step Type ──
+\newcommand{\stepbegin}[2]{% #1=name #2=category (sync|async)
   \vspace{1em}%
-  \begin{tcolorbox}[colback=white, colframe=accent!50, arc=4pt, boxrule=0.5pt, breakable, title={\textbf{#1}\enspace#2}, coltitle=textprimary, colbacktitle=accentlight]%
-}{%
+  \begin{tcolorbox}[colback=white, colframe=accent!50, arc=4pt, boxrule=0.5pt, breakable,
+    title={\textbf{#1}\enspace\ifstrequal{#2}{async}{%
+      \textcolor{techaccent}{\footnotesize\textbf{async}}}{%
+      \textcolor{accent}{\footnotesize\textbf{sync}}}},
+    coltitle=textprimary, colbacktitle=accentlight]%
+}
+\newcommand{\stepdesc}[1]{% #1=description
+  #1\\[0.3em]%
+}
+\newcommand{\stepprop}[4]{% #1=name #2=type #3=required #4=description
+  \texttt{#1} \typebadge{#2} \ifstrequal{#3}{true}{\required}{} --- {\small #4}\\
+}
+\newcommand{\stepexample}[1]{% #1=code
+  \vspace{0.3em}\textbf{Example:}%
+  \begin{verbatim}
+#1
+  \end{verbatim}
+}
+\newcommand{\stepend}{%
   \end{tcolorbox}%
   \vspace{0.5em}%
 }
 
-% Annotation list
-\newenvironment{annotationlist}{%
-  \vspace{0.5em}%
-  \begin{description}[style=nextline, font=\normalfont\small\textcolor{accent}]%
-}{%
-  \end{description}%
-}
-\newcommand{\annotation}[2]{%  #1=line number #2=text
-  \item[\tikz\node[circle, fill=accent, text=white, inner sep=1.5pt, font=\tiny\bfseries]{#1};] {\small #2}%
-}
-
-% Side by Side
-\newenvironment{sidebyside}{%
+%% ── Config Example ──
+\newcommand{\configbegin}[2]{% #1=title #2=language
   \vspace{1em}%
-  \noindent%
-}{%
-  \vspace{0.5em}%
+  \ifstrempty{#1}{}{\paragraph{#1}}%
 }
+\newcommand{\configcode}[1]{% #1=code
+  \begin{verbatim}
+#1
+  \end{verbatim}
+}
+\newcommand{\configannotation}[2]{% #1=line number #2=text
+  \noindent\tikz\node[circle, fill=accent, text=white, inner sep=1.5pt, font=\tiny\bfseries]{#1};
+  {\small #2}\\[0.3em]%
+}
+\newcommand{\configend}{\vspace{0.5em}}
 
-% Mermaid placeholder
-\newenvironment{mermaidplaceholder}{%
+%% ── Side by Side ──
+\newcommand{\sidebegin}{\vspace{1em}\noindent}
+\newcommand{\sidepanel}[3]{% #1=title #2=content #3=language (may be empty)
+  \begin{minipage}[t]{0.48\textwidth}
+    \ifstrempty{#1}{}{\textbf{#1}\\[0.5em]}%
+    \ifstrempty{#3}{#2}{\begin{verbatim}
+#2
+    \end{verbatim}}%
+  \end{minipage}\hfill%
+}
+\newcommand{\sideend}{\vspace{0.5em}}
+
+%% ── Mermaid (placeholder) ──
+\newcommand{\mermaidbegin}{%
   \vspace{1em}%
   \begin{tcolorbox}[colback=surfaceraised, colframe=textmuted, arc=4pt, boxrule=0.5pt]%
-  \textcolor{textmuted}{\small\textit{[Mermaid diagram — render separately]}}\\[0.3em]%
-  {\ttfamily\scriptsize%
-}{%
-  }%
+  \textcolor{textmuted}{\small\textit{[Mermaid diagram --- render separately]}}\\[0.3em]%
+}
+\newcommand{\mermaidend}{%
   \end{tcolorbox}%
   \vspace{0.5em}%
 }
+
+%% ════════════════════════════════════════════════════════════════
 
 %% ── Title setup ──
 $if(title)$

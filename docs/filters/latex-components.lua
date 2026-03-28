@@ -216,224 +216,185 @@ local function raw(s)
 end
 
 ----------------------------------------------------------------
--- Component renderers
+-- Component renderers — PURE DATA MACROS ONLY
+-- These emit \macroname{arg1}{arg2}... calls.
+-- The LaTeX template (branded.tex) defines what each macro does.
+-- To change how components LOOK, edit the template, not this file.
 ----------------------------------------------------------------
 
 local renderers = {}
 
+-- card-grid: \cardgridbegin, \card{icon}{title}{desc}, \cardgridend
 function renderers.card_grid(text)
   local cards = parse_yaml(text)
-  local out = {"\\begin{cardgrid}"}
+  local out = {"\\cardgridbegin"}
   for _, card in ipairs(cards) do
-    local icon = escape_latex(card.icon or "")
-    local title = escape_latex(card.title or "Untitled")
-    local desc = escape_latex(card.description or "")
-    out[#out+1] = string.format("  \\card{%s}{%s}{%s}", icon, title, desc)
+    out[#out+1] = string.format("\\card{%s}{%s}{%s}",
+      escape_latex(card.icon or ""),
+      escape_latex(card.title or "Untitled"),
+      escape_latex(card.description or ""))
   end
-  out[#out+1] = "\\end{cardgrid}"
+  out[#out+1] = "\\cardgridend"
   return table.concat(out, "\n")
 end
 
+-- entity-schema: \entitybegin{name}{parent}, \entityfield{name}{type}{required}{desc}{values}, \entityend
 function renderers.entity_schema(text)
   local data = parse_yaml(text)
-  local name = escape_latex(data.name or "Entity")
-  local parent = data.parent and (" \\textit{extends " .. escape_latex(data.parent) .. "}") or ""
   local out = {
-    string.format("\\begin{entityschema}{%s%s}", name, parent),
-    "  \\begin{tabularx}{\\textwidth}{l l c X}",
-    "    \\toprule",
-    "    \\textbf{Field} & \\textbf{Type} & \\textbf{Req.} & \\textbf{Description} \\\\",
-    "    \\midrule"
+    string.format("\\entitybegin{%s}{%s}",
+      escape_latex(data.name or "Entity"),
+      escape_latex(data.parent or ""))
   }
-  local fields = data.fields or {}
-  for _, f in ipairs(fields) do
-    local req = f.required and "\\required" or ""
-    local desc = escape_latex(f.description or "")
+  for _, f in ipairs(data.fields or {}) do
+    local vals = ""
     if f.values and type(f.values) == "table" then
-      desc = desc .. " Values: \\texttt{" .. escape_latex(table.concat(f.values, ", ")) .. "}"
+      vals = table.concat(f.values, ", ")
     end
-    out[#out+1] = string.format("    \\texttt{%s} & \\typebadge{%s} & %s & %s \\\\",
-      escape_latex(f.name or ""), escape_latex(f.type or "any"), req, desc)
+    out[#out+1] = string.format("\\entityfield{%s}{%s}{%s}{%s}{%s}",
+      escape_latex(f.name or ""),
+      escape_latex(f.type or "any"),
+      f.required and "true" or "false",
+      escape_latex(f.description or ""),
+      escape_latex(vals))
   end
-  out[#out+1] = "    \\bottomrule"
-  out[#out+1] = "  \\end{tabularx}"
-  out[#out+1] = "\\end{entityschema}"
+  out[#out+1] = "\\entityend"
   return table.concat(out, "\n")
 end
 
+-- api-endpoint: \apibegin{method}{path}, \apidesc{text}, \apiparam{name}{type}{required},
+--               \apiresponse{code}, \apiend
 function renderers.api_endpoint(text)
   local data = parse_yaml(text)
-  local method = (data.method or "GET"):upper()
-  local path = escape_latex(data.path or "/")
-  local desc = escape_latex(data.description or "")
   local out = {
-    string.format("\\begin{apiendpoint}{%s}{%s}", method, path),
-    string.format("  %s", desc)
+    string.format("\\apibegin{%s}{%s}",
+      (data.method or "GET"):upper(),
+      escape_latex(data.path or "/"))
   }
-  local params = data.params or {}
-  if #params > 0 then
-    out[#out+1] = "  \\vspace{0.5em}"
-    out[#out+1] = "  \\begin{tabular}{l l c}"
-    out[#out+1] = "    \\textbf{Parameter} & \\textbf{Type} & \\textbf{Required} \\\\"
-    out[#out+1] = "    \\midrule"
-    for _, p in ipairs(params) do
-      local req = p.required and "\\required" or ""
-      out[#out+1] = string.format("    \\texttt{%s} & \\typebadge{%s} & %s \\\\",
-        escape_latex(p.name or ""), escape_latex(p.type or "any"), req)
-    end
-    out[#out+1] = "  \\end{tabular}"
+  if data.description then
+    out[#out+1] = string.format("\\apidesc{%s}", escape_latex(data.description))
+  end
+  for _, p in ipairs(data.params or {}) do
+    out[#out+1] = string.format("\\apiparam{%s}{%s}{%s}",
+      escape_latex(p.name or ""),
+      escape_latex(p.type or "any"),
+      p.required and "true" or "false")
   end
   if data.response then
-    out[#out+1] = "  \\vspace{0.5em}"
-    out[#out+1] = "  \\textbf{Response:}"
-    out[#out+1] = "  \\begin{verbatim}"
-    out[#out+1] = escape_verbatim(trim(data.response))
-    out[#out+1] = "  \\end{verbatim}"
+    out[#out+1] = string.format("\\apiresponse{%s}", escape_verbatim(trim(data.response)))
   end
-  out[#out+1] = "\\end{apiendpoint}"
+  out[#out+1] = "\\apiend"
   return table.concat(out, "\n")
 end
 
+-- status-flow: \flowbegin, \flowstate{label}{trigger}{next}{effects}{islast}, \flowend
 function renderers.status_flow(text)
   local data = parse_yaml(text)
   local states = data.states or {}
-  local out = {"\\begin{statusflow}"}
+  local out = {"\\flowbegin"}
   for idx, s in ipairs(states) do
-    local label = escape_latex(s.label or s.id or "State")
-    local trigger = escape_latex(s.trigger or "")
-    local next_states = ""
+    local next_str = ""
     if s.next and type(s.next) == "table" then
-      next_states = escape_latex(table.concat(s.next, ", "))
+      next_str = table.concat(s.next, ", ")
     end
-    local effects = ""
+    local effects_str = ""
     if s.effects and type(s.effects) == "table" then
-      effects = escape_latex(table.concat(s.effects, ", "))
+      effects_str = table.concat(s.effects, ", ")
     end
-    local arrow = idx < #states and " $\\rightarrow$ " or ""
-    out[#out+1] = string.format("  \\state{%s}{%s}{%s}{%s}%s",
-      label, trigger, next_states, effects, arrow)
+    out[#out+1] = string.format("\\flowstate{%s}{%s}{%s}{%s}{%s}",
+      escape_latex(s.label or s.id or "State"),
+      escape_latex(s.trigger or ""),
+      escape_latex(next_str),
+      escape_latex(effects_str),
+      idx == #states and "true" or "false")
   end
-  out[#out+1] = "\\end{statusflow}"
+  out[#out+1] = "\\flowend"
   return table.concat(out, "\n")
 end
 
+-- directive-table: \directivebegin{title}, \directivecategory{name},
+--                  \directive{name}{type}{default}{desc}, \directiveend
 function renderers.directive_table(text)
   local data = parse_yaml(text)
-  local title = escape_latex(data.title or "Directives")
   local out = {
-    string.format("\\subsection*{%s}", title),
-    "\\begin{longtable}{l l p{0.5\\textwidth}}",
-    "  \\toprule",
-    "  \\textbf{Directive} & \\textbf{Type} & \\textbf{Description} \\\\",
-    "  \\midrule",
-    "  \\endhead"
+    string.format("\\directivebegin{%s}", escape_latex(data.title or "Directives"))
   }
-  local categories = data.categories or {}
-  for _, cat in ipairs(categories) do
-    out[#out+1] = string.format("  \\multicolumn{3}{l}{\\textbf{\\textcolor{accent}{%s}}} \\\\",
-      escape_latex(cat.name or ""))
-    out[#out+1] = "  \\midrule"
-    local directives = cat.directives or {}
-    for _, d in ipairs(directives) do
-      local default_str = ""
-      if d.default then
-        default_str = " (default: \\texttt{" .. escape_latex(tostring(d.default)) .. "})"
-      end
-      out[#out+1] = string.format("  \\texttt{%s} & \\typebadge{%s} & %s%s \\\\",
-        escape_latex(d.name or ""), escape_latex(d.type or ""), escape_latex(d.description or ""), default_str)
+  for _, cat in ipairs(data.categories or {}) do
+    out[#out+1] = string.format("\\directivecategory{%s}", escape_latex(cat.name or ""))
+    for _, d in ipairs(cat.directives or {}) do
+      out[#out+1] = string.format("\\directive{%s}{%s}{%s}{%s}",
+        escape_latex(d.name or ""),
+        escape_latex(d.type or ""),
+        escape_latex(tostring(d.default or "")),
+        escape_latex(d.description or ""))
     end
   end
-  out[#out+1] = "  \\bottomrule"
-  out[#out+1] = "\\end{longtable}"
+  out[#out+1] = "\\directiveend"
   return table.concat(out, "\n")
 end
 
+-- step-type: \stepbegin{name}{category}, \stepdesc{text},
+--            \stepprop{name}{type}{required}{desc}, \stepexample{code}, \stepend
 function renderers.step_type(text)
   local data = parse_yaml(text)
-  local name = escape_latex(data.name or "Step")
-  local category = (data.category or "sync"):lower()
-  local badge = category == "async" and "\\asyncbadge" or "\\syncbadge"
-  local desc = escape_latex(data.description or "")
   local out = {
-    string.format("\\begin{steptype}{%s}{%s}", name, badge),
-    string.format("  %s", desc)
+    string.format("\\stepbegin{%s}{%s}",
+      escape_latex(data.name or "Step"),
+      (data.category or "sync"):lower())
   }
-  local props = data.properties or {}
-  if #props > 0 then
-    out[#out+1] = "  \\vspace{0.5em}"
-    out[#out+1] = "  \\begin{tabular}{l l c p{0.4\\textwidth}}"
-    out[#out+1] = "    \\textbf{Property} & \\textbf{Type} & \\textbf{Req.} & \\textbf{Description} \\\\"
-    out[#out+1] = "    \\midrule"
-    for _, p in ipairs(props) do
-      local req = p.required and "\\required" or ""
-      out[#out+1] = string.format("    \\texttt{%s} & \\typebadge{%s} & %s & %s \\\\",
-        escape_latex(p.name or ""), escape_latex(p.type or ""), req, escape_latex(p.description or ""))
-    end
-    out[#out+1] = "  \\end{tabular}"
+  if data.description then
+    out[#out+1] = string.format("\\stepdesc{%s}", escape_latex(data.description))
+  end
+  for _, p in ipairs(data.properties or {}) do
+    out[#out+1] = string.format("\\stepprop{%s}{%s}{%s}{%s}",
+      escape_latex(p.name or ""),
+      escape_latex(p.type or ""),
+      p.required and "true" or "false",
+      escape_latex(p.description or ""))
   end
   if data.example then
-    out[#out+1] = "  \\vspace{0.5em}"
-    out[#out+1] = "  \\begin{verbatim}"
-    out[#out+1] = escape_verbatim(trim(data.example))
-    out[#out+1] = "  \\end{verbatim}"
+    out[#out+1] = string.format("\\stepexample{%s}", escape_verbatim(trim(data.example)))
   end
-  out[#out+1] = "\\end{steptype}"
+  out[#out+1] = "\\stepend"
   return table.concat(out, "\n")
 end
 
+-- config-example: \configbegin{title}{language}, \configcode{code},
+--                 \configannotation{line}{text}, \configend
 function renderers.config_example(text)
   local data = parse_yaml(text)
-  local title = escape_latex(data.title or "")
-  local lang = data.language or "json"
-  local code = data.code or ""
-  local out = {}
-  if title ~= "" then
-    out[#out+1] = string.format("\\paragraph{%s}", title)
+  local out = {
+    string.format("\\configbegin{%s}{%s}",
+      escape_latex(data.title or ""),
+      escape_latex(data.language or "json"))
+  }
+  if data.code then
+    out[#out+1] = string.format("\\configcode{%s}", escape_verbatim(trim(data.code)))
   end
-  out[#out+1] = "\\begin{verbatim}"
-  out[#out+1] = escape_verbatim(trim(code))
-  out[#out+1] = "\\end{verbatim}"
-  local annotations = data.annotations or {}
-  if #annotations > 0 then
-    out[#out+1] = "\\begin{annotationlist}"
-    for _, a in ipairs(annotations) do
-      out[#out+1] = string.format("  \\annotation{%d}{%s}",
-        a.line or 0, escape_latex(a.text or ""))
-    end
-    out[#out+1] = "\\end{annotationlist}"
+  for _, a in ipairs(data.annotations or {}) do
+    out[#out+1] = string.format("\\configannotation{%d}{%s}",
+      a.line or 0, escape_latex(a.text or ""))
   end
+  out[#out+1] = "\\configend"
   return table.concat(out, "\n")
 end
 
+-- side-by-side: \sidebegin, \sidepanel{title}{content}{language}, \sideend
 function renderers.side_by_side(text)
   local data = parse_yaml(text)
   local left = data.left or {}
   local right = data.right or {}
-  local function render_panel(panel)
-    local parts = {}
-    if panel.title then
-      parts[#parts+1] = string.format("\\textbf{%s}\\\\[0.5em]", escape_latex(panel.title))
-    end
-    if panel.content then
-      if panel.language then
-        parts[#parts+1] = string.format("\\begin{lstlisting}[language=%s, style=code]", panel.language)
-        parts[#parts+1] = panel.content
-        parts[#parts+1] = "\\end{lstlisting}"
-      else
-        parts[#parts+1] = escape_latex(panel.content)
-      end
-    end
-    return table.concat(parts, "\n")
-  end
   local out = {
-    "\\begin{sidebyside}",
-    "  \\begin{minipage}[t]{0.48\\textwidth}",
-    "    " .. render_panel(left),
-    "  \\end{minipage}\\hfill",
-    "  \\begin{minipage}[t]{0.48\\textwidth}",
-    "    " .. render_panel(right),
-    "  \\end{minipage}",
-    "\\end{sidebyside}"
+    "\\sidebegin",
+    string.format("\\sidepanel{%s}{%s}{%s}",
+      escape_latex(left.title or ""),
+      left.language and escape_verbatim(left.content or "") or escape_latex(left.content or ""),
+      escape_latex(left.language or "")),
+    string.format("\\sidepanel{%s}{%s}{%s}",
+      escape_latex(right.title or ""),
+      right.language and escape_verbatim(right.content or "") or escape_latex(right.content or ""),
+      escape_latex(right.language or "")),
+    "\\sideend"
   }
   return table.concat(out, "\n")
 end
@@ -461,9 +422,9 @@ function CodeBlock(block)
   end
   -- Mermaid: replace with placeholder
   if cls == "mermaid" then
-    return raw("\\begin{mermaidplaceholder}\n\\begin{verbatim}\n" ..
+    return raw("\\mermaidbegin\n\\begin{verbatim}\n" ..
       escape_verbatim(block.text) ..
-      "\n\\end{verbatim}\n\\end{mermaidplaceholder}")
+      "\n\\end{verbatim}\n\\mermaidend")
   end
   return nil
 end
