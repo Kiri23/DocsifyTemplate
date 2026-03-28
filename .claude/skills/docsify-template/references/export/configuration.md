@@ -18,6 +18,41 @@ Edit `docs/plugins/latex-export.js`, add to `FORMAT_DEFS` array:
 
 Set `filter` and `template` to `null` for plain format conversion without component transformation or branding.
 
+## Configuring the Typst Template (PDF)
+
+### Brand Colors
+In `docs/templates/branded.typ`, change `#let` color values:
+
+```
+theme.css `:root`              →  branded.typ
+──────────────────────────────────────────────
+--accent: #0891b2              →  #let accent = rgb("#0891b2")
+--surface-raised: #f5f5f4      →  #let surface-raised = rgb("#f5f5f4")
+```
+
+### Page Setup
+```typst
+#set page(paper: "a4", margin: (top: 2.5cm, ...))
+#set text(font: "New Computer Modern", size: 11pt)
+```
+
+### Component Functions
+Each component is a `#let` function. Edit the function body to change rendering:
+
+```typst
+#let card(icon, title, desc) = block(
+  fill: surface-raised, radius: 4pt, inset: 12pt, width: 100%,
+  [*#icon #title* \ #text(fill: text-secondary)[#desc]]
+)
+```
+
+### Typst vs LaTeX template differences
+- Typst: `#let func(args) = { ... }` — functions
+- LaTeX: `\newcommand{\func}[N]{...}` — macros
+- Typst: `rgb("#hex")` — colors
+- LaTeX: `\definecolor{name}{HTML}{hex}` — colors
+- Typst functions MUST be self-contained (no cross-function bracket matching)
+
 ## Configuring the LaTeX Template
 
 ### Brand Colors

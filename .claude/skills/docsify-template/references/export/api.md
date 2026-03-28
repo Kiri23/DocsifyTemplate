@@ -166,6 +166,65 @@ The `branded.tex` template uses Pandoc template syntax (`$if(var)$...$endif$`):
 | `$toc$` | `metadata.toc` | Table of contents |
 | `$body$` | Conversion output | Document content |
 
+## Typst WASM API
+
+For PDF export, after Pandoc generates Typst source, the Typst WASM compiler converts it to PDF:
+
+```javascript
+// Lazy-load (loaded once, from CDN)
+// CDN: @myriaddreamin/typst-all-in-one.ts@0.7.0-rc2
+// Exposes global: $typst
+
+$typst.resetShadow();                                    // Clear virtual FS
+$typst.mapShadow('/main.typ', typstBytesUint8Array);     // Map file
+$typst.mapShadow('main.typ', typstBytesUint8Array);      // Also without /
+const pdfData = await $typst.pdf({ mainFilePath: '/main.typ' });  // Compile
+// pdfData = Uint8Array of PDF bytes
+```
+
+Key gotchas:
+- Map files with BOTH `/main.typ` and `main.typ` paths
+- `resetShadow()` before each compilation
+- Returns `Uint8Array`, not `Blob` — wrap with `new Blob([pdfData], { type: 'application/pdf' })`
+- Error messages are in format `[SourceDiagnostic { message: "..." }]` — extract with regex
+
+## Typst Function Contract (Filter → Template)
+
+The Typst filter emits function calls. The template (`branded.typ`) defines them with `#let`.
+
+| Function | Args | Component |
+|----------|------|-----------|
+| `cardgridbegin()` | — | card-grid |
+| `card` | `(icon, title, desc)` | card-grid |
+| `cardgridend()` | — | card-grid |
+| `entitybegin` | `(name, parent)` | entity-schema |
+| `entityfield` | `(name, type, req, desc, values)` | entity-schema |
+| `entityend()` | — | entity-schema |
+| `apibegin` | `(method, path)` | api-endpoint |
+| `apidesc` | `(text)` | api-endpoint |
+| `apiparam` | `(name, type, req)` | api-endpoint |
+| `apiresponse` | `(code)` | api-endpoint |
+| `apiend()` | — | api-endpoint |
+| `flowbegin()` | — | status-flow |
+| `flowstate` | `(label, trigger, next, effects, islast)` | status-flow |
+| `flowend()` | — | status-flow |
+| `directivebegin` | `(title)` | directive-table |
+| `directivecategory` | `(name)` | directive-table |
+| `directive` | `(name, type, default, desc)` | directive-table |
+| `directiveend()` | — | directive-table |
+| `stepbegin` | `(name, category)` | step-type |
+| `stepdesc` | `(text)` | step-type |
+| `stepprop` | `(name, type, req, desc)` | step-type |
+| `stepexample` | `(code)` | step-type |
+| `stepend()` | — | step-type |
+| `configbegin` | `(title, lang)` | config-example |
+| `configcode` | `(code)` | config-example |
+| `configannotation` | `(line, text)` | config-example |
+| `configend()` | — | config-example |
+| `sidebegin()` | — | side-by-side |
+| `sidepanel` | `(title, content, lang)` | side-by-side |
+| `sideend()` | — | side-by-side |
+
 ## LaTeX Macro Contract (Filter → Template)
 
 The Lua filter emits these macros with pure data arguments. The template (`branded.tex`) defines what they render. To change appearance, edit only the `\newcommand` definitions in the template.

@@ -32,18 +32,28 @@ Downloaded file (.tex, .md, .html, etc.)
 | `docs/filters/yaml-parser.lua` | Shared YAML parser (~160 lines), injected into all filters at runtime |
 | `docs/filters/latex-components.lua` | Lua filter: YAML components → branded LaTeX macros (no parser) |
 | `docs/filters/llm-components.lua` | Lua filter: YAML components → clean semantic markdown (no parser) |
-| `docs/templates/branded.tex` | LaTeX template with brand colors, header/footer, custom environments |
+| `docs/filters/typst-components.lua` | Lua filter: YAML components → Typst function calls (no parser) |
+| `docs/templates/branded.tex` | LaTeX template: `\newcommand` definitions for component macros |
+| `docs/templates/branded.typ` | Typst template: `#let` definitions for component functions + PDF page setup |
 
 ## The Pattern
 
 ```
 Filter (business logic)  +  Template (branding)  =  Output
 ─────────────────────────────────────────────────────────────
-latex-components.lua      +  branded.tex          =  Branded PDF
+typst-components.lua      +  branded.typ          =  PDF (direct, zero server)
+latex-components.lua      +  branded.tex          =  LaTeX (.tex for pdflatex)
 llm-components.lua        +  (none)               =  LLM context text
 (future) slides.lua       +  beamer.tex           =  Presentation
-(future) minimal.lua      +  clean.tex            =  Minimal PDF
 ```
+
+### PDF Pipeline (Typst)
+The PDF format chains two WASM compilers:
+```
+Markdown → Pandoc WASM (to: typst) → Lua filter → branded.typ template
+    → Typst source → Typst WASM ($typst.pdf()) → PDF blob → download
+```
+Typst WASM (~5MB) is lazy-loaded from CDN on first PDF export.
 
 Filters decide HOW components transform. Templates decide HOW the document LOOKS. Mix and match freely.
 

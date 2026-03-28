@@ -97,6 +97,39 @@ The generated `.tex` requires `pdflatex` with these packages: `tcolorbox`, `fanc
 
 Pandoc.org/app uses Typst for PDF, not pdflatex — so the branded template won't compile there.
 
+## Typst Template Gotchas
+
+### Unclosed delimiter errors
+
+Typst functions must be self-contained — you CANNOT open a `[` bracket in one function and close it in another. Each `#let` function must balance its own delimiters.
+
+**Wrong:**
+```typst
+#let flowbegin() = { block()[  // opens [
+#let flowend() = { ]  // closes [ from another function — ERROR
+```
+
+**Right:** Make begin/end into no-ops, put rendering in each item function:
+```typst
+#let flowbegin() = []
+#let flowstate(label, ...) = { box()[*#label*] }
+#let flowend() = v(8pt)
+```
+
+### Typst WASM "undefined" error
+
+When `$typst.pdf()` throws "undefined", the actual error is a Typst compilation error. Extract the message:
+```javascript
+catch(e) {
+  const msg = String(e).match(/message:\s*"([^"]+)"/);
+  // msg[1] = actual Typst error like "unclosed delimiter"
+}
+```
+
+### Font availability in Typst WASM
+
+Typst WASM bundles "New Computer Modern" fonts. Custom fonts need to be mapped via `$typst.mapShadow()` as font files before compilation.
+
 ## Debugging
 
 ### test-export.html

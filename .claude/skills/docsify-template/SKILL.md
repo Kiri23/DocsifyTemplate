@@ -139,6 +139,8 @@ Export task?
 | Component appears as raw YAML in export | `references/export/gotchas.md` |
 | `$` in content breaks LaTeX export | `references/export/gotchas.md` |
 | pandoc.wasm fails to load (CORS) | `references/export/gotchas.md` |
+| PDF export "undefined" error | `references/export/gotchas.md` |
+| Typst "unclosed delimiter" | `references/export/gotchas.md` |
 | Sidebar link goes nowhere | `references/authoring/gotchas.md` |
 | Mobile layout broken | `references/styling/gotchas.md` |
 | Component interactivity not working | `references/components/gotchas.md` |
