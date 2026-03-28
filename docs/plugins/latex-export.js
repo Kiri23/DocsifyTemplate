@@ -1,11 +1,12 @@
 /* latex-export.js — Export button for Docsify pages
-   Supports: LaTeX (branded), LLM Text, plain LaTeX/HTML/RST/Org.
-   Lazy-loads pandoc.wasm (~56MB) only on first click.
+   Supports: PDF (via Typst WASM), LaTeX (branded), LLM Text, plain formats.
+   Lazy-loads pandoc.wasm (~56MB) and typst.wasm (~5MB) only on first use.
    Lua filters transform YAML code fence components into proper output.
 */
 (function () {
   var pandocConvert = null;
-  var loading = false;
+  var pandocLoading = false;
+  var typstLoaded = false;
 
   // Cache for filter/template files (fetched once)
   var filterCache = {};
@@ -21,8 +22,8 @@
 
   async function ensurePandoc(statusEl) {
     if (pandocConvert) return true;
-    if (loading) return false;
-    loading = true;
+    if (pandocLoading) return false;
+    pandocLoading = true;
     statusEl.textContent = 'Loading pandoc.wasm (~56MB)…';
     statusEl.style.display = '';
     try {
@@ -33,9 +34,36 @@
       return true;
     } catch (err) {
       statusEl.textContent = 'Failed to load pandoc: ' + err.message;
-      loading = false;
+      pandocLoading = false;
       return false;
     }
+  }
+
+  async function ensureTypst(statusEl) {
+    if (typstLoaded && typeof $typst !== 'undefined') return true;
+    statusEl.textContent = 'Loading Typst compiler…';
+    statusEl.style.display = '';
+    return new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-all-in-one.ts@0.7.0-rc2/dist/esm/index.js';
+      script.onload = function () {
+        var check = function () {
+          if (typeof $typst !== 'undefined') {
+            typstLoaded = true;
+            resolve(true);
+          } else {
+            setTimeout(check, 100);
+          }
+        };
+        check();
+      };
+      script.onerror = function () {
+        statusEl.textContent = 'Failed to load Typst compiler';
+        reject(new Error('Failed to load Typst WASM'));
+      };
+      document.head.appendChild(script);
+    });
   }
 
   function getCurrentMarkdown() {
@@ -48,7 +76,6 @@
     });
   }
 
-  // Strip Docsify-specific YAML frontmatter (---\n...\n---)
   function stripFrontmatter(md) {
     if (md.trimStart().startsWith('---')) {
       var end = md.indexOf('\n---', 4);
@@ -59,14 +86,20 @@
     return md;
   }
 
-  // Format definitions: [value, label, pandocFormat, filterPath, templatePath, ext, mime]
+  function getPageName() {
+    var name = (document.querySelector('.markdown-section h1') || {}).textContent || 'document';
+    return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  // Format definitions
   var FORMAT_DEFS = [
-    { value: 'latex-branded', label: 'LaTeX (Branded)',       to: 'latex',    filter: 'filters/latex-components.lua', template: 'templates/branded.tex', ext: '.tex',  mime: 'text/x-tex' },
-    { value: 'llm',           label: 'LLM Text',              to: 'markdown', filter: 'filters/llm-components.lua',   template: null,                    ext: '.md',   mime: 'text/markdown' },
-    { value: 'latex',         label: 'LaTeX (plain)',          to: 'latex',    filter: null,                           template: null,                    ext: '.tex',  mime: 'text/x-tex' },
-    { value: 'html',          label: 'HTML',                   to: 'html',    filter: null,                           template: null,                    ext: '.html', mime: 'text/html' },
-    { value: 'rst',           label: 'reStructuredText',       to: 'rst',     filter: null,                           template: null,                    ext: '.rst',  mime: 'text/plain' },
-    { value: 'org',           label: 'Org Mode',               to: 'org',     filter: null,                           template: null,                    ext: '.org',  mime: 'text/plain' },
+    { value: 'pdf',           label: 'PDF',                    to: 'typst',    filter: 'filters/typst-components.lua', template: 'templates/branded.typ', ext: '.pdf',  mime: 'application/pdf' },
+    { value: 'latex-branded', label: 'LaTeX (Branded)',         to: 'latex',    filter: 'filters/latex-components.lua', template: 'templates/branded.tex', ext: '.tex',  mime: 'text/x-tex' },
+    { value: 'llm',           label: 'LLM Text',               to: 'markdown', filter: 'filters/llm-components.lua',   template: null,                    ext: '.md',   mime: 'text/markdown' },
+    { value: 'latex',         label: 'LaTeX (plain)',           to: 'latex',    filter: null,                           template: null,                    ext: '.tex',  mime: 'text/x-tex' },
+    { value: 'html',          label: 'HTML',                    to: 'html',     filter: null,                           template: null,                    ext: '.html', mime: 'text/html' },
+    { value: 'rst',           label: 'reStructuredText',        to: 'rst',      filter: null,                           template: null,                    ext: '.rst',  mime: 'text/plain' },
+    { value: 'org',           label: 'Org Mode',                to: 'org',      filter: null,                           template: null,                    ext: '.org',  mime: 'text/plain' },
   ];
 
   function createExportUI() {
@@ -116,7 +149,6 @@
         var files = {};
 
         // Load and attach Lua filter if needed
-        // Concatenates shared yaml-parser.lua + filter-specific code
         if (fmt.filter) {
           status.textContent = 'Loading filter…';
           var parserCode = await fetchText('filters/yaml-parser.lua');
@@ -130,8 +162,9 @@
         if (fmt.template) {
           status.textContent = 'Loading template…';
           var templateCode = await fetchText(fmt.template);
-          files['branded.tex'] = new Blob([templateCode], { type: 'text/plain' });
-          options.template = 'branded.tex';
+          var templateName = fmt.template.split('/').pop();
+          files[templateName] = new Blob([templateCode], { type: 'text/plain' });
+          options.template = templateName;
         }
 
         // Add title metadata from the page
@@ -148,7 +181,34 @@
           console.warn('pandoc warnings:', result.warnings);
         }
 
-        downloadResult(result.stdout, fmt);
+        // PDF: compile Typst source → PDF via Typst WASM
+        if (fmt.value === 'pdf') {
+          status.textContent = 'Compiling PDF…';
+          await ensureTypst(status);
+
+          $typst.resetShadow();
+          var typstBytes = new TextEncoder().encode(result.stdout);
+          $typst.mapShadow('/main.typ', typstBytes);
+          $typst.mapShadow('main.typ', typstBytes);
+
+          status.textContent = 'Generating PDF…';
+          var pdfData = await $typst.pdf({ mainFilePath: '/main.typ' });
+
+          if (!pdfData || pdfData.length === 0) {
+            throw new Error('Typst produced empty PDF output');
+          }
+
+          var pdfBlob = new Blob([pdfData], { type: 'application/pdf' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(pdfBlob);
+          a.download = getPageName() + '.pdf';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        } else {
+          // Text-based formats: download directly
+          downloadResult(result.stdout, fmt);
+        }
+
         status.textContent = '';
         status.style.display = 'none';
         btn.textContent = 'Export';
@@ -168,9 +228,7 @@
     var blob = new Blob([text], { type: fmt.mime });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    var name = (document.querySelector('.markdown-section h1') || {}).textContent || 'document';
-    name = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    a.download = name + fmt.ext;
+    a.download = getPageName() + fmt.ext;
     a.click();
     URL.revokeObjectURL(a.href);
   }
