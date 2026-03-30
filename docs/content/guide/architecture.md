@@ -166,10 +166,4 @@ graph TB
 
 ### Adding a New Prism Language
 
-Add a script tag to `docs/index.html` after the existing Prism language imports:
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
-```
-
-Then use ` ```python ` code fences in your markdown. No other configuration needed.
+See [How to add a Prism language](/content/howto/add-prism-language).

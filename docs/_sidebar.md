@@ -4,5 +4,9 @@
   * [Components Reference](/content/guide/components-reference)
   * [Creating Components](/content/guide/creating-components)
   * [Architecture](/content/guide/architecture)
+* How-To Guides
+  * [Change Brand Colors](/content/howto/change-brand-colors)
+  * [Add a Prism Language](/content/howto/add-prism-language)
+  * [Create a Tabbed Page](/content/howto/create-tabbed-page)
 * Examples
   * [Component Showcase](/content/examples/component-showcase)

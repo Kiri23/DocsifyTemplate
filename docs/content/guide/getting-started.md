@@ -85,29 +85,7 @@ That YAML becomes a styled, clickable card grid. See the [Component Showcase](/c
 
 ### Add a Tabbed Page
 
-Want to split content for different audiences? You need **both** frontmatter and the two specific headings:
-
-````markdown
----
-type: guide
-category: example
-tags: [demo]
----
-
-# My Tabbed Page
-
-## Quick Start
-
-Simple explanation here...
-
-## Technical Reference
-
-Deep technical details here...
-````
-
-The framework generates tab buttons and handles switching via HTMX — no page reload.
-
-**Both are required:** Frontmatter triggers the tab-splitting logic, and the `## Technical Reference` heading is where the split happens. Without frontmatter, no tabs. Without the heading, all content stays in one tab.
+See [How to create a tabbed page](/content/howto/create-tabbed-page).
 
 ### Next Steps
 
@@ -197,26 +175,7 @@ Everything loads from CDN. No `node_modules` are shipped to the browser — `npm
 
 ### Brand Colors
 
-Primary color is set in two places:
-
-**`docs/index.html`** (Tailwind theme):
-```html
-<style type="text/tailwindcss">
-  @theme {
-    --color-primary: #0891b2;
-    --color-brand: #95c22f;
-  }
-</style>
-```
-
-**`lib/styles/theme.css`** (Docsify overrides):
-```css
-:root {
-  --theme-color: #0891b2;
-}
-```
-
-Change both to match your brand.
+See [How to change brand colors](/content/howto/change-brand-colors).
 
 ### Frontmatter Limitations
 
