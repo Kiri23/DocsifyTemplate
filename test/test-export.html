@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Export Debug</title></head>
+<body>
+<h1>Pandoc WASM Export Debug</h1>
+<pre id="log" style="white-space:pre-wrap; background:#111; color:#0f0; padding:1rem; font-size:12px;"></pre>
+<script type="module">
+const log = document.getElementById('log');
+function l(msg) { log.textContent += msg + '\n'; console.log(msg); }
+
+try {
+  l('1. Loading pandoc.js...');
+  const { convert } = await import('./plugins/pandoc.js');
+  l('2. Pandoc loaded OK');
+
+  const md = `# Test Page
+
+Some intro text with **bold** and *italic*.
+
+\`\`\`card-grid
+- title: "Users API"
+  description: "Manage user accounts"
+  icon: "U"
+- title: "Products"
+  description: "Product catalog"
+  icon: "P"
+\`\`\`
+
+## Code Example
+
+\`\`\`python
+def hello():
+    print("Hello!")
+\`\`\`
+`;
+
+  // Test A: plain (no filter)
+  l('\n--- Test A: plain markdown → latex ---');
+  const testA = await convert({ from: 'markdown', to: 'latex' }, md, {});
+  l('stdout: ' + testA.stdout.length + ' chars');
+  l('stderr: ' + (testA.stderr || '(none)'));
+  l(testA.stdout.substring(0, 300));
+
+  // Test B: with Lua filter (parser + filter concatenated)
+  l('\n--- Test B: latex + lua filter ---');
+  const parserCode = await fetch('./filters/yaml-parser.lua').then(r => r.text());
+  const latexFilterCode = await fetch('./filters/latex-components.lua').then(r => r.text());
+  const filterCode = parserCode + '\n' + latexFilterCode;
+  l('Parser: ' + parserCode.length + ' chars, Filter: ' + latexFilterCode.length + ' chars, Combined: ' + filterCode.length + ' chars');
+
+  try {
+    const testB = await convert(
+      { from: 'markdown', to: 'latex', filters: ['filter.lua'] },
+      md,
+      { 'filter.lua': new Blob([filterCode], { type: 'text/plain' }) }
+    );
+    l('stdout: ' + testB.stdout.length + ' chars');
+    l('stderr: ' + (testB.stderr || '(none)'));
+    l(testB.stdout.substring(0, 500));
+  } catch(e) {
+    l('ERROR: ' + e.message);
+  }
+
+  // Test C: with template (correct API: filename as key)
+  l('\n--- Test C: latex + template ---');
+  const templateCode = await fetch('./templates/branded.tex').then(r => r.text());
+  l('Template: ' + templateCode.length + ' chars');
+
+  try {
+    const testC = await convert(
+      { from: 'markdown', to: 'latex', standalone: true, template: 'branded.tex',
+        metadata: { title: 'Test Doc' } },
+      '# Hello\n\nWorld',
+      { 'branded.tex': new Blob([templateCode], { type: 'text/plain' }) }
+    );
+    l('stdout: ' + testC.stdout.length + ' chars');
+    l('stderr: ' + (testC.stderr || '(none)'));
+    l(testC.stdout.substring(0, 500));
+  } catch(e) {
+    l('ERROR: ' + e.message);
+  }
+
+  // Test D: LLM filter (parser + filter concatenated)
+  l('\n--- Test D: LLM filter ---');
+  const llmFilterCode = await fetch('./filters/llm-components.lua').then(r => r.text());
+  const llmFilter = parserCode + '\n' + llmFilterCode;
+  l('LLM filter combined: ' + llmFilter.length + ' chars');
+
+  try {
+    const testD = await convert(
+      { from: 'markdown', to: 'markdown', filters: ['llm.lua'] },
+      md,
+      { 'llm.lua': new Blob([llmFilter], { type: 'text/plain' }) }
+    );
+    l('stdout: ' + testD.stdout.length + ' chars');
+    l('stderr: ' + (testD.stderr || '(none)'));
+    l(testD.stdout.substring(0, 500));
+  } catch(e) {
+    l('ERROR: ' + e.message);
+  }
+
+  // Test E: FULL — filter + template together
+  l('\n--- Test E: filter + template combined ---');
+  try {
+    const testE = await convert(
+      { from: 'markdown', to: 'latex', standalone: true,
+        filters: ['filter.lua'], template: 'branded.tex',
+        metadata: { title: 'Full Test' } },
+      md,
+      {
+        'filter.lua': new Blob([filterCode], { type: 'text/plain' }),
+        'branded.tex': new Blob([templateCode], { type: 'text/plain' })
+      }
+    );
+    l('stdout: ' + testE.stdout.length + ' chars');
+    l('stderr: ' + (testE.stderr || '(none)'));
+    l(testE.stdout.substring(0, 800));
+  } catch(e) {
+    l('ERROR: ' + e.message);
+  }
+
+  // Test F: Typst filter (pandoc md → typst)
+  l('\n--- Test F: Typst filter (no PDF compile) ---');
+  const typstFilterCode = await fetch('./filters/typst-components.lua').then(r => r.text());
+  const typstFilter = parserCode + '\n' + typstFilterCode;
+  l('Typst filter combined: ' + typstFilter.length + ' chars');
+
+  try {
+    const typstTemplate = await fetch('./templates/branded.typ').then(r => r.text());
+    l('Typst template: ' + typstTemplate.length + ' chars');
+
+    const testF = await convert(
+      { from: 'markdown', to: 'typst', standalone: true,
+        filters: ['filter.lua'], template: 'branded.typ',
+        metadata: { title: 'Typst Test' } },
+      md,
+      {
+        'filter.lua': new Blob([typstFilter], { type: 'text/plain' }),
+        'branded.typ': new Blob([typstTemplate], { type: 'text/plain' })
+      }
+    );
+    l('stdout: ' + testF.stdout.length + ' chars');
+    l('stderr: ' + (testF.stderr || '(none)'));
+    l(testF.stdout.substring(0, 800));
+  } catch(e) {
+    l('ERROR: ' + e.message);
+    l('Stack: ' + e.stack);
+  }
+
+  // Test G: Full PDF pipeline (pandoc → typst source → typst WASM → PDF)
+  l('\n--- Test G: Full PDF compile ---');
+  try {
+    // Step 1: Generate Typst source (reuse testF result)
+    const typstTemplate = await fetch('./templates/branded.typ').then(r => r.text());
+    const testG = await convert(
+      { from: 'markdown', to: 'typst', standalone: true,
+        filters: ['filter.lua'], template: 'branded.typ',
+        metadata: { title: 'PDF Test' } },
+      '# Hello PDF\n\nThis is a test.\n\n- Item one\n- Item two\n',
+      {
+        'filter.lua': new Blob([typstFilter], { type: 'text/plain' }),
+        'branded.typ': new Blob([typstTemplate], { type: 'text/plain' })
+      }
+    );
+    l('Typst source: ' + testG.stdout.length + ' chars');
+    if (testG.stderr) l('Pandoc stderr: ' + testG.stderr);
+
+    // Step 2: Load Typst WASM
+    l('Loading Typst WASM...');
+    if (typeof $typst === 'undefined') {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-all-in-one.ts@0.7.0-rc2/dist/esm/index.js';
+      document.head.appendChild(script);
+      await new Promise((resolve, reject) => {
+        let attempts = 0;
+        const check = () => {
+          attempts++;
+          if (typeof $typst !== 'undefined') {
+            l('Typst loaded after ' + attempts + ' attempts');
+            resolve();
+          } else if (attempts > 100) {
+            reject(new Error('Typst WASM did not load after 10 seconds'));
+          } else {
+            setTimeout(check, 100);
+          }
+        };
+        check();
+      });
+    } else {
+      l('Typst already loaded');
+    }
+
+    // Step 3: Compile
+    l('$typst type: ' + typeof $typst);
+    l('$typst keys: ' + Object.keys($typst).join(', '));
+    l('$typst.pdf type: ' + typeof $typst.pdf);
+    l('$typst.resetShadow type: ' + typeof $typst.resetShadow);
+    l('$typst.mapShadow type: ' + typeof $typst.mapShadow);
+
+    $typst.resetShadow();
+    const typstBytes = new TextEncoder().encode(testG.stdout);
+    l('Typst bytes: ' + typstBytes.length);
+    $typst.mapShadow('/main.typ', typstBytes);
+    $typst.mapShadow('main.typ', typstBytes);
+
+    l('Calling $typst.pdf()...');
+    try {
+      const pdfData = await $typst.pdf({ mainFilePath: '/main.typ' });
+      l('pdfData type: ' + typeof pdfData);
+      l('pdfData: ' + (pdfData ? ('length=' + pdfData.length + ' byteLength=' + (pdfData.byteLength || 'N/A')) : 'null/undefined'));
+      if (pdfData && pdfData.length > 0) {
+        l('SUCCESS! PDF generated: ' + pdfData.length + ' bytes');
+      } else {
+        l('FAILED: empty or null pdfData');
+      }
+    } catch(typstErr) {
+      const errStr = String(typstErr);
+      l('Typst compile error: ' + errStr);
+      const msgMatch = errStr.match(/message:\s*"([^"]+)"/);
+      if (msgMatch) l('Typst message: ' + msgMatch[1]);
+      // Try with simple content to isolate template vs content issue
+      l('\nRetrying with minimal Typst (no template)...');
+      $typst.resetShadow();
+      const simpleTypst = '#set page(paper: "a4")\n= Hello\nThis is a test.';
+      $typst.mapShadow('/main.typ', new TextEncoder().encode(simpleTypst));
+      $typst.mapShadow('main.typ', new TextEncoder().encode(simpleTypst));
+      try {
+        const simplePdf = await $typst.pdf({ mainFilePath: '/main.typ' });
+        l('Simple PDF: ' + (simplePdf ? simplePdf.length + ' bytes - Typst works! Template is the issue.' : 'FAILED'));
+      } catch(e2) {
+        l('Simple also failed: ' + String(e2));
+      }
+    }
+  } catch(e) {
+    l('ERROR: ' + e.message);
+    l('Stack: ' + e.stack);
+  }
+
+} catch(e) {
+  l('FATAL: ' + e.message + '\n' + e.stack);
+}
+</script>
+</body>
+</html>

@@ -33,7 +33,7 @@
   </style>
 
   <!-- Custom theme overrides -->
-  <link rel="stylesheet" href="styles/theme.css">
+  <link rel="stylesheet" href="../lib/styles/theme.css">
 </head>
 <body>
   <div id="app"></div>
@@ -42,17 +42,17 @@
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
 
   <!-- Components (register globals — must load before Docsify) -->
-  <script src="components/code-block.js"></script>
-  <script src="components/tabs.js"></script>
-  <script src="components/card-grid.js"></script>
-  <script src="components/entity-schema.js"></script>
-  <script src="components/api-endpoint.js"></script>
-  <script src="components/status-flow.js"></script>
-  <script src="components/region-toggle.js"></script>
-  <script src="components/directive-table.js"></script>
-  <script src="components/step-type.js"></script>
-  <script src="components/config-example.js"></script>
-  <script src="components/side-by-side.js"></script>
+  <script src="../lib/components/code-block.js"></script>
+  <script src="../lib/components/tabs.js"></script>
+  <script src="../lib/components/card-grid.js"></script>
+  <script src="../lib/components/entity-schema.js"></script>
+  <script src="../lib/components/api-endpoint.js"></script>
+  <script src="../lib/components/status-flow.js"></script>
+  <script src="../lib/components/region-toggle.js"></script>
+  <script src="../lib/components/directive-table.js"></script>
+  <script src="../lib/components/step-type.js"></script>
+  <script src="../lib/components/config-example.js"></script>
+  <script src="../lib/components/side-by-side.js"></script>
 
   <script>
     window.$docsify = {
@@ -69,8 +69,8 @@
   </script>
 
   <!-- Custom plugins (must load before Docsify core — they push to $docsify.plugins) -->
-  <script src="plugins/component-renderer.js"></script>
-  <script src="plugins/latex-export.js"></script>
+  <script src="../lib/plugins/component-renderer.js"></script>
+  <script src="../lib/plugins/latex-export.js"></script>
 
   <!-- Copy button plugin — adds copy buttons to all code blocks -->
   <script>
@@ -161,7 +161,11 @@
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.3/dist/htmx.min.js"></script>
 
   <!-- HTMX virtual routes (loads after HTMX) -->
-  <script src="plugins/htmx-virtual.js"></script>
+  <script src="../lib/plugins/htmx-virtual.js"></script>
+
+  <!-- Dev only: Eruda console (remove for production) -->
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>eruda.init(); console.log('🔥 Docsify loaded in Acode!');</script>
 
   <!-- Mermaid -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9/dist/mermaid.min.js"></script>

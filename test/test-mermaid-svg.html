@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Mermaid SVG Test</title></head>
+<body>
+<h1>Mermaid SVG Capture + Typst Test</h1>
+<div id="mermaid-container"></div>
+<pre id="log" style="white-space:pre-wrap; background:#111; color:#0f0; padding:1rem; font-size:12px; max-height:80vh; overflow:auto;"></pre>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9/dist/mermaid.min.js"></script>
+<script type="module">
+const log = document.getElementById('log');
+function l(msg) { log.textContent += msg + '\n'; }
+
+// Step 1: Render a mermaid diagram
+l('1. Rendering mermaid diagram...');
+mermaid.initialize({ startOnLoad: false, theme: 'default' });
+
+const container = document.getElementById('mermaid-container');
+const mermaidCode = `graph LR
+    A[User Request] --> B{Auth Check}
+    B -->|Valid| C[Process]
+    B -->|Invalid| D[401 Error]
+    C --> E[Response]`;
+
+const { svg } = await mermaid.render('test-diagram', mermaidCode);
+container.innerHTML = svg;
+l('2. Mermaid rendered OK');
+
+// Step 2: Capture the SVG
+const svgEl = container.querySelector('svg');
+const svgStr = new XMLSerializer().serializeToString(svgEl);
+l('3. SVG captured: ' + svgStr.length + ' chars');
+l('   SVG preview: ' + svgStr.substring(0, 300) + '...');
+
+// Step 3: Check for problematic elements
+const hasForeignObject = svgStr.includes('foreignObject');
+const hasHtmlNS = svgStr.includes('xmlns:xhtml') || svgStr.includes('http://www.w3.org/1999/xhtml');
+const hasStyle = svgStr.includes('<style');
+l('4. SVG analysis:');
+l('   foreignObject: ' + hasForeignObject);
+l('   HTML namespace: ' + hasHtmlNS);
+l('   <style> tags: ' + hasStyle);
+
+// Step 4: Try cleaning the SVG if needed
+let cleanSvg = svgStr;
+// Remove foreignObject elements (Typst can't handle them)
+if (hasForeignObject) {
+  l('5. Cleaning foreignObject from SVG...');
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svgStr, 'image/svg+xml');
+  // Replace foreignObject with simple text
+  doc.querySelectorAll('foreignObject').forEach(fo => {
+    const text = fo.textContent.trim();
+    const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    const x = fo.getAttribute('x') || '0';
+    const y = fo.getAttribute('y') || '0';
+    const width = parseFloat(fo.getAttribute('width') || '100');
+    const height = parseFloat(fo.getAttribute('height') || '20');
+    svgText.setAttribute('x', String(parseFloat(x) + width/2));
+    svgText.setAttribute('y', String(parseFloat(y) + height/2 + 5));
+    svgText.setAttribute('text-anchor', 'middle');
+    svgText.setAttribute('dominant-baseline', 'middle');
+    svgText.setAttribute('font-size', '14');
+    svgText.setAttribute('font-family', 'sans-serif');
+    svgText.textContent = text;
+    fo.parentNode.replaceChild(svgText, fo);
+  });
+  cleanSvg = new XMLSerializer().serializeToString(doc.documentElement);
+  l('   Cleaned SVG: ' + cleanSvg.length + ' chars');
+}
+
+// Step 5: Try compiling with Typst WASM
+l('6. Loading Typst WASM...');
+const script = document.createElement('script');
+script.type = 'module';
+script.src = 'https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-all-in-one.ts@0.7.0-rc2/dist/esm/index.js';
+document.head.appendChild(script);
+
+await new Promise((resolve, reject) => {
+  let attempts = 0;
+  const check = () => {
+    attempts++;
+    if (typeof $typst !== 'undefined') resolve();
+    else if (attempts > 100) reject(new Error('timeout'));
+    else setTimeout(check, 100);
+  };
+  check();
+});
+l('7. Typst loaded');
+
+// Test A: Without image (baseline)
+l('\n--- Test A: Typst without image ---');
+$typst.resetShadow();
+$typst.mapShadow('/main.typ', new TextEncoder().encode('#set page(paper: "a4")\n= Hello\nNo image here.'));
+$typst.mapShadow('main.typ', new TextEncoder().encode('#set page(paper: "a4")\n= Hello\nNo image here.'));
+try {
+  const pdfA = await $typst.pdf({ mainFilePath: '/main.typ' });
+  l('OK: ' + pdfA.length + ' bytes');
+} catch(e) { l('FAIL: ' + String(e)); }
+
+// Test B: With raw mermaid SVG
+l('\n--- Test B: Typst with raw mermaid SVG ---');
+$typst.resetShadow();
+const typstB = '#set page(paper: "a4")\n= Hello\n#image("diagram.svg", width: 80%)';
+$typst.mapShadow('/main.typ', new TextEncoder().encode(typstB));
+$typst.mapShadow('main.typ', new TextEncoder().encode(typstB));
+$typst.mapShadow('/diagram.svg', new TextEncoder().encode(svgStr));
+$typst.mapShadow('diagram.svg', new TextEncoder().encode(svgStr));
+try {
+  const pdfB = await $typst.pdf({ mainFilePath: '/main.typ' });
+  l('OK: ' + pdfB.length + ' bytes');
+} catch(e) {
+  const msg = String(e).match(/message:\s*"([^"]+)"/);
+  l('FAIL: ' + (msg ? msg[1] : String(e)));
+}
+
+// Test C: With cleaned SVG (no foreignObject)
+if (hasForeignObject) {
+  l('\n--- Test C: Typst with cleaned SVG (no foreignObject) ---');
+  $typst.resetShadow();
+  const typstC = '#set page(paper: "a4")\n= Hello\n#image("diagram.svg", width: 80%)';
+  $typst.mapShadow('/main.typ', new TextEncoder().encode(typstC));
+  $typst.mapShadow('main.typ', new TextEncoder().encode(typstC));
+  $typst.mapShadow('/diagram.svg', new TextEncoder().encode(cleanSvg));
+  $typst.mapShadow('diagram.svg', new TextEncoder().encode(cleanSvg));
+  try {
+    const pdfC = await $typst.pdf({ mainFilePath: '/main.typ' });
+    l('OK: ' + pdfC.length + ' bytes');
+  } catch(e) {
+    const msg = String(e).match(/message:\s*"([^"]+)"/);
+    l('FAIL: ' + (msg ? msg[1] : String(e)));
+  }
+}
+
+// Test D: With minimal hand-crafted SVG
+l('\n--- Test D: Typst with minimal SVG ---');
+$typst.resetShadow();
+const minimalSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100"><rect width="200" height="100" fill="#f0f0f0" rx="8"/><text x="100" y="55" text-anchor="middle" font-size="16" font-family="sans-serif">Hello SVG</text></svg>';
+const typstD = '#set page(paper: "a4")\n= Hello\n#image("test.svg", width: 50%)';
+$typst.mapShadow('/main.typ', new TextEncoder().encode(typstD));
+$typst.mapShadow('main.typ', new TextEncoder().encode(typstD));
+$typst.mapShadow('/test.svg', new TextEncoder().encode(minimalSvg));
+$typst.mapShadow('test.svg', new TextEncoder().encode(minimalSvg));
+try {
+  const pdfD = await $typst.pdf({ mainFilePath: '/main.typ' });
+  l('OK: ' + pdfD.length + ' bytes');
+} catch(e) {
+  const msg = String(e).match(/message:\s*"([^"]+)"/);
+  l('FAIL: ' + (msg ? msg[1] : String(e)));
+}
+
+l('\nDone.');
+</script>
+</body>
+</html>
