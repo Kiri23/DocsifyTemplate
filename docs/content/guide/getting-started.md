@@ -120,29 +120,33 @@ The framework generates tab buttons and handles switching via HTMX — no page r
 ### Project Structure
 
 ```
-docs/
-├── index.html              # Entry point — CDN deps, component loading, Docsify config
-├── _sidebar.md             # Sidebar navigation
-├── README.md               # Home page (this is what "/" renders)
-├── components/             # Component JS files (template literal functions)
-│   ├── api-endpoint.js
-│   ├── card-grid.js
-│   ├── code-block.js
-│   ├── config-example.js
-│   ├── directive-table.js
-│   ├── entity-schema.js
-│   ├── region-toggle.js
-│   ├── status-flow.js
-│   ├── step-type.js
-│   └── tabs.js
-├── plugins/
-│   ├── component-renderer.js   # Core Docsify plugin — YAML parsing + component rendering
-│   └── htmx-virtual.js         # Tab switching interceptor (~30 lines)
-├── styles/
-│   └── theme.css               # Docsify overrides + brand colors
-└── content/                    # Your documentation pages
-    ├── guide/
-    └── examples/
+project-root/
+├── docs/                           # Documentation content (served by Docsify)
+│   ├── index.html                  # Entry point — CDN deps, component loading, Docsify config
+│   ├── _sidebar.md                 # Sidebar navigation
+│   ├── README.md                   # Home page (this is what "/" renders)
+│   └── content/                    # Your documentation pages
+│       ├── guide/
+│       └── examples/
+└── lib/                            # Framework library
+    ├── components/                 # Component JS files (template literal functions)
+    │   ├── api-endpoint.js
+    │   ├── card-grid.js
+    │   ├── code-block.js
+    │   ├── config-example.js
+    │   ├── directive-table.js
+    │   ├── entity-schema.js
+    │   ├── region-toggle.js
+    │   ├── side-by-side.js
+    │   ├── status-flow.js
+    │   ├── step-type.js
+    │   └── tabs.js
+    ├── plugins/
+    │   ├── component-renderer.js   # Core Docsify plugin — YAML parsing + component rendering
+    │   ├── htmx-virtual.js         # Tab switching interceptor (~30 lines)
+    │   └── latex-export.js         # PDF/LaTeX export plugin
+    └── styles/
+        └── theme.css               # Docsify overrides + brand colors
 ```
 
 ### Component Registration
@@ -152,10 +156,10 @@ Components must be registered in **two places**:
 **1. `docs/index.html`** — add a `<script>` tag in the component section (after the existing component scripts, before `window.$docsify`):
 
 ```html
-<script src="components/my-component.js"></script>
+<script src="../lib/components/my-component.js"></script>
 ```
 
-**2. `docs/plugins/component-renderer.js`** — add the kebab-case name to the `COMPONENT_REGISTRY` array:
+**2. `lib/plugins/component-renderer.js`** — add the kebab-case name to the `COMPONENT_REGISTRY` array:
 
 ```javascript
 const COMPONENT_REGISTRY = [
@@ -205,7 +209,7 @@ Primary color is set in two places:
 </style>
 ```
 
-**`docs/styles/theme.css`** (Docsify overrides):
+**`lib/styles/theme.css`** (Docsify overrides):
 ```css
 :root {
   --theme-color: #0891b2;

@@ -630,7 +630,7 @@ These 3 components are **not** in the registry and cannot be used as YAML code f
 
 #### tabs
 
-**File:** `components/tabs.js` — Registers `window.Tabs(tabs, targetId)`
+**File:** `lib/components/tabs.js` — Registers `window.Tabs(tabs, targetId)`
 
 Used internally by `component-renderer.js` to generate tab navigation for pages with Quick Start / Technical Reference sections. Not meant to be called from markdown.
 
@@ -646,7 +646,7 @@ Generates `<button>` elements with HTMX attributes (`hx-get`, `hx-target`, `hx-s
 
 #### code-block
 
-**File:** `components/code-block.js` — Registers `window.CodeBlock(props)` and `window.copyToClipboard(button)`
+**File:** `lib/components/code-block.js` — Registers `window.CodeBlock(props)` and `window.copyToClipboard(button)`
 
 A syntax-highlighted code block with a copy-to-clipboard button. Can be called from JavaScript but is not a YAML code fence component.
 
@@ -663,7 +663,7 @@ The copy button unescapes HTML entities before copying to clipboard.
 
 #### region-toggle
 
-**File:** `components/region-toggle.js` — Registers `window.processRegionDirectives()`
+**File:** `lib/components/region-toggle.js` — Registers `window.processRegionDirectives()`
 
 A DOM-level directive processor that creates toggle panels from headings. Uses HTML `data-region` attributes instead of YAML code fences.
 

@@ -12,7 +12,7 @@ A component is a JavaScript function that receives parsed YAML and returns an HT
 
 ### 1. Create the JS file
 
-Create `docs/components/my-component.js`:
+Create `lib/components/my-component.js`:
 
 ```javascript
 window.MyComponent = function MyComponent(data) {
@@ -35,10 +35,10 @@ window.MyComponent = function MyComponent(data) {
 **Add the script to `docs/index.html`** in the component section (after the existing component scripts, before `window.$docsify`):
 
 ```html
-<script src="components/my-component.js"></script>
+<script src="../lib/components/my-component.js"></script>
 ```
 
-**Add the name to `docs/plugins/component-renderer.js`** in the `COMPONENT_REGISTRY` array:
+**Add the name to `lib/plugins/component-renderer.js`** in the `COMPONENT_REGISTRY` array:
 
 ```javascript
 const COMPONENT_REGISTRY = [
