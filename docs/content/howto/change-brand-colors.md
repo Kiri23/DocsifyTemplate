@@ -39,7 +39,7 @@ If your project uses other color variables in `lib/styles/theme.css`, update tho
 
 ## Verification
 
-Refresh the browser. Sidebar links, active states, and component accents should reflect your new colors.
+Refresh the browser. Sidebar links, active states, and component accents now reflect your new colors.
 
 ## See also
 

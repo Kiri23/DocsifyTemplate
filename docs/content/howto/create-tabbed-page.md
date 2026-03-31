@@ -54,7 +54,7 @@ Open `docs/_sidebar.md` and add a link to your new page:
 
 ## Verification
 
-Navigate to the page in the browser. Two tab buttons should appear at the top. Clicking between them swaps the content without a page reload.
+Navigate to the page in the browser. Two tab buttons appear at the top. Clicking between them swaps the content without a page reload.
 
 ## See also
 

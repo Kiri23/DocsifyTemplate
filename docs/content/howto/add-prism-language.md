@@ -34,7 +34,7 @@ print("highlighted")
 
 ## Verification
 
-Refresh a page containing a code block with the new language. The code should display with syntax highlighting.
+Refresh a page containing a code block with the new language. The code displays with syntax highlighting.
 
 ## See also
 

@@ -75,7 +75,7 @@ fields:
 ```
 ````
 
-Refresh the browser. Notice that the YAML has become a styled schema card with expandable fields. Click on a field row to see its description and allowed values.
+Refresh the browser. The YAML is now a styled schema card with expandable fields. Click on a field row to see its description and allowed values.
 
 ### Step 4: Add an API endpoint
 
@@ -106,7 +106,7 @@ response: |
 ```
 ````
 
-Refresh the browser. Notice the green `POST` badge and the collapsible section — click the endpoint header to expand the parameter list and example response.
+Refresh the browser. The endpoint shows a green `POST` badge and a collapsible section — click the endpoint header to expand the parameter list and example response.
 
 ### Step 5: Add a status flow
 
@@ -139,7 +139,7 @@ states:
 ```
 ````
 
-Refresh the browser. You should see a row of colored state buttons. Click any state to see its triggers, transitions, and side effects.
+Refresh the browser. You see a row of colored state buttons. Click any state to see its triggers, transitions, and side effects.
 
 ### What we built
 

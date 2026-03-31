@@ -25,7 +25,7 @@ This matters because it means the entire framework runs client-side. There is no
 - **Replaces code fence components** with rendered HTML (this is what makes YAML-to-HTML work)
 - **Splits pages into tabs** when frontmatter marks a page as a guide
 
-The key design decision here is that components are just functions. Each component is a global function that takes a data object and returns an HTML string. There is no virtual DOM, no reactivity, no lifecycle — just string templates. This keeps components simple enough that anyone who knows HTML can write one.
+The design decision here is that components are just functions. Each component is a global function that takes a data object and returns an HTML string. There is no virtual DOM, no reactivity, no lifecycle — just string templates. This keeps components simple enough that anyone who knows HTML can write one.
 
 The rendering logic is split into two files: `component-renderer-engine.js` holds pure transformation functions, and `component-renderer.js` is a thin wrapper that wires them into Docsify's hook system. This separation exists so the engine can be tested independently of Docsify. See [Engine vs hooks separation](/home/.claude/projects/-storage-emulated-0-Documents-Code-DocsifyTemplate/memory/architecture/engine-vs-hooks-separation.md) for the full rationale.
 
@@ -35,10 +35,10 @@ The tab system uses HTMX to swap content, but there is no server. When you click
 
 This is roughly 30 lines of code. The alternative would have been a custom tab component with its own event handling, state management, and DOM manipulation. By reusing HTMX's declarative model (`hx-get`, `hx-target`, `hx-swap`), the tab buttons are plain HTML attributes — no JavaScript event listeners in the component code.
 
-The tradeoff is that HTMX is a dependency (~14KB gzipped) used for a single feature. But it also means the pattern is extensible — any future interactive feature can use the same virtual routing approach.
+HTMX is ~14KB gzipped for what amounts to one feature. But the virtual routing pattern it enables is reusable — any future interactive feature can work the same way.
 
 ### Why these three and not fewer?
 
-Docsify alone gives you a docs site. Adding the component renderer gives you data-driven pages. Adding HTMX gives you interactivity without custom JavaScript. Each layer adds one capability, and removing any layer still leaves the others functional. A page without components is just markdown. A page without tabs still renders all its content. This layered independence is intentional — it means the framework degrades gracefully and each piece can be understood in isolation.
+Docsify alone gives you a docs site. The component renderer adds data-driven pages on top. HTMX adds interactivity without writing custom JavaScript. Remove any layer and the others still work — a page without components is just markdown, a page without tabs still renders all its content. That independence is intentional.
 
 For technical details on hooks, routing, variables, and dependencies, see [Framework Reference](/content/guide/framework-reference).
