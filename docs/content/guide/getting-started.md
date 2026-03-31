@@ -1,189 +1,158 @@
 ---
-type: guide
-category: getting-started
-tags: [guide, setup, overview]
+type: tutorial
+time: 10 min
+difficulty: beginner
+outcome: A documentation page with a data model, API endpoint, and status flow — all from YAML
 ---
 
 # Getting Started
 
-## Quick Start
+In this tutorial, we'll build a Task API reference page using three interactive components. By the end, you'll have a working documentation page with a data model, an API endpoint, and a status flow diagram — all from YAML in markdown.
 
-DocsifyTemplate is a zero-build-step documentation framework built on [Docsify](https://docsify.js.org/). You write markdown, optionally drop in YAML code fences, and get interactive docs with search, tabs, diagrams, and data-driven components.
-
-> **Heads up:** This framework was vibe coded. It works, it's in production, but rough edges exist. Contributions and improvements are welcome.
-
-### What You Get
-
-```card-grid
-- title: "YAML-Powered Components"
-  description: "Write YAML in code fences — get interactive HTML. No JavaScript needed in your markdown files."
-  icon: "< />"
-  href: "#/content/guide/components-reference"
-- title: "Quick Start / Technical Tabs"
-  description: "Split any page into audience-appropriate tabs with a single frontmatter flag."
-  icon: "||"
-  href: "#/content/guide/architecture"
-- title: "Zero Build Step"
-  description: "No webpack, no Vite, no npm build. Edit markdown, refresh browser, done."
-  icon: "0"
-  href: "#/content/guide/getting-started"
-```
-
-### Install and Run
+### Step 1: Set up the project
 
 ```bash
-# Clone the repo
-git clone <your-repo-url> my-docs
+git clone https://github.com/your-org/docsify-template.git my-docs
 cd my-docs
-
-# Install docsify-cli (the only dependency)
 npm install
-
-# Start the dev server
 npm run serve
-# → http://localhost:3000
 ```
 
-### Write Your First Page
+The output looks something like:
 
-**1. Create a markdown file** under `docs/`. The file path becomes the URL:
+```
+Serving /my-docs/docs at http://localhost:3009
+```
 
-| File path | URL | Sidebar link |
-|---|---|---|
-| `docs/my-page.md` | `/#/my-page` | `/my-page` |
-| `docs/content/guide/foo.md` | `/#/content/guide/foo` | `/content/guide/foo` |
+Open `http://localhost:3009/docs/` in your browser. You'll see the documentation site with a sidebar and home page.
+
+### Step 2: Create the page
+
+Let's create a new markdown file for our Task API docs. Create `docs/content/guide/task-api.md` with this content:
 
 ```markdown
-# My Page
+# Task API
 
-This is a regular markdown page. It just works.
+A task represents a unit of work that moves through review stages.
 ```
 
-**2. Add it to the sidebar** in `docs/_sidebar.md`:
+Now add it to the sidebar. Open `docs/_sidebar.md` and add this line:
 
 ```markdown
-* [Home](/)
-* [My Page](/my-page)
+* [Task API](/content/guide/task-api)
 ```
 
-**3. Refresh the browser.** That's it — no build, no restart.
+Refresh your browser and click "Task API" in the sidebar. You'll see the heading and description we just wrote.
 
-### Add Your First Component
+### Step 3: Add the data model
 
-Components are just YAML inside a code fence. Use a registered component name as the language:
+Now we'll add our first component. Components are YAML written inside a code fence — the fence language tells DocsifyTemplate which component to render.
+
+Add this below the description in `task-api.md`:
 
 ````markdown
-```card-grid
-- title: "First Card"
-  description: "This renders as an interactive card grid."
-  icon: "1"
-  href: "#/"
+## Data Model
+
+```entity-schema
+name: "Task"
+fields:
+  - name: "title"
+    type: "string"
+    required: true
+    description: "Short summary of the task."
+  - name: "status"
+    type: "enum"
+    required: true
+    description: "Current stage in the workflow."
+    values: ["draft", "in-review", "approved", "archived"]
+  - name: "assignee"
+    type: "string"
+    description: "Username of the person responsible."
+  - name: "createdAt"
+    type: "datetime"
+    required: true
+    description: "When the task was created."
 ```
 ````
 
-That YAML becomes a styled, clickable card grid. See the [Component Showcase](/content/examples/component-showcase) for live examples of every component, or the [Components Reference](/content/guide/components-reference) for the full API.
+Refresh the browser. Notice that the YAML has become a styled schema card with expandable fields. Click on a field row to see its description and allowed values.
 
-### Add a Tabbed Page
+### Step 4: Add an API endpoint
 
-See [How to create a tabbed page](/content/howto/create-tabbed-page).
+Let's document how to create a task. Add this below the data model:
 
-### Next Steps
+````markdown
+## Create a Task
 
-- [Components Reference](/content/guide/components-reference) — full API for all 10 components
-- [Creating Components](/content/guide/creating-components) — build your own
-- [Architecture](/content/guide/architecture) — how the pipeline and virtual routing work under the hood
-
-## Technical Reference
-
-### Project Structure
-
+```api-endpoint
+method: "POST"
+path: "/api/v1/tasks"
+description: "Create a new task in draft status."
+params:
+  - name: "title"
+    type: "string"
+    required: true
+  - name: "assignee"
+    type: "string"
+    required: false
+response: |
+  {
+    "id": "tsk_001",
+    "title": "Write onboarding guide",
+    "status": "draft",
+    "assignee": null,
+    "createdAt": "2026-03-30T10:00:00Z"
+  }
 ```
-project-root/
-├── docs/                           # Documentation content (served by Docsify)
-│   ├── index.html                  # Entry point — CDN deps, component loading, Docsify config
-│   ├── _sidebar.md                 # Sidebar navigation
-│   ├── README.md                   # Home page (this is what "/" renders)
-│   └── content/                    # Your documentation pages
-│       ├── guide/
-│       └── examples/
-└── lib/                            # Framework library
-    ├── components/                 # Component JS files (template literal functions)
-    │   ├── api-endpoint.js
-    │   ├── card-grid.js
-    │   ├── code-block.js
-    │   ├── config-example.js
-    │   ├── directive-table.js
-    │   ├── entity-schema.js
-    │   ├── region-toggle.js
-    │   ├── side-by-side.js
-    │   ├── status-flow.js
-    │   ├── step-type.js
-    │   └── tabs.js
-    ├── plugins/
-    │   ├── component-renderer.js   # Core Docsify plugin — YAML parsing + component rendering
-    │   ├── htmx-virtual.js         # Tab switching interceptor (~30 lines)
-    │   └── latex-export.js         # PDF/LaTeX export plugin
-    └── styles/
-        └── theme.css               # Docsify overrides + brand colors
+````
+
+Refresh the browser. Notice the green `POST` badge and the collapsible section — click the endpoint header to expand the parameter list and example response.
+
+### Step 5: Add a status flow
+
+The last component shows how tasks move between states. Add this at the bottom of the page:
+
+````markdown
+## Task Lifecycle
+
+```status-flow
+states:
+  - id: "draft"
+    label: "Draft"
+    trigger: "Task is created"
+    next: ["in-review"]
+    effects: ["Assign default reviewer"]
+  - id: "in-review"
+    label: "In Review"
+    trigger: "Author submits for review"
+    next: ["approved", "draft"]
+    effects: ["Notify reviewer", "Lock editing"]
+  - id: "approved"
+    label: "Approved"
+    trigger: "Reviewer approves"
+    next: ["archived"]
+    effects: ["Notify author", "Mark as complete"]
+  - id: "archived"
+    label: "Archived"
+    trigger: "Task is archived after completion"
+    effects: ["Remove from active list"]
 ```
+````
 
-### Component Registration
+Refresh the browser. You should see a row of colored state buttons. Click any state to see its triggers, transitions, and side effects.
 
-Components must be registered in **two places**:
+### What we built
 
-**1. `docs/index.html`** — add a `<script>` tag in the component section (after the existing component scripts, before `window.$docsify`):
+You now have a working documentation page with three interactive components:
 
-```html
-<script src="../lib/components/my-component.js"></script>
-```
+- **Entity schema** — expandable data model with fields, types, and validation rules
+- **API endpoint** — collapsible endpoint with method badge, parameters, and response
+- **Status flow** — clickable state machine with transitions and side effects
 
-**2. `lib/plugins/component-renderer.js`** — add the kebab-case name to the `COMPONENT_REGISTRY` array:
+All of it came from YAML in markdown — no JavaScript, no build step.
 
-```javascript
-const COMPONENT_REGISTRY = [
-  'entity-schema', 'api-endpoint', 'status-flow',
-  'directive-table', 'step-type', 'config-example',
-  'card-grid', 'my-component'  // ← add here
-];
-```
+### Next steps
 
-The renderer converts the kebab-case name to PascalCase and calls `window.MyComponent(data)` with the parsed YAML.
-
-### How the Pipeline Works
-
-```mermaid
-graph LR
-    A["\`\`\`component-name<br/>YAML content<br/>\`\`\`"] --> B["Docsify renders as<br/>pre > code.lang-name"]
-    B --> C["component-renderer.js<br/>finds registered names"]
-    C --> D["js-yaml parses YAML"]
-    D --> E["window.ComponentName(data)"]
-    E --> F["HTML replaces pre block"]
-```
-
-### CDN Dependencies
-
-| Dependency | Version | Purpose |
-|---|---|---|
-| Docsify | 4.x | Routing, sidebar, search, markdown rendering |
-| HTMX | 2.0.3 | Tab content switching (virtual routes only) |
-| Tailwind CSS | v4 (browser) | Component styling — no build step |
-| Prism.js | 1.x | Syntax highlighting (JS, JSON, YAML, Bash, C#, Markdown) |
-| Mermaid | 10.9 | Diagrams (flowcharts, sequence, etc.) |
-| js-yaml | 4.x | YAML parsing for code fence components |
-
-Everything loads from CDN. No `node_modules` are shipped to the browser — `npm install` is only for `docsify-cli` (the dev server).
-
-### Brand Colors
-
-See [How to change brand colors](/content/howto/change-brand-colors).
-
-### Frontmatter Limitations
-
-The frontmatter parser in `component-renderer.js` uses a simple regex-based parser instead of js-yaml. It handles:
-
-- Simple key-value pairs: `type: guide`
-- Arrays: `tags: [tag1, tag2]`
-
-It does **not** handle nested objects, multiline values, or complex YAML features. This only affects frontmatter — code fence components use the full js-yaml parser and support the complete YAML spec.
-
-> Switching frontmatter parsing to js-yaml would remove these limitations. PRs welcome.
+- [Components Reference](/content/guide/components-reference) — full YAML API for all components
+- [How to create a tabbed page](/content/howto/create-tabbed-page) — split pages into Quick Start and Technical Reference tabs
+- [Creating Components](/content/guide/creating-components) — build your own components

@@ -659,6 +659,89 @@ body {
   }
 }
 
+/* ── Tutorial header ── */
+.tutorial-header {
+  margin-top: -0.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.tutorial-breadcrumb {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.tutorial-breadcrumb-sep {
+  margin: 0 0.35rem;
+  color: var(--border-default);
+}
+
+.tutorial-breadcrumb-segment {
+  color: var(--text-tertiary);
+}
+
+.tutorial-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.tutorial-badge {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 0.2em 0.6em;
+  border-radius: 0.375rem;
+  border: 1px solid rgb(var(--accent-rgb) / 0.15);
+}
+
+.tutorial-meta-item {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.tutorial-meta-item svg {
+  flex-shrink: 0;
+}
+
+.tutorial-difficulty-beginner {
+  color: #059669;
+}
+
+.tutorial-difficulty-intermediate {
+  color: #d97706;
+}
+
+.tutorial-difficulty-advanced {
+  color: #dc2626;
+}
+
+.tutorial-outcome {
+  font-family: var(--font-prose);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.tutorial-outcome strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
