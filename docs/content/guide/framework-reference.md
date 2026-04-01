@@ -131,7 +131,6 @@ Runs after the DOM is updated. No arguments.
 | Mermaid processing | Converts mermaid code fences to `<div class="mermaid">` and runs `mermaid.run()` |
 | `processRegionDirectives()` | Processes `data-region` directives (if function exists) |
 | `htmx.process()` | Initializes HTMX on new DOM content |
-| `initScrollReveal()` | Activates scroll-triggered animations |
 
 ## HTMX Virtual Routing
 

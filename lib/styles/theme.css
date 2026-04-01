@@ -84,17 +84,6 @@
   }
 }
 
-/* ── Scroll reveal ── */
-.scroll-reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 500ms var(--ease-out-quart), transform 500ms var(--ease-out-quart);
-}
-
-.scroll-reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
 
 /* ── Tab content crossfade ── */
 .tab-zone-quick-start,
