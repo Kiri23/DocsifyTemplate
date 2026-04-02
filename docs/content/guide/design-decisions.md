@@ -97,6 +97,6 @@ The boundaries of zero-config become visible when you want to:
 
 - **Change the tab structure**: the Quick Start / Technical Reference split is hardcoded in the renderer. Adding a third tab means modifying `component-renderer-engine.js`.
 - **Add a component with external dependencies**: every dependency loads via CDN script tag in `index.html`. No package manager, no bundler, no dependency resolution.
-- **Export to PDF or LaTeX**: this is where Pandoc WASM enters — the one case where plain JavaScript cannot solve the problem, so the framework reaches for WebAssembly.
+- **Export to PDF or LaTeX**: this is where Pandoc WASM enters — the one case where plain JavaScript cannot solve the problem, so the framework reaches for WebAssembly. See [WASM Capabilities](/content/guide/wasm-capabilities) for how the export pipeline works and what else WASM makes possible.
 
 Zero-config isn't zero-limits. It's a deliberate narrowing of scope that makes the common case effortless and the uncommon case possible — even if that means more manual work.

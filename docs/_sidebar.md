@@ -6,6 +6,7 @@
   * [Creating Components](/content/guide/creating-components)
   * [Architecture](/content/guide/architecture)
   * [Design Decisions](/content/guide/design-decisions)
+  * [WASM Capabilities](/content/guide/wasm-capabilities)
 * How-To Guides
   * [Change Brand Colors](/content/howto/change-brand-colors)
   * [Add a Prism Language](/content/howto/add-prism-language)
