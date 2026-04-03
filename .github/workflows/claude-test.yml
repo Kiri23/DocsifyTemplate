@@ -7,11 +7,17 @@ on:
         description: "Prompt to send to Claude"
         required: false
         default: "Say hello and confirm you have access to memorygraph by searching for DocsifyTemplate memories. Be brief."
+      agent:
+        description: "Agent name (leave empty for raw query)"
+        required: false
+        default: ""
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: Kiri23/claude-action@v1
         id: claude
         with:
@@ -19,10 +25,12 @@ jobs:
           ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           gateway-token: ${{ secrets.CLAUDE_GATEWAY_TOKEN }}
           prompt: ${{ inputs.prompt }}
+          agent: ${{ inputs.agent }}
           max-turns: "5"
 
       - name: Show response
         run: |
+          echo "Agent: ${{ steps.claude.outputs.agent }}"
           echo "Success: ${{ steps.claude.outputs.success }}"
           echo "Cost: ${{ steps.claude.outputs.cost-usd }}"
           echo "---"
