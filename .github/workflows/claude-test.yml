@@ -1,0 +1,29 @@
+name: Claude Gateway Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: "Prompt to send to Claude"
+        required: false
+        default: "Say hello and confirm you have access to memorygraph by searching for DocsifyTemplate memories. Be brief."
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Kiri23/claude-action@v1
+        id: claude
+        with:
+          ts-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          gateway-token: ${{ secrets.CLAUDE_GATEWAY_TOKEN }}
+          prompt: ${{ inputs.prompt }}
+          max-turns: "5"
+
+      - name: Show response
+        run: |
+          echo "Success: ${{ steps.claude.outputs.success }}"
+          echo "Cost: ${{ steps.claude.outputs.cost-usd }}"
+          echo "---"
+          echo "${{ steps.claude.outputs.output }}"
