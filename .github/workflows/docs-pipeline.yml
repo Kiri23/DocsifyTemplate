@@ -1,0 +1,291 @@
+name: Docs Content Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/**'
+
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Preview changes without committing"
+        required: false
+        default: "false"
+        type: boolean
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed lib files
+        id: changes
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- lib/ | tr '\n' ', ')
+          echo "files=$CHANGED" >> "$GITHUB_OUTPUT"
+          echo "Changed lib files: $CHANGED"
+
+      - name: Read changed file contents
+        id: contents
+        run: |
+          FILES=$(git diff --name-only HEAD~1 HEAD -- lib/)
+          {
+            echo "data<<CONTENTS_EOF"
+            for f in $FILES; do
+              echo "=== FILE: $f ==="
+              cat "$f" 2>/dev/null || echo "(file deleted)"
+              echo ""
+            done
+            echo "CONTENTS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Read changed file diffs
+        id: diffs
+        run: |
+          {
+            echo "data<<DIFFS_EOF"
+            git diff HEAD~1 HEAD -- lib/
+            echo "DIFFS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Read existing docs structure
+        id: docs
+        run: |
+          {
+            echo "data<<DOCS_EOF"
+            echo "=== _sidebar.md ==="
+            cat docs/_sidebar.md
+            echo ""
+            echo "=== Existing doc files ==="
+            find docs/content -name '*.md' | sort | while read -r f; do
+              echo "--- $f ---"
+              head -20 "$f"
+              echo "..."
+              echo ""
+            done
+            echo "DOCS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Skip if no lib changes
+        if: steps.changes.outputs.files == ''
+        run: echo "No lib/ changes detected, skipping." && exit 0
+
+      - uses: Kiri23/claude-action@v1
+        id: claude
+        with:
+          ts-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          ts-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          gateway-token: ${{ secrets.CLAUDE_GATEWAY_TOKEN }}
+          max-turns: "15"
+          prompt: |
+            You are a documentation pipeline for DocsifyTemplate.
+
+            ## Context
+
+            Changed files: ${{ steps.changes.outputs.files }}
+
+            ### File contents (full source)
+            ${{ steps.contents.outputs.data }}
+
+            ### Git diff
+            ${{ steps.diffs.outputs.data }}
+
+            ### Existing documentation
+            ${{ steps.docs.outputs.data }}
+
+            ## Your Pipeline
+
+            ### 1. Analyze
+            Look at the diff and file contents. Determine what changed and whether it has user-facing impact.
+            If the change is purely internal (refactor, comments, whitespace), output ONLY:
+            ```json
+            {"skip": true, "reason": "explanation here"}
+            ```
+            and stop.
+
+            ### 2. Diataxis Classification
+            Classify what documentation type each change needs:
+            - **Reference**: API changes, config options, component props (most common)
+            - **How-to guide**: new capability that solves a specific problem
+            - **Tutorial**: new component or feature users need to learn
+            - **Explanation**: architecture changes, design decisions
+
+            ### 3. Draft
+            Write documentation based on the actual code. Include:
+            - What changed and why it matters
+            - Code examples from the real source
+            - Breaking changes or migration notes if any
+
+            ### 4. Writing Voice
+            Revise to match the project voice:
+            - Direct, second-person ("you can", not "users can")
+            - Short sentences, no filler
+            - Technical but accessible
+            - Lead with what the reader needs to DO
+
+            ### 5. Humanize
+            Remove AI patterns:
+            - No "dive into", "leverage", "streamline", "empower", "robust", "seamless"
+            - No em dashes as dramatic pauses
+            - No "It's worth noting" / "Importantly" / "In conclusion"
+            - Vary sentence length. If it sounds like a press release, rewrite.
+
+            ### 6. Output
+
+            You MUST output ONLY a single JSON object. No markdown outside the JSON. No explanation before or after.
+
+            The JSON format:
+
+            ```
+            {
+              "files": [
+                {
+                  "path": "docs/content/guide/components-reference.md",
+                  "action": "update",
+                  "search": "exact string from existing file to find replacement point",
+                  "replace": "replacement string including the new content"
+                },
+                {
+                  "path": "docs/content/howto/new-page.md",
+                  "action": "create",
+                  "content": "full file content here"
+                }
+              ],
+              "sidebar": {
+                "search": "exact line(s) from _sidebar.md to find insertion point",
+                "replace": "replacement including the new entry"
+              },
+              "summary": "one-line description of what was documented"
+            }
+            ```
+
+            Rules for the JSON:
+            - `action: "update"` uses search/replace (like sed). The `search` string must be an EXACT match of existing text in the file. Include enough surrounding lines to be unique.
+            - `action: "create"` uses `content` for the full file.
+            - `sidebar` is optional — only include if you created new pages.
+            - If no docs changes needed, use: `{"skip": true, "reason": "..."}`
+            - Escape newlines as \n in JSON strings.
+            - Output raw JSON only. No ```json fences. No text before or after.
+
+      - name: Show pipeline result
+        run: |
+          echo "Success: ${{ steps.claude.outputs.success }}"
+          echo "Cost: ${{ steps.claude.outputs.cost-usd }}"
+          echo "---"
+          echo "${{ steps.claude.outputs.output }}"
+
+      - name: Apply documentation changes
+        id: apply
+        if: steps.claude.outputs.success == 'true'
+        shell: bash
+        run: |
+          OUTPUT='${{ steps.claude.outputs.output }}'
+
+          # Check if Claude said to skip
+          SKIP=$(echo "$OUTPUT" | jq -r '.skip // false')
+          if [ "$SKIP" = "true" ]; then
+            REASON=$(echo "$OUTPUT" | jq -r '.reason')
+            echo "Skipped: $REASON"
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Apply file changes
+          echo "$OUTPUT" | jq -c '.files[]' | while read -r entry; do
+            FILE_PATH=$(echo "$entry" | jq -r '.path')
+            ACTION=$(echo "$entry" | jq -r '.action')
+
+            echo "Processing: $ACTION $FILE_PATH"
+            mkdir -p "$(dirname "$FILE_PATH")"
+
+            if [ "$ACTION" = "create" ]; then
+              echo "$entry" | jq -r '.content' > "$FILE_PATH"
+              echo "  Created $FILE_PATH"
+
+            elif [ "$ACTION" = "update" ]; then
+              SEARCH=$(echo "$entry" | jq -r '.search')
+              REPLACE=$(echo "$entry" | jq -r '.replace')
+
+              if grep -qF "$SEARCH" "$FILE_PATH" 2>/dev/null; then
+                # Use python for reliable multi-line search/replace
+                python3 -c "
+          import sys
+          path = sys.argv[1]
+          with open(path, 'r') as f:
+              content = f.read()
+          search = sys.argv[2]
+          replace = sys.argv[3]
+          if search in content:
+              content = content.replace(search, replace, 1)
+              with open(path, 'w') as f:
+                  f.write(content)
+              print(f'  Updated {path}')
+          else:
+              print(f'  WARNING: search string not found in {path}')
+              sys.exit(1)
+          " "$FILE_PATH" "$SEARCH" "$REPLACE"
+              else
+                echo "  WARNING: search string not found in $FILE_PATH, skipping"
+              fi
+            fi
+          done
+
+          # Apply sidebar changes if present
+          SIDEBAR=$(echo "$OUTPUT" | jq -r '.sidebar // empty')
+          if [ -n "$SIDEBAR" ]; then
+            SEARCH=$(echo "$OUTPUT" | jq -r '.sidebar.search')
+            REPLACE=$(echo "$OUTPUT" | jq -r '.sidebar.replace')
+            python3 -c "
+          path = 'docs/_sidebar.md'
+          with open(path, 'r') as f:
+              content = f.read()
+          search = '''$SEARCH'''
+          replace = '''$REPLACE'''
+          content = content.replace(search, replace, 1)
+          with open(path, 'w') as f:
+              f.write(content)
+          print('  Updated sidebar')
+          "
+          fi
+
+          SUMMARY=$(echo "$OUTPUT" | jq -r '.summary // "documentation update"')
+          echo "summary=$SUMMARY" >> "$GITHUB_OUTPUT"
+          echo "skipped=false" >> "$GITHUB_OUTPUT"
+
+      - name: Preview changes (dry-run)
+        if: steps.apply.outputs.skipped != 'true' && inputs.dry-run == 'true'
+        run: |
+          echo "## Dry Run Preview"
+          echo ""
+          echo "### Files that would be modified:"
+          git diff --stat docs/
+          echo ""
+          echo "### Full diff:"
+          git diff docs/
+          echo ""
+          echo "### Summary: ${{ steps.apply.outputs.summary }}"
+          echo ""
+          # Revert changes
+          git checkout -- docs/
+
+      - name: Commit documentation updates
+        if: steps.apply.outputs.skipped != 'true' && inputs.dry-run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          if git diff --cached --quiet; then
+            echo "No documentation changes to commit."
+          else
+            git commit -m "docs: ${{ steps.apply.outputs.summary }}
+
+          Triggered by changes to: ${{ steps.changes.outputs.files }}
+          Pipeline cost: \$${{ steps.claude.outputs.cost-usd }}
+
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+            git push
+          fi
