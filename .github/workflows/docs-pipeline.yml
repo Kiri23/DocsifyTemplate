@@ -172,18 +172,21 @@ jobs:
             - Output raw JSON only. No ```json fences. No text before or after.
 
       - name: Show pipeline result
+        env:
+          CLAUDE_OUTPUT: ${{ steps.claude.outputs.output }}
         run: |
           echo "Success: ${{ steps.claude.outputs.success }}"
           echo "Cost: ${{ steps.claude.outputs.cost-usd }}"
           echo "---"
-          echo "${{ steps.claude.outputs.output }}"
+          echo "$CLAUDE_OUTPUT"
 
       - name: Apply documentation changes
         id: apply
         if: steps.claude.outputs.success == 'true'
         shell: bash
+        env:
+          OUTPUT: ${{ steps.claude.outputs.output }}
         run: |
-          OUTPUT='${{ steps.claude.outputs.output }}'
 
           # Check if Claude said to skip
           SKIP=$(echo "$OUTPUT" | jq -r '.skip // false')
