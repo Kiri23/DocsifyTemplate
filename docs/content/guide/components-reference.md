@@ -43,10 +43,12 @@ Use `card-grid` to create navigation cards, feature lists, or landing page layou
   description: "What this card is about."
   icon: "any text or emoji"
   href: "#/some-page"
+  badge: "New"
+  external: true
 ```
 ````
 
-All fields are optional. Cards link to `href` on click. The grid is responsive: 1 column on mobile, 2 on medium, 3 on large screens.
+All fields are optional. Cards link to `href` on click. Set `external: true` to open links in a new tab. The grid is responsive: 1 column on mobile, 2 on medium, 3 on large screens.
 
 ---
 
@@ -234,8 +236,10 @@ Renders as `window.CardGrid(data)`. Input is an **array** (not an object).
 | `description` | string | no | Card body text |
 | `icon` | string | no | Text/emoji shown above the title |
 | `href` | string | no | Link target (defaults to `#`) |
+| `external` | boolean | no | Opens link in a new tab with `target="_blank"` |
+| `badge` | string | no | Small label shown next to the card title |
 
-**Renders:** Responsive grid — `grid-cols-1` → `md:grid-cols-2` → `lg:grid-cols-3`. Each card is an `<a>` tag.
+**Renders:** Responsive grid — `grid-cols-1` → `md:grid-cols-2` → `lg:grid-cols-3`. Each card is an `<a>` tag. Cards with `external: true` open in a new tab.
 
 ```side-by-side
 left:
