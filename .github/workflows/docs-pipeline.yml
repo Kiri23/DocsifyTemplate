@@ -63,8 +63,7 @@ jobs:
             echo "=== Existing doc files ==="
             find docs/content -name '*.md' | sort | while read -r f; do
               echo "--- $f ---"
-              head -20 "$f"
-              echo "..."
+              cat "$f"
               echo ""
             done
             echo "DOCS_EOF"
