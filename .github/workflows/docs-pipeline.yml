@@ -14,6 +14,9 @@ on:
         default: "false"
         type: boolean
 
+permissions:
+  contents: write
+
 jobs:
   generate-docs:
     runs-on: ubuntu-latest
@@ -276,6 +279,10 @@ jobs:
 
       - name: Commit documentation updates
         if: steps.apply.outputs.skipped != 'true' && inputs.dry-run != 'true'
+        env:
+          SUMMARY: ${{ steps.apply.outputs.summary }}
+          CHANGED_FILES: ${{ steps.changes.outputs.files }}
+          COST: ${{ steps.claude.outputs.cost-usd }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -283,10 +290,10 @@ jobs:
           if git diff --cached --quiet; then
             echo "No documentation changes to commit."
           else
-            git commit -m "docs: ${{ steps.apply.outputs.summary }}
+            git commit -m "docs: ${SUMMARY}
 
-          Triggered by changes to: ${{ steps.changes.outputs.files }}
-          Pipeline cost: \$${{ steps.claude.outputs.cost-usd }}
+          Triggered by changes to: ${CHANGED_FILES}
+          Pipeline cost: \$${COST}
 
           Co-Authored-By: Claude <noreply@anthropic.com>"
             git push
