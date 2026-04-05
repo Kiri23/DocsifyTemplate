@@ -1,0 +1,22 @@
+{
+  "id": "card-grid",
+  "name": "Card Grid",
+  "description": "Responsive grid of linked cards",
+  "icon": "M2 2h4v4H2zM8 2h4v4H8zM2 8h4v4H2zM8 8h4v4H8z",
+  "fields": [
+    { "key": "columns", "label": "Columns", "type": "number", "defaultValue": 3 },
+    {
+      "key": "items",
+      "label": "Cards",
+      "type": "textarea",
+      "required": true,
+      "description": "YAML array of cards. Each card: title, description, icon, href, badge, external (boolean)"
+    }
+  ],
+  "display": {
+    "color": "var(--type-text)",
+    "layout": "prose",
+    "summaryField": "items",
+    "summaryFallback": "Card grid"
+  }
+}

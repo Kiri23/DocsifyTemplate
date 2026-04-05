@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "serve": "npx http-server . -p 3009 -c-1"
+    "serve": "npx http-server . -p 3009 -c-1 --cors"
   }
 }

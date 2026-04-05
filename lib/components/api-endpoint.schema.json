@@ -1,0 +1,25 @@
+{
+  "id": "api-endpoint",
+  "name": "API Endpoint",
+  "description": "Document how to call a specific URL",
+  "icon": "M2 8h12M8 3v10",
+  "fields": [
+    { "key": "method", "label": "Method", "type": "select", "required": true, "options": ["GET", "POST", "PUT", "PATCH", "DELETE"], "defaultValue": "GET" },
+    { "key": "path", "label": "URL path", "type": "text", "required": true, "defaultValue": "/" },
+    { "key": "description", "label": "What it does", "type": "textarea" },
+    {
+      "key": "params",
+      "label": "Parameters",
+      "type": "textarea",
+      "description": "YAML array of params. Each param: name, type, required"
+    },
+    { "key": "response", "label": "Response example", "type": "textarea" }
+  ],
+  "display": {
+    "color": "var(--type-api)",
+    "layout": "badge",
+    "summaryField": "path",
+    "summaryFallback": "/...",
+    "badgeField": "method"
+  }
+}

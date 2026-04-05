@@ -1,0 +1,23 @@
+{
+  "id": "directive-table",
+  "name": "Reference Table",
+  "description": "Searchable, categorized reference table",
+  "icon": "M3 3h10v10H3zM3 6h10M3 9h10M7 3v10",
+  "fields": [
+    { "key": "title", "label": "Title", "type": "text", "required": true, "defaultValue": "Directives" },
+    { "key": "searchable", "label": "Searchable", "type": "boolean", "defaultValue": true },
+    {
+      "key": "categories",
+      "label": "Categories",
+      "type": "textarea",
+      "required": true,
+      "description": "YAML array of categories. Each category: name, directives (array of: name, description, type, default, example, details)"
+    }
+  ],
+  "display": {
+    "color": "var(--type-schema)",
+    "layout": "entity",
+    "summaryField": "title",
+    "summaryFallback": "Reference table"
+  }
+}

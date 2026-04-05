@@ -1,0 +1,21 @@
+{
+  "id": "status-flow",
+  "name": "Status Flow",
+  "description": "Show states and transitions in a workflow",
+  "icon": "M3 3v10M13 3v10M3 6h10M3 10h10",
+  "fields": [
+    {
+      "key": "states",
+      "label": "States",
+      "type": "textarea",
+      "required": true,
+      "description": "YAML array of states. Each state: id, label, trigger, next (array), effects (array)"
+    }
+  ],
+  "display": {
+    "color": "var(--type-diagram)",
+    "layout": "prose",
+    "summaryField": "states",
+    "summaryFallback": "Status flow"
+  }
+}

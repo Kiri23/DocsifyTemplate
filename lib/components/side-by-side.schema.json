@@ -1,0 +1,28 @@
+{
+  "id": "side-by-side",
+  "name": "Side by Side",
+  "description": "Two-panel comparison layout",
+  "icon": "M2 2h4v10H2zM8 2h4v10H8z",
+  "fields": [
+    {
+      "key": "left",
+      "label": "Left panel",
+      "type": "textarea",
+      "required": true,
+      "description": "YAML object. Modes: {title, content} for text, {title, content, language} for code, {title, component, data} for live render"
+    },
+    {
+      "key": "right",
+      "label": "Right panel",
+      "type": "textarea",
+      "required": true,
+      "description": "YAML object. Same modes as left panel"
+    }
+  ],
+  "display": {
+    "color": "var(--type-text)",
+    "layout": "prose",
+    "summaryField": "left",
+    "summaryFallback": "Comparison"
+  }
+}

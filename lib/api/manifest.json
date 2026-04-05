@@ -1,0 +1,32 @@
+{
+  "product": "docsify-template",
+  "version": "1.0.0",
+  "components": "lib/components",
+  "schemas": [
+    "entity-schema.schema.json",
+    "api-endpoint.schema.json",
+    "status-flow.schema.json",
+    "directive-table.schema.json",
+    "step-type.schema.json",
+    "config-example.schema.json",
+    "card-grid.schema.json",
+    "side-by-side.schema.json"
+  ],
+  "renderAssets": [
+    "lib/vendor/js-yaml.min.js",
+    "lib/vendor/marked.min.js",
+    "lib/plugins/component-renderer-engine.js",
+    "lib/components/entity-schema.js",
+    "lib/components/api-endpoint.js",
+    "lib/components/status-flow.js",
+    "lib/components/directive-table.js",
+    "lib/components/step-type.js",
+    "lib/components/config-example.js",
+    "lib/components/card-grid.js",
+    "lib/components/side-by-side.js"
+  ],
+  "previewStyles": [
+    "lib/styles/theme.css"
+  ],
+  "tailwind": true
+}

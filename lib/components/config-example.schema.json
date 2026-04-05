@@ -1,0 +1,23 @@
+{
+  "id": "config-example",
+  "name": "Config Example",
+  "description": "Annotated code block with numbered callouts",
+  "icon": "M4 2v12M8 2v12M2 7h8",
+  "fields": [
+    { "key": "title", "label": "Title", "type": "text" },
+    { "key": "language", "label": "Language", "type": "select", "options": ["json", "yaml", "javascript", "typescript", "bash", "csharp"], "defaultValue": "json" },
+    { "key": "code", "label": "Code", "type": "textarea", "required": true },
+    {
+      "key": "annotations",
+      "label": "Annotations",
+      "type": "textarea",
+      "description": "YAML array of annotations. Each: line (number), text (string)"
+    }
+  ],
+  "display": {
+    "color": "var(--type-text)",
+    "layout": "prose",
+    "summaryField": "title",
+    "summaryFallback": "Code example"
+  }
+}

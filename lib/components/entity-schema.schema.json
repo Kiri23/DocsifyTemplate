@@ -1,0 +1,25 @@
+{
+  "id": "entity-schema",
+  "name": "Data Model",
+  "description": "Describe a thing in your system and its properties",
+  "icon": "M3 2h10v12H3zM6 5h4M6 8h4M6 11h3",
+  "fields": [
+    { "key": "name", "label": "Name", "type": "text", "required": true, "defaultValue": "Entity" },
+    { "key": "parent", "label": "Inherits from", "type": "text" },
+    {
+      "key": "fields",
+      "label": "Properties",
+      "type": "textarea",
+      "required": true,
+      "description": "YAML array of fields. Each field: name, type, required, description, values"
+    }
+  ],
+  "display": {
+    "color": "var(--type-schema)",
+    "layout": "entity",
+    "summaryField": "name",
+    "summaryFallback": "Unnamed model",
+    "countField": "fields",
+    "countLabel": "properties"
+  }
+}
