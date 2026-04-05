@@ -1,23 +1,41 @@
 {
-  "id": "directive-table",
-  "name": "Reference Table",
-  "description": "Searchable, categorized reference table",
-  "icon": "M3 3h10v10H3zM3 6h10M3 9h10M7 3v10",
-  "fields": [
-    { "key": "title", "label": "Title", "type": "text", "required": true, "defaultValue": "Directives" },
-    { "key": "searchable", "label": "Searchable", "type": "boolean", "defaultValue": true },
-    {
-      "key": "categories",
-      "label": "Categories",
-      "type": "textarea",
-      "required": true,
-      "description": "YAML array of categories. Each category: name, directives (array of: name, description, type, default, example, details)"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "directive-table",
+  "type": "object",
+  "x-ui": {
+    "name": "Reference Table",
+    "description": "Searchable, categorized reference table",
+    "icon": "M3 3h10v10H3zM3 6h10M3 9h10M7 3v10",
+    "display": {
+      "color": "var(--type-schema)",
+      "layout": "entity",
+      "summaryField": "title",
+      "summaryFallback": "Reference table"
     }
-  ],
-  "display": {
-    "color": "var(--type-schema)",
-    "layout": "entity",
-    "summaryField": "title",
-    "summaryFallback": "Reference table"
-  }
+  },
+  "properties": {
+    "title": {
+      "type": "string",
+      "default": "Directives",
+      "x-ui": { "label": "Title", "order": 1 }
+    },
+    "searchable": {
+      "type": "boolean",
+      "default": true,
+      "x-ui": { "label": "Searchable", "order": 2 }
+    },
+    "categories": {
+      "type": "array",
+      "x-ui": { "label": "Categories", "order": 3 },
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "x-ui": { "label": "Category name" } },
+          "directives": { "type": "string", "x-ui": { "label": "Directives (YAML)", "widget": "textarea" } }
+        },
+        "required": ["name"]
+      }
+    }
+  },
+  "required": ["title", "categories"]
 }

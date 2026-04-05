@@ -1,22 +1,40 @@
 {
-  "id": "card-grid",
-  "name": "Card Grid",
-  "description": "Responsive grid of linked cards",
-  "icon": "M2 2h4v4H2zM8 2h4v4H8zM2 8h4v4H2zM8 8h4v4H8z",
-  "fields": [
-    { "key": "columns", "label": "Columns", "type": "number", "defaultValue": 3 },
-    {
-      "key": "items",
-      "label": "Cards",
-      "type": "textarea",
-      "required": true,
-      "description": "YAML array of cards. Each card: title, description, icon, href, badge, external (boolean)"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "card-grid",
+  "type": "object",
+  "x-ui": {
+    "name": "Card Grid",
+    "description": "Responsive grid of linked cards",
+    "icon": "M2 2h4v4H2zM8 2h4v4H8zM2 8h4v4H2zM8 8h4v4H8z",
+    "display": {
+      "color": "var(--type-text)",
+      "layout": "prose",
+      "summaryField": "items",
+      "summaryFallback": "Card grid"
     }
-  ],
-  "display": {
-    "color": "var(--type-text)",
-    "layout": "prose",
-    "summaryField": "items",
-    "summaryFallback": "Card grid"
-  }
+  },
+  "properties": {
+    "columns": {
+      "type": "number",
+      "default": 3,
+      "x-ui": { "label": "Columns", "order": 1 }
+    },
+    "items": {
+      "type": "array",
+      "x-ui": { "label": "Cards", "order": 2 },
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "x-ui": { "label": "Title" } },
+          "description": { "type": "string", "x-ui": { "label": "Description" } },
+          "icon": { "type": "string", "x-ui": { "label": "Icon" } },
+          "href": { "type": "string", "x-ui": { "label": "Link URL" } },
+          "badge": { "type": "string", "x-ui": { "label": "Badge" } },
+          "external": { "type": "boolean", "default": false, "x-ui": { "label": "Open in new tab" } }
+        },
+        "required": ["title"]
+      }
+    }
+  },
+  "required": ["items"]
 }

@@ -1,21 +1,34 @@
 {
-  "id": "status-flow",
-  "name": "Status Flow",
-  "description": "Show states and transitions in a workflow",
-  "icon": "M3 3v10M13 3v10M3 6h10M3 10h10",
-  "fields": [
-    {
-      "key": "states",
-      "label": "States",
-      "type": "textarea",
-      "required": true,
-      "description": "YAML array of states. Each state: id, label, trigger, next (array), effects (array)"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "status-flow",
+  "type": "object",
+  "x-ui": {
+    "name": "Status Flow",
+    "description": "Show states and transitions in a workflow",
+    "icon": "M3 3v10M13 3v10M3 6h10M3 10h10",
+    "display": {
+      "color": "var(--type-diagram)",
+      "layout": "prose",
+      "summaryField": "states",
+      "summaryFallback": "Status flow"
     }
-  ],
-  "display": {
-    "color": "var(--type-diagram)",
-    "layout": "prose",
-    "summaryField": "states",
-    "summaryFallback": "Status flow"
-  }
+  },
+  "properties": {
+    "states": {
+      "type": "array",
+      "x-ui": { "label": "States", "order": 1 },
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "x-ui": { "label": "ID" } },
+          "label": { "type": "string", "x-ui": { "label": "Label" } },
+          "trigger": { "type": "string", "x-ui": { "label": "Trigger" } },
+          "next": { "type": "string", "x-ui": { "label": "Next states (comma-separated)" } },
+          "effects": { "type": "string", "x-ui": { "label": "Side effects (comma-separated)" } }
+        },
+        "required": ["id", "label"]
+      }
+    }
+  },
+  "required": ["states"]
 }

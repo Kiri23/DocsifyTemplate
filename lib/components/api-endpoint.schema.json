@@ -1,25 +1,52 @@
 {
-  "id": "api-endpoint",
-  "name": "API Endpoint",
-  "description": "Document how to call a specific URL",
-  "icon": "M2 8h12M8 3v10",
-  "fields": [
-    { "key": "method", "label": "Method", "type": "select", "required": true, "options": ["GET", "POST", "PUT", "PATCH", "DELETE"], "defaultValue": "GET" },
-    { "key": "path", "label": "URL path", "type": "text", "required": true, "defaultValue": "/" },
-    { "key": "description", "label": "What it does", "type": "textarea" },
-    {
-      "key": "params",
-      "label": "Parameters",
-      "type": "textarea",
-      "description": "YAML array of params. Each param: name, type, required"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "api-endpoint",
+  "type": "object",
+  "x-ui": {
+    "name": "API Endpoint",
+    "description": "Document how to call a specific URL",
+    "icon": "M2 8h12M8 3v10",
+    "display": {
+      "color": "var(--type-api)",
+      "layout": "badge",
+      "summaryField": "path",
+      "summaryFallback": "/...",
+      "badgeField": "method"
+    }
+  },
+  "properties": {
+    "method": {
+      "type": "string",
+      "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+      "default": "GET",
+      "x-ui": { "label": "Method", "order": 1 }
     },
-    { "key": "response", "label": "Response example", "type": "textarea" }
-  ],
-  "display": {
-    "color": "var(--type-api)",
-    "layout": "badge",
-    "summaryField": "path",
-    "summaryFallback": "/...",
-    "badgeField": "method"
-  }
+    "path": {
+      "type": "string",
+      "default": "/",
+      "x-ui": { "label": "URL path", "order": 2 }
+    },
+    "description": {
+      "type": "string",
+      "x-ui": { "label": "What it does", "widget": "textarea", "order": 3 }
+    },
+    "params": {
+      "type": "array",
+      "x-ui": { "label": "Parameters", "order": 4 },
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "x-ui": { "label": "Name" } },
+          "type": { "type": "string", "default": "string", "x-ui": { "label": "Type" } },
+          "required": { "type": "boolean", "default": false, "x-ui": { "label": "Required" } }
+        },
+        "required": ["name"]
+      }
+    },
+    "response": {
+      "type": "string",
+      "x-ui": { "label": "Response example", "widget": "textarea", "order": 5 }
+    }
+  },
+  "required": ["method", "path"]
 }

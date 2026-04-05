@@ -1,25 +1,53 @@
 {
-  "id": "step-type",
-  "name": "Workflow Step",
-  "description": "Document a step in a workflow process",
-  "icon": "M3 6l3 3l6-6",
-  "fields": [
-    { "key": "name", "label": "Name", "type": "text", "required": true, "defaultValue": "Step" },
-    { "key": "category", "label": "Category", "type": "select", "options": ["sync", "async"], "defaultValue": "sync" },
-    { "key": "description", "label": "Description", "type": "textarea" },
-    {
-      "key": "properties",
-      "label": "Properties",
-      "type": "textarea",
-      "description": "YAML array of properties. Each: name, type, required, description"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "step-type",
+  "type": "object",
+  "x-ui": {
+    "name": "Workflow Step",
+    "description": "Document a step in a workflow process",
+    "icon": "M3 6l3 3l6-6",
+    "display": {
+      "color": "var(--type-api)",
+      "layout": "badge",
+      "summaryField": "name",
+      "summaryFallback": "Unnamed step",
+      "badgeField": "category"
+    }
+  },
+  "properties": {
+    "name": {
+      "type": "string",
+      "default": "Step",
+      "x-ui": { "label": "Name", "order": 1 }
     },
-    { "key": "example", "label": "Config example", "type": "textarea" }
-  ],
-  "display": {
-    "color": "var(--type-api)",
-    "layout": "badge",
-    "summaryField": "name",
-    "summaryFallback": "Unnamed step",
-    "badgeField": "category"
-  }
+    "category": {
+      "type": "string",
+      "enum": ["sync", "async"],
+      "default": "sync",
+      "x-ui": { "label": "Category", "order": 2 }
+    },
+    "description": {
+      "type": "string",
+      "x-ui": { "label": "Description", "widget": "textarea", "order": 3 }
+    },
+    "properties": {
+      "type": "array",
+      "x-ui": { "label": "Properties", "order": 4 },
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "x-ui": { "label": "Name" } },
+          "type": { "type": "string", "default": "string", "x-ui": { "label": "Type" } },
+          "required": { "type": "boolean", "default": false, "x-ui": { "label": "Required" } },
+          "description": { "type": "string", "x-ui": { "label": "Description" } }
+        },
+        "required": ["name"]
+      }
+    },
+    "example": {
+      "type": "string",
+      "x-ui": { "label": "Config example", "widget": "textarea", "order": 5 }
+    }
+  },
+  "required": ["name"]
 }

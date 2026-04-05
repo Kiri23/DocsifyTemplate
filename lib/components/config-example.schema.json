@@ -1,23 +1,45 @@
 {
-  "id": "config-example",
-  "name": "Config Example",
-  "description": "Annotated code block with numbered callouts",
-  "icon": "M4 2v12M8 2v12M2 7h8",
-  "fields": [
-    { "key": "title", "label": "Title", "type": "text" },
-    { "key": "language", "label": "Language", "type": "select", "options": ["json", "yaml", "javascript", "typescript", "bash", "csharp"], "defaultValue": "json" },
-    { "key": "code", "label": "Code", "type": "textarea", "required": true },
-    {
-      "key": "annotations",
-      "label": "Annotations",
-      "type": "textarea",
-      "description": "YAML array of annotations. Each: line (number), text (string)"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "config-example",
+  "type": "object",
+  "x-ui": {
+    "name": "Config Example",
+    "description": "Annotated code block with numbered callouts",
+    "icon": "M4 2v12M8 2v12M2 7h8",
+    "display": {
+      "color": "var(--type-text)",
+      "layout": "prose",
+      "summaryField": "title",
+      "summaryFallback": "Code example"
     }
-  ],
-  "display": {
-    "color": "var(--type-text)",
-    "layout": "prose",
-    "summaryField": "title",
-    "summaryFallback": "Code example"
-  }
+  },
+  "properties": {
+    "title": {
+      "type": "string",
+      "x-ui": { "label": "Title", "order": 1 }
+    },
+    "language": {
+      "type": "string",
+      "enum": ["json", "yaml", "javascript", "typescript", "bash", "csharp"],
+      "default": "json",
+      "x-ui": { "label": "Language", "order": 2 }
+    },
+    "code": {
+      "type": "string",
+      "x-ui": { "label": "Code", "widget": "textarea", "order": 3 }
+    },
+    "annotations": {
+      "type": "array",
+      "x-ui": { "label": "Annotations", "order": 4 },
+      "items": {
+        "type": "object",
+        "properties": {
+          "line": { "type": "number", "x-ui": { "label": "Line number" } },
+          "text": { "type": "string", "x-ui": { "label": "Annotation text" } }
+        },
+        "required": ["line", "text"]
+      }
+    }
+  },
+  "required": ["code"]
 }

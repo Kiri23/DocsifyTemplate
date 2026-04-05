@@ -1,28 +1,37 @@
 {
-  "id": "side-by-side",
-  "name": "Side by Side",
-  "description": "Two-panel comparison layout",
-  "icon": "M2 2h4v10H2zM8 2h4v10H8z",
-  "fields": [
-    {
-      "key": "left",
-      "label": "Left panel",
-      "type": "textarea",
-      "required": true,
-      "description": "YAML object. Modes: {title, content} for text, {title, content, language} for code, {title, component, data} for live render"
-    },
-    {
-      "key": "right",
-      "label": "Right panel",
-      "type": "textarea",
-      "required": true,
-      "description": "YAML object. Same modes as left panel"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "side-by-side",
+  "type": "object",
+  "x-ui": {
+    "name": "Side by Side",
+    "description": "Two-panel comparison layout",
+    "icon": "M2 2h4v10H2zM8 2h4v10H8z",
+    "display": {
+      "color": "var(--type-text)",
+      "layout": "prose",
+      "summaryField": "left",
+      "summaryFallback": "Comparison"
     }
-  ],
-  "display": {
-    "color": "var(--type-text)",
-    "layout": "prose",
-    "summaryField": "left",
-    "summaryFallback": "Comparison"
-  }
+  },
+  "properties": {
+    "left": {
+      "type": "object",
+      "x-ui": { "label": "Left panel", "order": 1 },
+      "properties": {
+        "title": { "type": "string", "x-ui": { "label": "Title" } },
+        "content": { "type": "string", "x-ui": { "label": "Content", "widget": "textarea" } },
+        "language": { "type": "string", "enum": ["json", "yaml", "javascript", "typescript", "bash", "csharp"], "x-ui": { "label": "Language (for code mode)" } }
+      }
+    },
+    "right": {
+      "type": "object",
+      "x-ui": { "label": "Right panel", "order": 2 },
+      "properties": {
+        "title": { "type": "string", "x-ui": { "label": "Title" } },
+        "content": { "type": "string", "x-ui": { "label": "Content", "widget": "textarea" } },
+        "language": { "type": "string", "enum": ["json", "yaml", "javascript", "typescript", "bash", "csharp"], "x-ui": { "label": "Language (for code mode)" } }
+      }
+    }
+  },
+  "required": ["left", "right"]
 }
