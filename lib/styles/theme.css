@@ -7,40 +7,47 @@
 @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..800;1,6..72,300..800&display=swap');
 
 :root {
-  --theme-color: #0891b2;
-  --docsifyTintColor: #0891b2;
+  /* Docsify built-in vars — bridged from @theme */
+  --theme-color: var(--color-primary);
+  --docsifyTintColor: var(--color-primary);
 
-  /* Warm palette tokens */
-  --surface-page: #faf9f7;
-  --surface-raised: #f5f5f4;
-  --surface-sunken: #efedeb;
-  --border-subtle: #e7e5e4;
-  --border-default: #d6d3d1;
-  --text-primary: #1c1917;
-  --text-secondary: #44403c;
-  --text-tertiary: #78716c;
-  --text-muted: #a8a29e;
-  --accent: #0891b2;
-  --accent-light: #ecfeff;
-  --accent-text: #0e7490;
+  /* Surfaces — bridged from @theme */
+  --surface-page: var(--color-surface);
+  --surface-raised: var(--color-surface-raised);
+  --surface-sunken: var(--color-surface-sunken);
+
+  /* Borders — bridged from @theme */
+  --border-subtle: var(--color-border);
+  --border-default: var(--color-border-strong);
+
+  /* Text — bridged from @theme */
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+  --text-muted: var(--color-text-muted);
+
+  /* Accent — bridged from @theme */
+  --accent: var(--color-primary);
+  --accent-light: var(--color-primary-light);
+  --accent-text: var(--color-primary-text);
   --accent-rgb: 8 145 178;
 
-  /* Technical zone (cool slate) */
-  --tech-surface: #f8fafc;
-  --tech-accent: #6366f1;
-  --tech-heading: #1e293b;
-  --tech-subheading: #334155;
-  --tech-text: #475569;
+  /* Technical zone — bridged from @theme */
+  --tech-surface: var(--color-tech-surface);
+  --tech-accent: var(--color-tech-accent);
+  --tech-heading: var(--color-tech-heading);
+  --tech-subheading: var(--color-tech-subheading);
+  --tech-text: var(--color-tech-text);
 
-  /* Code blocks */
-  --code-bg: #1e1e2e;
+  /* Code blocks — bridged from @theme */
+  --code-bg: var(--color-code-bg);
   --code-overlay-rgb: 255 255 255;
 
-  /* Success / copied state */
-  --success: #34d399;
+  /* Success — bridged from @theme */
+  --success: var(--color-success);
   --success-rgb: 52 211 153;
 
-  /* Font stacks */
+  /* Font stacks (CSS-only, no Tailwind utils needed) */
   --font-prose: 'Newsreader', Georgia, 'Times New Roman', serif;
   --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', ui-monospace, monospace;
@@ -132,6 +139,12 @@ body {
   background: var(--surface-page) !important;
   font-family: var(--font-ui);
 }
+
+/* Override Docsify's collapse-on-click (prevents flicker) */
+.sidebar li.collapse .app-sub-sidebar {
+  display: block !important;
+}
+
 
 .sidebar ul li a {
   color: var(--text-secondary);

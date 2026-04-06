@@ -19,21 +19,45 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <style type="text/tailwindcss">
     @theme {
+      /* Brand */
       --color-primary: #0891b2;
       --color-primary-light: #ecfeff;
+      --color-primary-text: #0e7490;
       --color-brand: #95c22f;
+
+      /* Surfaces */
       --color-surface: #faf9f7;
       --color-surface-raised: #f5f5f4;
+      --color-surface-sunken: #efedeb;
+
+      /* Borders */
       --color-border: #e7e5e4;
       --color-border-strong: #d6d3d1;
+
+      /* Text */
       --color-text-primary: #1c1917;
       --color-text-secondary: #44403c;
-      --color-text-muted: #78716c;
+      --color-text-tertiary: #78716c;
+      --color-text-muted: #a8a29e;
+
+      /* Technical zone */
+      --color-tech-surface: #f8fafc;
+      --color-tech-accent: #6366f1;
+      --color-tech-heading: #1e293b;
+      --color-tech-subheading: #334155;
+      --color-tech-text: #475569;
+
+      /* Code */
+      --color-code-bg: #1e1e2e;
+      --color-code-text: #cdd6f4;
+
+      /* Semantic */
+      --color-success: #34d399;
     }
   </style>
 
   <!-- Custom theme overrides -->
-  <link rel="stylesheet" href="../lib/styles/theme.css">
+  <link rel="stylesheet" href="/lib/styles/theme.css">
 </head>
 <body>
   <div id="app"></div>
@@ -42,17 +66,19 @@
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
 
   <!-- Components (register globals — must load before Docsify) -->
-  <script src="../lib/components/code-block.js"></script>
-  <script src="../lib/components/tabs.js"></script>
-  <script src="../lib/components/card-grid.js"></script>
-  <script src="../lib/components/entity-schema.js"></script>
-  <script src="../lib/components/api-endpoint.js"></script>
-  <script src="../lib/components/status-flow.js"></script>
-  <script src="../lib/components/region-toggle.js"></script>
-  <script src="../lib/components/directive-table.js"></script>
-  <script src="../lib/components/step-type.js"></script>
-  <script src="../lib/components/config-example.js"></script>
-  <script src="../lib/components/side-by-side.js"></script>
+  <script src="/lib/components/utils.js"></script>
+  <script src="/lib/components/code-block.js"></script>
+  <script src="/lib/components/tabs.js"></script>
+  <script src="/lib/components/card-grid.js"></script>
+  <script src="/lib/components/entity-schema.js"></script>
+  <script src="/lib/components/api-endpoint.js"></script>
+  <script src="/lib/components/status-flow.js"></script>
+  <script src="/lib/components/region-toggle.js"></script>
+  <script src="/lib/components/directive-table.js"></script>
+  <script src="/lib/components/step-type.js"></script>
+  <script src="/lib/components/config-example.js"></script>
+  <script src="/lib/components/side-by-side.js"></script>
+  <script src="/lib/components/file-tree.js"></script>
 
   <script>
     window.$docsify = {
@@ -69,10 +95,10 @@
   </script>
 
   <!-- Custom plugins (must load before Docsify core — they push to $docsify.plugins) -->
-  <script src="../lib/plugins/component-renderer-engine.js"></script>
-  <script src="../lib/plugins/component-renderer.js"></script>
-  <script src="../lib/plugins/tutorial-header.js"></script>
-  <script src="../lib/plugins/latex-export.js"></script>
+  <script src="/lib/plugins/component-renderer-engine.js"></script>
+  <script src="/lib/plugins/component-renderer.js"></script>
+  <script src="/lib/plugins/tutorial-header.js"></script>
+  <script src="/lib/plugins/latex-export.js"></script>
 
   <!-- Copy button plugin — adds copy buttons to all code blocks -->
   <script>
@@ -148,6 +174,9 @@
   <!-- Docsify core -->
   <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
 
+  <!-- Prevent sidebar items from hiding on second click -->
+  <script src="/lib/plugins/prevent-sidebar-collapse.js"></script>
+
   <!-- Docsify search plugin -->
   <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
 
@@ -163,7 +192,7 @@
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.3/dist/htmx.min.js"></script>
 
   <!-- HTMX virtual routes (loads after HTMX) -->
-  <script src="../lib/plugins/htmx-virtual.js"></script>
+  <script src="/lib/plugins/htmx-virtual.js"></script>
 
   <!-- Dev only: Eruda console (remove for production) -->
   <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
