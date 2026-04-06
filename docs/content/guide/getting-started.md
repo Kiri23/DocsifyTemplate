@@ -37,7 +37,7 @@ unzip lib/export/pandoc-wasm.zip -d lib/export/
 rm lib/export/pandoc-wasm.zip
 ```
 
-Everything else works without this file. If you skip this step, the Export button appears but returns an error when clicked.
+Everything else works without this file. If you skip this step, the Export button still appears. When clicked, it shows a message linking back to these setup instructions instead of exporting.
 
 ### Step 2: Create the page
 
