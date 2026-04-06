@@ -139,6 +139,42 @@ states:
     effects: ["Make publicly visible", "Index for search"]
 ```
 
+### File Tree
+
+Render nested file or component hierarchies with automatic tree connectors:
+
+```file-tree
+title: Project Structure
+root: src/
+items:
+  - name: components/
+    description: Shared UI components
+    children:
+      - name: Button.tsx
+      - name: Modal.tsx
+      - name: DataTable.tsx
+        description: Sortable, paginated
+  - name: pages/
+    description: Route-level views
+    children:
+      - name: Dashboard.tsx
+        description: Landing page
+        children:
+          - name: StatsCard[]
+          - name: ActivityFeed
+      - name: Settings.tsx
+        children:
+          - name: ProfileForm
+          - name: NotificationPrefs
+  - name: api/
+    description: Backend service layer
+    children:
+      - name: client.ts
+        description: Axios instance + interceptors
+      - name: users.ts
+      - name: products.ts
+```
+
 ### Mermaid Diagram
 
 Standard mermaid fences work out of the box:

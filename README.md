@@ -1,5 +1,4 @@
 # DocsifyTemplate
-
 A zero-build-step interactive documentation framework powered by Docsify with custom data-driven components.
 
 ## Quick Start
@@ -94,30 +93,20 @@ Additional components (used differently, not in registry):
 - **CodeBlock** — inline syntax highlight + copy button
 - **RegionToggle** — DOM-level `data-region` directive processor
 
-## LaTeX Export (Pandoc WASM)
+## Export (Pandoc WASM)
 
-Every page includes an "Export to LaTeX" button that converts the current Markdown to LaTeX (or HTML, RST, Org) using Pandoc compiled to WebAssembly. The conversion runs entirely in the browser — no server needed.
+Each page has an Export button that converts your docs to PDF, LaTeX, HTML, RST, or Org — right in the browser, no server required. This runs on Pandoc compiled to WebAssembly.
 
-The `pandoc.wasm` binary (~56MB) is stored via Git LFS. After cloning, ensure you have the actual binary:
-
-```bash
-# Install git-lfs if you don't have it
-# macOS: brew install git-lfs
-# Ubuntu: apt install git-lfs
-# Termux: pkg install git-lfs
-
-git lfs install
-git lfs pull
-```
-
-If you cloned without LFS, or the file is missing, download it manually:
+The binary (~56 MB) is not included in the repo. To enable export, download it after cloning:
 
 ```bash
-curl -L -o docs/pandoc.wasm \
-  "https://pandoc.org/app/pandoc.wasm?sha1=f0b56b0bce5b0c504d66b4c6e45d9fdf67f41da1"
+curl -L -o lib/export/pandoc-wasm.zip \
+  "https://github.com/jgm/pandoc/releases/download/3.9/pandoc-3.9.wasm.zip"
+unzip lib/export/pandoc-wasm.zip -d lib/export/
+rm lib/export/pandoc-wasm.zip
 ```
 
-The WASM loads lazily — only when the user clicks "Export to LaTeX" — so it doesn't affect page load.
+The binary loads lazily — only when you click Export — so it does not affect page load. If you skip the download, the Export button appears but returns an error when clicked.
 
 ## CDN Dependencies
 
@@ -133,18 +122,20 @@ The WASM loads lazily — only when the user clicks "Export to LaTeX" — so it 
 ## Project Structure
 
 ```
-docs/
-├── index.html              # Entry point: CDN deps + component scripts
-├── _sidebar.md             # Navigation tree
-├── README.md               # Home page
-├── components/             # Data-driven template literal components
-├── pandoc.wasm              # Pandoc WASM binary (Git LFS, ~56MB)
-├── plugins/
-│   ├── component-renderer.js  # Code fence → component pipeline + tabs
-│   ├── htmx-virtual.js        # HTMX /api/switch/* interceptor
-│   ├── latex-export.js        # "Export to LaTeX" button plugin
-│   └── pandoc.js              # Official Pandoc WASI interface
-├── styles/
-│   └── theme.css           # Theme overrides
-└── content/                # Your documentation pages
+├── lib/                        # Framework library
+│   ├── components/             # Data-driven template literal components
+│   ├── plugins/                # Docsify plugins
+│   │   ├── component-renderer.js  # Code fence → component pipeline + tabs
+│   │   ├── htmx-virtual.js        # HTMX /api/switch/* interceptor
+│   │   └── latex-export.js        # Export button plugin
+│   ├── styles/
+│   │   └── theme.css           # Theme overrides
+│   └── export/                 # Pandoc WASM export pipeline
+│       ├── pandoc.js           # Official Pandoc WASI interface
+│       └── pandoc.wasm         # Binary (~56 MB, not in repo — see above)
+└── docs/                       # Documentation content (served by Docsify)
+    ├── index.html              # Entry point: CDN deps + component scripts
+    ├── _sidebar.md             # Navigation tree
+    ├── README.md               # Home page
+    └── content/                # Your documentation pages
 ```

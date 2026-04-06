@@ -26,6 +26,19 @@ Serving /my-docs/docs at http://localhost:3009
 
 Open `http://localhost:3009/docs/` in your browser. You'll see the documentation site with a sidebar and home page.
 
+**Optional: Enable page export.** Each page has an Export button at the top that can convert your docs to PDF, LaTeX, HTML, and other formats — right in the browser, no server required. This feature runs on Pandoc compiled to WebAssembly.
+
+The binary (~56 MB) is not included in the repo. To enable export, download it once:
+
+```bash
+curl -L -o lib/export/pandoc-wasm.zip \
+  "https://github.com/jgm/pandoc/releases/download/3.9/pandoc-3.9.wasm.zip"
+unzip lib/export/pandoc-wasm.zip -d lib/export/
+rm lib/export/pandoc-wasm.zip
+```
+
+Everything else works without this file. If you skip this step, the Export button appears but returns an error when clicked.
+
 ### Step 2: Create the page
 
 Let's create a new markdown file for our Task API docs. Create `docs/content/guide/task-api.md` with this content:
