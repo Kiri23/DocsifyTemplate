@@ -3,6 +3,32 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "serve": "npx http-server . -p 3009 -c-1 --cors"
+    "serve": "npx http-server . -p 3010 -c-1 --cors"
+  },
+  "description": "A zero-build-step interactive documentation framework powered by Docsify with custom data-driven components.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kiri23/DocsifyTemplate.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Kiri23/DocsifyTemplate/issues"
+  },
+  "homepage": "https://github.com/Kiri23/DocsifyTemplate#readme",
+  "devDependencies": {
+    "htm": "^3.1.1",
+    "js-yaml": "^4.1.1",
+    "preact": "^10.29.1",
+    "preact-render-to-string": "^6.6.7",
+    "unist-util-visit": "^5.1.0"
   }
 }

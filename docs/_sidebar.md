@@ -13,3 +13,4 @@
   * [Create a Tabbed Page](/content/howto/create-tabbed-page)
 * Examples
   * [Component Showcase](/content/examples/component-showcase)
+  * [React Components](/content/examples/react-components)

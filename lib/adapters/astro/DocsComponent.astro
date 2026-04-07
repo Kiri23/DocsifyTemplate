@@ -1,0 +1,25 @@
+---
+// Astro/Starlight adapter — renders any DocsifyTemplate component at build time.
+// Usage in MDX: <DocsComponent component="EntitySchema" data={{ name: 'User', fields: [...] }} />
+
+import { h } from 'preact';
+import renderToString from 'preact-render-to-string';
+import { components } from '../../core/registry.js';
+
+// Ensure components are loaded
+await import('../../components/shared.js');
+await import('../../components/entity-schema.js');
+await import('../../components/card-grid.js');
+await import('../../components/api-endpoint.js');
+await import('../../components/status-flow.js');
+await import('../../components/config-example.js');
+await import('../../components/step-type.js');
+await import('../../components/directive-table.js');
+await import('../../components/side-by-side.js');
+await import('../../components/file-tree.js');
+
+const { component, data } = Astro.props;
+const Component = components[component];
+const html = Component ? renderToString(h(Component, { data })) : `<!-- component not found: ${component} -->`;
+---
+<Fragment set:html={html} />

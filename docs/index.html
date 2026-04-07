@@ -62,23 +62,45 @@
 <body>
   <div id="app"></div>
 
+  <!--
+    Script load order (all defer/module = parallel download, sequential execution):
+
+    Phase 1 — Modules (execute first, in document order)
+      importmap → renderer.js → components/index.js
+      renderer.js imports core/engine.js + core/registry.js (no separate tags)
+
+    Phase 2 — Docsify plugins + core (depend on $docsify.plugins from Phase 1)
+      plugins/tutorial-header → plugins/latex-export → plugins/copy-button
+      docsify@4 → plugins/sidebar → search.min.js
+
+    Phase 3 — Post-Docsify (depend on globals from Phase 2)
+      prism-*.js (need Prism bundled in docsify) → htmx → plugins/htmx-virtual
+
+    Phase 4 — Independent (no load-order dependency)
+      mermaid, eruda
+
+    DO NOT reorder scripts across phases — each phase depends on the previous.
+  -->
+
+  <!-- Import map: Preact + HTM via esm.sh (replaces React 45KB + Babel 800KB with ~4KB) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "https://esm.sh/preact@10",
+      "preact/hooks": "https://esm.sh/preact@10/hooks",
+      "preact-render-to-string": "https://esm.sh/preact-render-to-string@6?external=preact",
+      "htm": "https://esm.sh/htm@3",
+      "htm/preact": "https://esm.sh/htm/preact"
+    }
+  }
+  </script>
+
   <!-- js-yaml for code fence components -->
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
 
-  <!-- Components (register globals — must load before Docsify) -->
-  <script src="/lib/components/utils.js"></script>
-  <script src="/lib/components/code-block.js"></script>
-  <script src="/lib/components/tabs.js"></script>
-  <script src="/lib/components/card-grid.js"></script>
-  <script src="/lib/components/entity-schema.js"></script>
-  <script src="/lib/components/api-endpoint.js"></script>
-  <script src="/lib/components/status-flow.js"></script>
-  <script src="/lib/components/region-toggle.js"></script>
-  <script src="/lib/components/directive-table.js"></script>
-  <script src="/lib/components/step-type.js"></script>
-  <script src="/lib/components/config-example.js"></script>
-  <script src="/lib/components/side-by-side.js"></script>
-  <script src="/lib/components/file-tree.js"></script>
+  <!-- Components — single ES module entry point -->
+  <!-- Module scripts are deferred: execute after parse, before DOMContentLoaded -->
+  <script type="module" src="/lib/components/index.js"></script>
 
   <script>
     window.$docsify = {
@@ -94,105 +116,36 @@
     };
   </script>
 
-  <!-- Custom plugins (must load before Docsify core — they push to $docsify.plugins) -->
-  <script src="/lib/plugins/component-renderer-engine.js"></script>
-  <script src="/lib/plugins/component-renderer.js"></script>
-  <script src="/lib/plugins/tutorial-header.js"></script>
-  <script src="/lib/plugins/latex-export.js"></script>
+  <!-- Adapter: Docsify renderer (ES module — imports core/engine.js) -->
+  <script type="module" src="/lib/adapters/docsify/renderer.js"></script>
+  <!-- Docsify plugins (register on $docsify.plugins before Docsify loads) -->
+  <script defer src="/lib/adapters/docsify/plugins/tutorial-header.js"></script>
+  <script defer src="/lib/adapters/docsify/plugins/latex-export.js"></script>
+  <script defer src="/lib/adapters/docsify/plugins/copy-button.js"></script>
 
-  <!-- Copy button plugin — adds copy buttons to all code blocks -->
-  <script>
-    window.$docsify = window.$docsify || {};
-    window.$docsify.plugins = (window.$docsify.plugins || []).concat([
-      function copyButtonPlugin(hook) {
-        hook.doneEach(function() {
-          var pres = document.querySelectorAll('.markdown-section pre');
-          pres.forEach(function(pre) {
-            if (pre.querySelector('.code-copy-btn')) return;
-            var code = pre.querySelector('code');
-            if (!code) return;
-            // Skip mermaid and component-rendered blocks
-            if (code.classList.contains('lang-mermaid') || code.classList.contains('language-mermaid')) return;
 
-            pre.style.position = 'relative';
-            var btn = document.createElement('button');
-            btn.className = 'code-copy-btn';
-            btn.textContent = 'Copy';
-            btn.addEventListener('click', function() {
-              var text = code.textContent;
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(function() {
-                  btn.textContent = '\u2713 Copied';
-                  btn.classList.add('copied');
-                  setTimeout(function() {
-                    btn.textContent = 'Copy';
-                    btn.classList.remove('copied');
-                  }, 2000);
-                }, function() {
-                  btn.textContent = 'Failed';
-                  setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
-                });
-              } else {
-                // Fallback for older browsers / insecure contexts
-                var ta = document.createElement('textarea');
-                ta.value = text;
-                ta.style.position = 'fixed';
-                ta.style.opacity = '0';
-                document.body.appendChild(ta);
-                ta.select();
-                try {
-                  document.execCommand('copy');
-                  btn.textContent = '\u2713 Copied';
-                  btn.classList.add('copied');
-                  setTimeout(function() {
-                    btn.textContent = 'Copy';
-                    btn.classList.remove('copied');
-                  }, 2000);
-                } catch(e) {
-                  btn.textContent = 'Failed';
-                  setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
-                }
-                document.body.removeChild(ta);
-              }
-            });
-            pre.appendChild(btn);
-          });
-        });
-      }
-    ]);
-  </script>
+  <!-- Docsify core (defer: ensures adapter modules execute first) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
 
-  <!-- Console greeting for devs -->
-  <script>
-    console.log(
-      '%cDocsifyTemplate',
-      'font-size:1.5rem;font-weight:800;color:#0891b2'
-    );
-    console.log('Write YAML, get docs. No build step.\nhttps://github.com/Kiri23/DocsifyTemplate');
-  </script>
-
-  <!-- Docsify core -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-
-  <!-- Prevent sidebar items from hiding on second click -->
-  <script src="/lib/plugins/prevent-sidebar-collapse.js"></script>
+  <!-- Adapter: Docsify sidebar behavior -->
+  <script defer src="/lib/adapters/docsify/plugins/sidebar.js"></script>
 
   <!-- Docsify search plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
 
-  <!-- Prism.js + languages -->
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markdown.min.js"></script>
+  <!-- Prism.js languages (defer: Docsify bundles Prism core, these extend it) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markdown.min.js"></script>
 
   <!-- HTMX -->
-  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.3/dist/htmx.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.3/dist/htmx.min.js"></script>
 
-  <!-- HTMX virtual routes (loads after HTMX) -->
-  <script src="/lib/plugins/htmx-virtual.js"></script>
+  <!-- Adapter: HTMX virtual routes for Docsify tab switching -->
+  <script defer src="/lib/adapters/docsify/plugins/htmx-virtual.js"></script>
 
   <!-- Dev only: Eruda console (remove for production) -->
   <script src="https://cdn.jsdelivr.net/npm/eruda"></script>

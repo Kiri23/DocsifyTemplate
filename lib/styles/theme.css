@@ -383,37 +383,47 @@ body {
 /* ── Copy button on code blocks ── */
 .code-copy-btn {
   position: absolute;
-  top: 0.5rem;
+  top: 2.5rem;
   right: 0.5rem;
-  background: rgb(var(--code-overlay-rgb) / 0.08);
-  border: 1px solid rgb(var(--code-overlay-rgb) / 0.1);
-  color: rgb(var(--code-overlay-rgb) / 0.5);
-  font-size: 0.7rem;
+  background: var(--color-surface-sunken, #efedeb);
+  border: 1px solid var(--color-border-strong, #d6d3d1);
+  color: var(--color-text-tertiary, #78716c);
+  font-size: 0.75rem;
   font-family: var(--font-ui);
-  padding: 0.3rem 0.6rem;
+  padding: 0.35rem 0.7rem;
   border-radius: 0.35rem;
   cursor: pointer;
   transition: all 0.15s ease;
-  opacity: 0.35;
-  z-index: 2;
+  z-index: 10;
   line-height: 1;
   letter-spacing: 0.02em;
 }
 
-.markdown-section pre:hover .code-copy-btn {
-  opacity: 1;
-}
-
 .code-copy-btn:hover {
-  background: rgb(var(--code-overlay-rgb) / 0.15);
-  color: rgb(var(--code-overlay-rgb) / 0.85);
-  border-color: rgb(var(--code-overlay-rgb) / 0.2);
+  background: var(--color-border, #e7e5e4);
+  color: var(--color-text-primary, #1c1917);
+  border-color: var(--color-border-strong, #d6d3d1);
 }
 
 .code-copy-btn.copied {
-  color: var(--success);
-  border-color: rgb(var(--success-rgb) / 0.3);
-  background: rgb(var(--success-rgb) / 0.1);
+  color: #059669;
+  border-color: rgba(5, 150, 105, 0.4);
+  background: rgba(5, 150, 105, 0.1);
+}
+
+/* Dark code blocks (inside Preact components) */
+.bg-gray-900 .code-copy-btn,
+[style*="--color-code-bg"] .code-copy-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.bg-gray-900 .code-copy-btn:hover,
+[style*="--color-code-bg"] .code-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 /* Code block container (from CodeBlock component) */
