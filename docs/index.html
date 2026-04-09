@@ -67,14 +67,14 @@
 
     Phase 1 — Modules (execute first, in document order)
       importmap → renderer.js → components/index.js
-      renderer.js imports core/engine.js + core/registry.js (no separate tags)
 
     Phase 2 — Docsify plugins + core (depend on $docsify.plugins from Phase 1)
-      plugins/tutorial-header → plugins/latex-export → plugins/copy-button
-      docsify@4 → plugins/sidebar → search.min.js
+      features/tutorial-header (standalone)
+      docsify@4 → search.min.js
+      (copy-button, latex-export, sidebar now imported by renderer.js)
 
     Phase 3 — Post-Docsify (depend on globals from Phase 2)
-      prism-*.js (need Prism bundled in docsify) → htmx → plugins/htmx-virtual
+      prism-*.js (need Prism bundled in docsify) → htmx → features/htmx-virtual (module)
 
     Phase 4 — Independent (no load-order dependency)
       mermaid, eruda
@@ -90,7 +90,10 @@
       "preact/hooks": "https://esm.sh/preact@10/hooks",
       "preact-render-to-string": "https://esm.sh/preact-render-to-string@6?external=preact",
       "htm": "https://esm.sh/htm@3",
-      "htm/preact": "https://esm.sh/htm/preact"
+      "htm/preact": "https://esm.sh/htm/preact",
+      "unified": "https://esm.sh/unified@11?bundle",
+      "remark-parse": "https://esm.sh/remark-parse@11?bundle",
+      "unist-util-visit": "https://esm.sh/unist-util-visit@5?bundle"
     }
   }
   </script>
@@ -116,19 +119,13 @@
     };
   </script>
 
-  <!-- Adapter: Docsify renderer (ES module — imports core/engine.js) -->
+  <!-- Adapter: Docsify renderer (ES module — imports core engine + features) -->
   <script type="module" src="/lib/adapters/docsify/renderer.js"></script>
-  <!-- Docsify plugins (register on $docsify.plugins before Docsify loads) -->
-  <script defer src="/lib/adapters/docsify/plugins/tutorial-header.js"></script>
-  <script defer src="/lib/adapters/docsify/plugins/latex-export.js"></script>
-  <script defer src="/lib/adapters/docsify/plugins/copy-button.js"></script>
+  <!-- Docsify plugins (must load before docsify core to register via $docsify.plugins) -->
+  <script defer src="/lib/adapters/docsify/features/tutorial-header.js"></script>
 
-
-  <!-- Docsify core (defer: ensures adapter modules execute first) -->
+  <!-- Docsify core (defer: ensures plugins above register first) -->
   <script defer src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-
-  <!-- Adapter: Docsify sidebar behavior -->
-  <script defer src="/lib/adapters/docsify/plugins/sidebar.js"></script>
 
   <!-- Docsify search plugin -->
   <script defer src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
@@ -145,7 +142,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.3/dist/htmx.min.js"></script>
 
   <!-- Adapter: HTMX virtual routes for Docsify tab switching -->
-  <script defer src="/lib/adapters/docsify/plugins/htmx-virtual.js"></script>
+  <script type="module" src="/lib/adapters/docsify/features/htmx-virtual.js"></script>
 
   <!-- Dev only: Eruda console (remove for production) -->
   <script src="https://cdn.jsdelivr.net/npm/eruda"></script>

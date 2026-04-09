@@ -7,43 +7,78 @@
 @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..800;1,6..72,300..800&display=swap');
 
 :root {
-  /* Docsify built-in vars — bridged from @theme */
+  /* Brand */
+  --color-primary: #0891b2;
+  --color-primary-light: #ecfeff;
+  --color-primary-text: #0e7490;
+  --color-brand: #95c22f;
+
+  /* Surfaces */
+  --color-surface: #faf9f7;
+  --color-surface-raised: #f5f5f4;
+  --color-surface-sunken: #efedeb;
+
+  /* Borders */
+  --color-border: #e7e5e4;
+  --color-border-strong: #d6d3d1;
+
+  /* Text */
+  --color-text-primary: #1c1917;
+  --color-text-secondary: #44403c;
+  --color-text-tertiary: #78716c;
+  --color-text-muted: #a8a29e;
+
+  /* Technical zone */
+  --color-tech-surface: #f8fafc;
+  --color-tech-accent: #6366f1;
+  --color-tech-heading: #1e293b;
+  --color-tech-subheading: #334155;
+  --color-tech-text: #475569;
+
+  /* Code */
+  --color-code-bg: #1e1e2e;
+  --color-code-text: #cdd6f4;
+
+  /* Semantic */
+  --color-success: #34d399;
+
+  /* Docsify built-in vars */
   --theme-color: var(--color-primary);
   --docsifyTintColor: var(--color-primary);
 
-  /* Surfaces — bridged from @theme */
+  /* Surfaces */
   --surface-page: var(--color-surface);
   --surface-raised: var(--color-surface-raised);
   --surface-sunken: var(--color-surface-sunken);
 
-  /* Borders — bridged from @theme */
+  /* Borders */
   --border-subtle: var(--color-border);
   --border-default: var(--color-border-strong);
 
-  /* Text — bridged from @theme */
+  /* Text */
   --text-primary: var(--color-text-primary);
   --text-secondary: var(--color-text-secondary);
   --text-tertiary: var(--color-text-tertiary);
   --text-muted: var(--color-text-muted);
 
-  /* Accent — bridged from @theme */
+  /* Accent */
   --accent: var(--color-primary);
   --accent-light: var(--color-primary-light);
   --accent-text: var(--color-primary-text);
   --accent-rgb: 8 145 178;
 
-  /* Technical zone — bridged from @theme */
+  /* Technical zone */
   --tech-surface: var(--color-tech-surface);
   --tech-accent: var(--color-tech-accent);
   --tech-heading: var(--color-tech-heading);
   --tech-subheading: var(--color-tech-subheading);
   --tech-text: var(--color-tech-text);
 
-  /* Code blocks — bridged from @theme */
+  /* Code blocks */
   --code-bg: var(--color-code-bg);
   --code-overlay-rgb: 255 255 255;
 
-  /* Success — bridged from @theme */
+  /* Success */
   --success: var(--color-success);
   --success-rgb: 52 211 153;
 
@@ -140,12 +175,19 @@ body {
   font-family: var(--font-ui);
 }
 
-/* Override Docsify's collapse-on-click (prevents flicker) */
-.sidebar li.collapse .app-sub-sidebar {
+/* Neutralize docsify's built-in collapse (prevents flicker before JS strips the class).
+   Docsify adds .collapse to both <li> and <p> elements on double-click. */
+.sidebar .collapse > ul,
+.sidebar .collapse > a,
+.sidebar .collapse > p,
+.sidebar .collapse > span,
+.sidebar .collapse .app-sub-sidebar,
+.sidebar li.collapse > :not(a) {
   display: block !important;
+  visibility: visible !important;
 }
 
-
+/* Links */
 .sidebar ul li a {
   color: var(--text-secondary);
   font-size: 0.875rem;
@@ -173,26 +215,113 @@ body {
   padding-left: calc(0.75rem + 0.5rem);
 }
 
-/* Top-level sidebar categories */
-.sidebar .sidebar-nav > ul > li > a {
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-top: 1.5rem;
-  padding: 0.25rem 0.75rem;
+/* ── Sidebar groups (collapsible sections) ── */
+
+/* All group headers share these base styles */
+.sidebar-group > p,
+.sidebar-group > .sidebar-group-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.sidebar-group > p:hover,
+.sidebar-group > .sidebar-group-title:hover {
+  color: var(--text-primary);
+}
+
+/* Chevron indicator (all levels) */
+.sidebar-group > p::after,
+.sidebar-group > .sidebar-group-title::after {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  margin-right: 0.25rem;
+  flex-shrink: 0;
+}
+
+.sidebar-group.collapsed > p::after,
+.sidebar-group.collapsed > .sidebar-group-title::after {
+  transform: rotate(-45deg);
+}
+
+/* Collapse animation (all levels) */
+.sidebar-group > ul {
+  overflow: hidden;
+  max-height: 2000px;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+  opacity: 1;
+}
+
+.sidebar-group.collapsed > ul {
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.25s ease, opacity 0.15s ease;
+}
+
+/* ── Level 0: Top sections (Frontend, Backend, Architecture...) ── */
+.sidebar-group[data-depth="0"] > p {
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+}
+
+/* Divider between top-level groups */
+.sidebar-group[data-depth="0"] {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+/* No divider on the very first item (Home) */
+.sidebar .sidebar-nav > ul > li:first-child {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Home link — match group header style */
+.sidebar .sidebar-nav > ul > li:first-child > p > a {
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  margin: 0;
   background: none !important;
   box-shadow: none !important;
 }
 
-.sidebar .sidebar-nav > ul > li > a:hover {
-  background: none !important;
-  color: var(--text-tertiary);
+/* ── Level 1: Sub-sections (Web, Native, Shifter, Stip...) ── */
+.sidebar-group[data-depth="1"] > p,
+.sidebar-group[data-depth="1"] > .sidebar-group-title {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding: 0.25rem 0.75rem;
+  margin-top: 0.15rem;
 }
 
-.sidebar .sidebar-nav > ul > li:first-child > a {
-  margin-top: 0;
+/* ── Level 2+: Sub-sub-sections (Reference, Explanation, Custom Fields...) ── */
+.sidebar-group[data-depth="2"] > p,
+.sidebar-group[data-depth="2"] > .sidebar-group-title,
+.sidebar-group[data-depth="3"] > p,
+.sidebar-group[data-depth="3"] > .sidebar-group-title,
+.sidebar-group[data-depth="4"] > p,
+.sidebar-group[data-depth="4"] > .sidebar-group-title {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  padding: 0.2rem 0.75rem;
 }
 
 /* Sub-items indent */
@@ -383,47 +512,37 @@ body {
 /* ── Copy button on code blocks ── */
 .code-copy-btn {
   position: absolute;
-  top: 2.5rem;
+  top: 0.5rem;
   right: 0.5rem;
-  background: var(--color-surface-sunken, #efedeb);
-  border: 1px solid var(--color-border-strong, #d6d3d1);
-  color: var(--color-text-tertiary, #78716c);
-  font-size: 0.75rem;
+  background: rgb(var(--code-overlay-rgb) / 0.08);
+  border: 1px solid rgb(var(--code-overlay-rgb) / 0.1);
+  color: rgb(var(--code-overlay-rgb) / 0.5);
+  font-size: 0.7rem;
   font-family: var(--font-ui);
-  padding: 0.35rem 0.7rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 0.35rem;
   cursor: pointer;
   transition: all 0.15s ease;
-  z-index: 10;
+  opacity: 0.35;
+  z-index: 2;
   line-height: 1;
   letter-spacing: 0.02em;
 }
 
+.markdown-section pre:hover .code-copy-btn {
+  opacity: 1;
+}
+
 .code-copy-btn:hover {
-  background: var(--color-border, #e7e5e4);
-  color: var(--color-text-primary, #1c1917);
-  border-color: var(--color-border-strong, #d6d3d1);
+  background: rgb(var(--code-overlay-rgb) / 0.15);
+  color: rgb(var(--code-overlay-rgb) / 0.85);
+  border-color: rgb(var(--code-overlay-rgb) / 0.2);
 }
 
 .code-copy-btn.copied {
-  color: #059669;
-  border-color: rgba(5, 150, 105, 0.4);
-  background: rgba(5, 150, 105, 0.1);
-}
-
-/* Dark code blocks (inside Preact components) */
-.bg-gray-900 .code-copy-btn,
-[style*="--color-code-bg"] .code-copy-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.bg-gray-900 .code-copy-btn:hover,
-[style*="--color-code-bg"] .code-copy-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--success);
+  border-color: rgb(var(--success-rgb) / 0.3);
+  background: rgb(var(--success-rgb) / 0.1);
 }
 
 /* Code block container (from CodeBlock component) */

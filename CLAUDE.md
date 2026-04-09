@@ -30,25 +30,32 @@ The goal is: duplicate this project, change only `:root`, get a different brand.
 
 ```
 Docsify (routing, sidebar, search, markdown rendering)
-  └── Plugin: component-renderer.js
-        ├── beforeEach: detect YAML frontmatter, strip it
-        ├── afterEach: process code fence components + split into Quick Start / Technical tabs
-        └── doneEach: Prism.highlightAll() + mermaid.run() + htmx.process() + region directives
+  └── Adapter: renderer.js (single orchestrator)
+        ├── beforeEach: detect YAML frontmatter, strip it, AST-transform markdown (via unified/remark)
+        ├── afterEach: split into Quick Start / Technical tabs
+        └── doneEach: transformDOM + injectDOM + observeDOM lifecycle
 
-HTMX (tab switching only, ~30 lines)
+Core Engine (lib/core/ — pure functions, no DOM):
+  ├── markdown-utils.js    — frontmatter, toCamelCase, COMPONENT_REGISTRY
+  ├── markdown-transform.js — AST-based code fence processing (unified/remark)
+  ├── dom-transform.js     — transformDOM/injectDOM/observeDOM patterns
+  ├── export-renderers.js  — Typst/LaTeX/Markdown renderers for export
+  └── registry.js          — Preact component registry + bridge
+
+HTMX (tab switching, ES module)
   └── htmx-virtual.js
         ├── Intercepts /api/switch/* (no real HTTP)
-        ├── Reads section HTML from window.__pageSections
+        ├── Uses transformDOM for consistent post-swap processing
         └── Swaps #tab-content innerHTML + re-highlights
 ```
 
 ### Code Fence Component Pipeline
 
 1. Author writes ` ```component-name ` with YAML content in markdown
-2. Docsify renders it as `<pre><code class="lang-component-name">YAML</code></pre>`
-3. `component-renderer.js` finds registered components in the HTML
-4. Parses YAML via `js-yaml`, calls `window.ComponentName(data)`
-5. Component function returns HTML string, replaces the `<pre>` block
+2. `markdown-transform.js` parses markdown AST via unified/remark-parse
+3. Finds code fences matching COMPONENT_REGISTRY entries
+4. Parses YAML via `js-yaml`, calls renderComponent callback
+5. Component is rendered via Preact bridge (placeholder or string mode)
 
 ## Project Structure
 
@@ -58,7 +65,13 @@ DocsifyTemplate/
 ├── README.md
 ├── CLAUDE.md
 ├── lib/                         # Framework library (ship this)
-│   ├── components/              # Data-driven template literal components
+│   ├── core/                    # Pure functions, no DOM dependency
+│   │   ├── markdown-utils.js    # Frontmatter, toCamelCase, COMPONENT_REGISTRY
+│   │   ├── markdown-transform.js # AST-based markdown processing (unified/remark)
+│   │   ├── dom-transform.js     # transformDOM/injectDOM/observeDOM patterns
+│   │   ├── export-renderers.js  # Typst/LaTeX/Markdown renderers for export
+│   │   └── registry.js          # Preact component registry + bridge
+│   ├── components/              # Data-driven Preact components
 │   │   ├── api-endpoint.js
 │   │   ├── card-grid.js
 │   │   ├── code-block.js
@@ -70,20 +83,26 @@ DocsifyTemplate/
 │   │   ├── status-flow.js
 │   │   ├── step-type.js
 │   │   └── tabs.js
-│   ├── plugins/                 # Docsify plugins
-│   │   ├── component-renderer.js
-│   │   ├── htmx-virtual.js
-│   │   └── latex-export.js
-│   ├── styles/
-│   │   └── theme.css
-│   └── export/                  # Pandoc WASM export pipeline
-│       ├── filters/             # Lua filters (latex, typst, llm)
-│       ├── templates/           # LaTeX/Typst branded templates
-│       ├── pandoc.js            # WASM interface
-│       ├── pandoc.wasm          # Pandoc binary
-│       ├── pipeline.js          # Export orchestrator
-│       ├── mermaid-capture.js   # SVG capture for Typst
-│       └── wasm-loaders.js      # Lazy WASM loaders
+│   ├── adapters/
+│   │   └── docsify/
+│   │       ├── renderer.js      # Single orchestrator (imports features)
+│   │       ├── features/        # Feature modules (exported functions, no standalone plugins)
+│   │       │   ├── copy-button.js
+│   │       │   ├── htmx-virtual.js
+│   │       │   ├── latex-export.js
+│   │       │   ├── sidebar.js
+│   │       │   └── tutorial-header.js
+│   │       ├── dom-helpers/     # Shared DOM operations
+│   │       │   ├── mermaid-dom.js
+│   │       │   └── mermaid-capture.js
+│   │       └── export/          # Pandoc WASM export pipeline
+│   │           ├── filters/     # Lua filters (latex, typst, llm)
+│   │           ├── templates/   # LaTeX/Typst branded templates
+│   │           ├── pandoc.js    # WASM interface
+│   │           ├── pipeline.js  # Export orchestrator
+│   │           └── wasm-loaders.js
+│   └── styles/
+│       └── theme.css
 ├── docs/                        # Documentation content (served by Docsify)
 │   ├── index.html               # Entry point (loads from ../lib/)
 │   ├── .nojekyll
@@ -97,7 +116,7 @@ DocsifyTemplate/
 
 Components must be registered in two places:
 1. `docs/index.html` — `<script>` tag to load the JS file
-2. `lib/plugins/component-renderer.js` — add name to `COMPONENT_REGISTRY` array
+2. `lib/core/markdown-utils.js` — add name to `COMPONENT_REGISTRY` array
 
 Current registry: `entity-schema`, `api-endpoint`, `status-flow`, `directive-table`, `step-type`, `config-example`, `card-grid`
 
@@ -127,6 +146,8 @@ Standard ` ```mermaid ` fences work.
 | Prism.js + languages | Syntax highlighting |
 | Mermaid 10.9 | Diagrams |
 | js-yaml | YAML parsing for code fence components |
+| unified + remark-parse | AST-based markdown transformation |
+| unist-util-visit | AST tree traversal |
 
 ## Brand Colors
 
