@@ -17,44 +17,67 @@
 
   <!-- Tailwind CSS v4 browser -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <style type="text/tailwindcss">
-    @theme {
-      /* Brand */
-      --color-primary: #0891b2;
-      --color-primary-light: #ecfeff;
-      --color-primary-text: #0e7490;
-      --color-brand: #95c22f;
 
-      /* Surfaces */
-      --color-surface: #faf9f7;
-      --color-surface-raised: #f5f5f4;
-      --color-surface-sunken: #efedeb;
+  <!-- Config: loads BEFORE everything, sets window.__docsifyTemplateConfig -->
+  <script src="/docs/config.js"></script>
 
-      /* Borders */
-      --color-border: #e7e5e4;
-      --color-border-strong: #d6d3d1;
+  <!--
+    Theme injection: reads config.theme and generates @theme + :root CSS.
+    This replaces the hardcoded @theme block.
+  -->
+  <script type="module">
+    import { getConfig, getThemeCSS } from '/lib/core/config.js';
+    const cfg = getConfig();
+    const t = cfg.theme;
 
-      /* Text */
-      --color-text-primary: #1c1917;
-      --color-text-secondary: #44403c;
-      --color-text-tertiary: #78716c;
-      --color-text-muted: #a8a29e;
+    // Inject Tailwind @theme from config
+    const tailwindStyle = document.createElement('style');
+    tailwindStyle.setAttribute('type', 'text/tailwindcss');
+    tailwindStyle.textContent = `
+      @theme {
+        --color-primary: ${t.primary};
+        --color-primary-light: ${t.primaryLight};
+        --color-primary-text: ${t.primaryText};
+        --color-brand: ${t.brand};
+        --color-surface: ${t.surface};
+        --color-surface-raised: ${t.surfaceRaised};
+        --color-surface-sunken: ${t.surfaceSunken};
+        --color-border: ${t.border};
+        --color-border-strong: ${t.borderStrong};
+        --color-text-primary: ${t.textPrimary};
+        --color-text-secondary: ${t.textSecondary};
+        --color-text-tertiary: ${t.textTertiary};
+        --color-text-muted: ${t.textMuted};
+        --color-tech-surface: ${t.techSurface};
+        --color-tech-accent: ${t.techAccent};
+        --color-tech-heading: ${t.techHeading};
+        --color-tech-subheading: ${t.techSubheading};
+        --color-tech-text: ${t.techText};
+        --color-code-bg: ${t.codeBg};
+        --color-code-text: ${t.codeText};
+        --color-success: ${t.success};
+      }
+    `;
+    document.head.appendChild(tailwindStyle);
 
-      /* Technical zone */
-      --color-tech-surface: #f8fafc;
-      --color-tech-accent: #6366f1;
-      --color-tech-heading: #1e293b;
-      --color-tech-subheading: #334155;
-      --color-tech-text: #475569;
+    // Set page title from config
+    document.title = cfg.title;
 
-      /* Code */
-      --color-code-bg: #1e1e2e;
-      --color-code-text: #cdd6f4;
-
-      /* Semantic */
-      --color-success: #34d399;
+    // Inject extra <head> tags from config
+    if (cfg.head && cfg.head.length) {
+      for (const entry of cfg.head) {
+        const el = document.createElement(entry.tag);
+        if (entry.attrs) {
+          for (const [k, v] of Object.entries(entry.attrs)) {
+            if (v === true) el.setAttribute(k, '');
+            else el.setAttribute(k, v);
+          }
+        }
+        if (entry.content) el.textContent = entry.content;
+        document.head.appendChild(el);
+      }
     }
-  </style>
+  </script>
 
   <!-- Custom theme overrides -->
   <link rel="stylesheet" href="/lib/styles/theme.css">
@@ -65,24 +88,25 @@
   <!--
     Script load order (all defer/module = parallel download, sequential execution):
 
+    Phase 0 — Config (sync, must run first)
+      config.js → sets window.__docsifyTemplateConfig
+
     Phase 1 — Modules (execute first, in document order)
-      importmap → renderer.js → components/index.js
+      importmap → config-driven init → renderer.js → components/index.js
 
     Phase 2 — Docsify plugins + core (depend on $docsify.plugins from Phase 1)
       features/tutorial-header (standalone)
       docsify@4 → search.min.js
-      (copy-button, latex-export, sidebar now imported by renderer.js)
+      (copy-button, latex-export, sidebar, gemma-chat now imported by renderer.js)
 
     Phase 3 — Post-Docsify (depend on globals from Phase 2)
       prism-*.js (need Prism bundled in docsify) → htmx → features/htmx-virtual (module)
 
-    Phase 4 — Independent (no load-order dependency)
-      mermaid, eruda
-
-    DO NOT reorder scripts across phases — each phase depends on the previous.
+    Phase 4 — Independent, config-gated (no load-order dependency)
+      mermaid, eruda — only load if enabled in config
   -->
 
-  <!-- Import map: Preact + HTM via esm.sh (replaces React 45KB + Babel 800KB with ~4KB) -->
+  <!-- Import map: Preact + HTM via esm.sh -->
   <script type="importmap">
   {
     "imports": {
@@ -102,20 +126,15 @@
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
 
   <!-- Components — single ES module entry point -->
-  <!-- Module scripts are deferred: execute after parse, before DOMContentLoaded -->
   <script type="module" src="/lib/components/index.js"></script>
 
-  <script>
+  <!-- Docsify config — driven by config.js -->
+  <script type="module">
+    import { getConfig } from '/lib/core/config.js';
+    const cfg = getConfig();
     window.$docsify = {
-      name: 'DocsifyTemplate',
-      loadSidebar: true,
-      subMaxLevel: 3,
-      search: {
-        placeholder: 'Search...',
-        noData: 'No results.',
-        depth: 6
-      },
-      auto2top: true
+      name: cfg.title,
+      ...cfg.docsify,
     };
   </script>
 
@@ -124,19 +143,23 @@
   <!-- Docsify plugins (must load before docsify core to register via $docsify.plugins) -->
   <script defer src="/lib/adapters/docsify/features/tutorial-header.js"></script>
 
-  <!-- Docsify core (defer: ensures plugins above register first) -->
+  <!-- Docsify core -->
   <script defer src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
 
   <!-- Docsify search plugin -->
   <script defer src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
 
-  <!-- Prism.js languages (defer: Docsify bundles Prism core, these extend it) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markdown.min.js"></script>
+  <!-- Prism.js languages — config-driven dynamic loading -->
+  <script type="module">
+    import { getConfig } from '/lib/core/config.js';
+    const langs = getConfig().prism.languages;
+    for (const lang of langs) {
+      const s = document.createElement('script');
+      s.src = `https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-${lang}.min.js`;
+      s.defer = true;
+      document.body.appendChild(s);
+    }
+  </script>
 
   <!-- HTMX -->
   <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.3/dist/htmx.min.js"></script>
@@ -144,16 +167,26 @@
   <!-- Adapter: HTMX virtual routes for Docsify tab switching -->
   <script type="module" src="/lib/adapters/docsify/features/htmx-virtual.js"></script>
 
-  <!-- Dev only: Eruda console (remove for production) -->
-  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-  <script>eruda.init(); console.log('🔥 Docsify loaded in Acode!');</script>
+  <!-- Phase 4: Config-gated features -->
+  <script type="module">
+    import { isFeatureEnabled, getConfig } from '/lib/core/config.js';
 
-  <!-- Mermaid -->
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9/dist/mermaid.min.js"></script>
-  <script>
-    mermaid.initialize({ startOnLoad: false, theme: 'default' });
+    // Mermaid — only load if enabled
+    if (isFeatureEnabled('mermaid')) {
+      const cfg = getConfig().features.mermaid;
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/mermaid@10.9/dist/mermaid.min.js';
+      s.onload = () => mermaid.initialize({ startOnLoad: cfg.startOnLoad ?? false, theme: cfg.theme || 'default' });
+      document.body.appendChild(s);
+    }
+
+    // Eruda dev tools — only load if enabled
+    if (isFeatureEnabled('devTools')) {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/eruda';
+      s.onload = () => { eruda.init(); console.log('Docsify dev tools loaded'); };
+      document.body.appendChild(s);
+    }
   </script>
-
-  <!-- Gemma 4 E2B: now loaded by renderer.js via features/gemma-chat.js (no standalone script needed) -->
 </body>
 </html>
