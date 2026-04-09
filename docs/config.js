@@ -10,7 +10,7 @@
 window.__docsifyTemplateConfig = {
 
   // ── Site ─────────────────────────────────────
-  title: 'DocsifyTemplate',
+  title: 'DocsifyTemplate Change Config',
   description: 'Zero-build-step interactive documentation framework',
   tagline: 'Docs that just work',
 
@@ -76,7 +76,7 @@ window.__docsifyTemplateConfig = {
 
     // Dev tools (Eruda in-browser console)
     // Enable for development, disable for production
-    devTools: { enabled: false },
+    devTools: { enabled: true },
   },
 
   // ── Components ───────────────────────────────

@@ -1,0 +1,15 @@
+{
+  "name": "@docsify-template/chat",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./core/chat-engine": "./core/chat-engine.js",
+    "./core/worker": "./core/worker.js",
+    "./ui/chat-dom": "./ui/chat-dom.js",
+    "./adapters/docsify": "./adapters/docsify.js"
+  },
+  "description": "Browser-native AI chat widget with WebGPU LLM inference and tool calling. Works standalone or with framework adapters (Docsify, Astro).",
+  "keywords": ["webgpu", "llm", "chat", "browser", "gemma", "docs", "ai-agent"],
+  "license": "MIT"
+}
