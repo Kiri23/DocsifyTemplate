@@ -5,6 +5,7 @@
   * [Framework Reference](/content/guide/framework-reference)
   * [Creating Components](/content/guide/creating-components)
   * [Architecture](/content/guide/architecture)
+  * [Configuration](/content/guide/configuration)
   * [Design Decisions](/content/guide/design-decisions)
   * [WASM Capabilities](/content/guide/wasm-capabilities)
 * How-To Guides

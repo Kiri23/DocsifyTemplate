@@ -11,6 +11,8 @@ DocsifyTemplate/
 ├── package.json
 ├── CLAUDE.md
 ├── lib/                         # Framework library
+│   ├── core/                    # Core modules
+│   │   └── config.js            # Centralized config (defaults, validation, merge)
 │   ├── components/              # Data-driven template literal components
 │   │   ├── api-endpoint.js
 │   │   ├── card-grid.js
@@ -218,9 +220,26 @@ The frontmatter parser uses a simple regex, not `js-yaml`. It handles:
 
 To add more, see [How to add a Prism language](/content/howto/add-prism-language).
 
+## Configuration Module
+
+`lib/core/config.js` provides centralized configuration with defaults, validation, and deep merging. Features and plugins read settings through `getConfig()` instead of accessing globals directly.
+
+| Export | Purpose |
+|---|---|
+| `initConfig(userConfig)` | Merge user config over defaults, validate, freeze |
+| `getConfig()` | Return the frozen config (auto-initializes if needed) |
+| `isFeatureEnabled(path)` | Check if a feature is enabled by dot path |
+| `getThemeCSS()` | Generate CSS custom properties from theme config |
+| `getDocsifyConfig()` | Generate Docsify config object |
+| `getPrismLanguages()` | Return enabled Prism language list |
+
+See [Configuration](/content/guide/configuration) for the full option reference.
+
 ## Brand Colors
 
-Primary brand color is defined in two locations that must stay in sync:
+Brand colors can be set in the config object or directly in CSS. When using the config module, `getThemeCSS()` generates all color variables from `config.theme`.
+
+If not using the config module, the primary brand color is defined in two locations that must stay in sync:
 
 | Location | Variable | Default |
 |----------|----------|---------|

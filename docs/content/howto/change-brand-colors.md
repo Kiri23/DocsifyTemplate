@@ -8,7 +8,35 @@ This guide shows you how to replace the default brand colors with your own.
 
 ## Steps
 
-### 1. Update the Tailwind theme
+### Option A: Use the config module
+
+If your project uses `lib/core/config.js`, set theme colors in your config object:
+
+```html
+<script>
+  window.__docsifyTemplateConfig = {
+    theme: {
+      primary: '#7c3aed',
+      primaryLight: '#ede9fe',
+      primaryText: '#6d28d9',
+      brand: '#f59e0b',
+    },
+  };
+</script>
+```
+
+Then apply the generated CSS variables:
+
+```javascript
+import { getThemeCSS } from '/lib/core/config.js';
+document.documentElement.style.cssText += getThemeCSS();
+```
+
+This sets all `--color-*` custom properties from your config. See [Configuration](/content/guide/configuration) for every available theme key.
+
+### Option B: Edit CSS directly
+
+#### 1. Update the Tailwind theme
 
 Open `docs/index.html` and find the `<style type="text/tailwindcss">` block. Change the color values:
 
