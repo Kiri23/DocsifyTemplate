@@ -45,6 +45,6 @@ For technical details on hooks, routing, variables, and dependencies, see [Frame
 
 ### See also
 
-- [Getting Started](/content/guide/getting-started) — build a first page from scratch
-- [Signals POC](/content/examples/signals-poc) — how shared state crosses code fences
-- [Backlinks Demo](/content/examples/backlinks-demo) — the reactive cross-doc graph built on top of that POC
+- [[Getting Started]] — build a first page from scratch
+- [[Signals POC]] — how shared state crosses code fences
+- [[Backlinks Demo]] — the reactive cross-doc graph built on top of that POC
