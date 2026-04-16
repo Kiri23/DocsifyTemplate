@@ -140,6 +140,22 @@
     };
   </script>
 
+  <!--
+    Convex live-query adapter (opt-in).
+    Uncomment the config block to subscribe the backlinks signal to a Convex
+    deployment instead of the local runtime scan. Panels/wiki-links/autoinject
+    all keep working; the data just flows from WebSocket instead of fetch.
+  -->
+  <!--
+  <script>
+    window.__convexConfig = {
+      url: 'https://content-peccary-627.convex.cloud',
+      projectKey: 'docsify-demo',
+    };
+  </script>
+  -->
+  <script type="module" src="/lib/state/convex-adapter.js"></script>
+
   <!-- Adapter: Docsify renderer (ES module — imports core engine + features) -->
   <script type="module" src="/lib/adapters/docsify/renderer.js"></script>
   <!-- Docsify plugins (must load before docsify core to register via $docsify.plugins) -->
