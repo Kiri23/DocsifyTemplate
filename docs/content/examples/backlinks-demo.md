@@ -17,6 +17,16 @@ _: _
 
 Tap any item to navigate. Then jump to [Getting Started](/content/guide/getting-started), [Architecture](/content/guide/architecture), [Component Showcase](/content/examples/component-showcase), or [Signals POC](/content/examples/signals-poc) and come back — the list rewrote itself between route changes.
 
+## Wiki-links — `[[basename]]` shortcuts
+
+Write `[[getting-started]]` instead of `[Getting Started](/content/guide/getting-started)`. The scanner resolves the basename against the sidebar; the renderer turns it into a clickable anchor at mount time.
+
+Try it: [[getting-started]] · [[architecture]] · [[signals-poc]] · [[component-showcase|the showcase page]]
+
+Unresolved names (not in sidebar) stay as literal `[[text]]` — e.g. [[no-such-page]]. That is by design — broken wiki-links should be loud, not silent.
+
+Because wiki-links land in the same `backlinksIndex`, this page now also appears as an incoming link on every page above (refresh and check their "Related pages" panels).
+
 ## Reactive echo (separate fence, same store)
 
 ```backlinks-echo
