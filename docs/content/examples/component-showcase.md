@@ -351,3 +351,9 @@ sequenceDiagram
     DB-->>API: user record
     API-->>Client: 201 Created
 ```
+
+### More examples
+
+- [Signals POC](/content/examples/signals-poc) — two fences share state through a module-level signal
+- [Backlinks Demo](/content/examples/backlinks-demo) — reactive "related pages" list over the same store
+- [Architecture](/content/guide/architecture) — how the pieces fit together

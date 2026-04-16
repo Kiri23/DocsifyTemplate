@@ -9,13 +9,13 @@ subscription boilerplate.
 
 ---
 
-## Mentioned by
+## Related pages
 
 ```backlinks-panel
 _: _
 ```
 
-Navigate to any other page in the sidebar — [Getting Started](/content/guide/getting-started), [Architecture](/content/guide/architecture), [Component Showcase](/content/examples/component-showcase), or [Signals POC](/content/examples/signals-poc) — and come back. The panel above updated while you were away; the list is whichever pages reference the doc you are currently viewing.
+Tap any item to navigate. Then jump to [Getting Started](/content/guide/getting-started), [Architecture](/content/guide/architecture), [Component Showcase](/content/examples/component-showcase), or [Signals POC](/content/examples/signals-poc) and come back — the list rewrote itself between route changes.
 
 ## Reactive echo (separate fence, same store)
 
@@ -23,32 +23,27 @@ Navigate to any other page in the sidebar — [Getting Started](/content/guide/g
 _: _
 ```
 
-Both fences read from `lib/state/backlinks-store.js`. No parent wraps them. Hover an item in the panel above — `hoveredDoc` flips, `highlightTarget` recomputes, the echo re-renders. The panel **does not** re-render, because it reads `incomingLinks`, not `highlightTarget`. Preact tracks each read independently.
+Both fences read from `lib/state/backlinks-store.js`. No parent wraps them. Navigate to another page — `currentDoc` flips on `hashchange`, `incomingLinks` recomputes, both fences update. The DOM nodes inside the panel that didn't actually change are left alone; Preact patches only the text nodes that read the changed signals.
 
 ---
 
 ## The DAG you just used
 
 ```
-      ┌── backlinksIndex (signal)  ──────┐
-      │   (fetched once at boot)          │
-      │                                   ├── incomingLinks (computed)
-  currentDoc (signal) ────────────────────┤         │
-      ▲   (hashchange → set)              │         ▼
-      │                                   │   <backlinks-panel>
-      │                                   │
-      └── hoveredDoc  (signal) ──┐        │
-          (mouseenter → set)      ├── highlightTarget (computed)
-                                  │                   │
-                                  │                   ▼
-                                  │            <backlinks-echo>
-                                  └─────  also feeds future:
-                                           sidebar highlight,
-                                           mini-graph hover,
-                                           #13 dependency viewer
+  backlinksIndex (signal, fetched once at boot) ──┐
+                                                   ├── incomingLinks (computed)
+  currentDoc (signal, hashchange → set) ──────────┤         │
+                                                   │         ├──> <backlinks-panel>
+                                                   │         │
+                                                   │         └──> <backlinks-echo>
+                                                   │
+                                                   └────► future: mini-graph (#13),
+                                                          drift viewer (#14)
 ```
 
-Three writable signals (only three places in the whole app set values). Two computed derivatives. Two components that are views over the computed nodes. Adding a third component that wants to react to hover (say, a sidebar highlight) is literally one `import { highlightTarget } from '.../backlinks-store.js'` — zero wiring.
+Two writable signals (the only two places in the whole app that set values). One computed derivative. Two components that are independent views over the same store. Adding a third component is one `import` — zero wiring.
+
+`hoveredDoc` / `highlightTarget` exist in the store for desktop hover affordances and future features, but are unused by the touch-first UI on this page.
 
 ## Why this isn't "just a selector"
 
@@ -69,11 +64,4 @@ The DAG scales. That is the whole point — structure first, views over it.
 
 ## Debugging: named actions beat raw writes
 
-Nothing writes `hoveredDoc.value = x` directly. The store exports:
-
-```js
-export function setHovered(path) { hoveredDoc.value = path; }
-export function clearHovered()    { hoveredDoc.value = null; }
-```
-
-Grep `setHovered` → you find every writer. That is the signals equivalent of "search for `dispatch({ type: 'SET_HOVERED' })`" — and it costs zero ceremony. For extra introspection in dev, add `effect(() => console.log('hover →', hoveredDoc.value))` anywhere, remove before ship.
+No component writes `hoveredDoc.value = x` directly — the store exports named actions (`setHovered(path)`, `clearHovered()`). Grep the action name → you find every writer. That is the signals equivalent of "search for a dispatched action" and it costs zero ceremony. For extra introspection in dev, add `effect(() => console.log('hover →', hoveredDoc.value))` anywhere, remove before ship.

@@ -42,3 +42,9 @@ HTMX is ~14KB gzipped for what amounts to one feature. But the virtual routing p
 Docsify alone gives you a docs site. The component renderer adds data-driven pages on top. HTMX adds interactivity without writing custom JavaScript. Remove any layer and the others still work — a page without components is just markdown, a page without tabs still renders all its content. That independence is intentional.
 
 For technical details on hooks, routing, variables, and dependencies, see [Framework Reference](/content/guide/framework-reference).
+
+### See also
+
+- [Getting Started](/content/guide/getting-started) — build a first page from scratch
+- [Signals POC](/content/examples/signals-poc) — how shared state crosses code fences
+- [Backlinks Demo](/content/examples/backlinks-demo) — the reactive cross-doc graph built on top of that POC

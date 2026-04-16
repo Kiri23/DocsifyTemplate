@@ -169,3 +169,5 @@ All of it came from YAML in markdown — no JavaScript, no build step.
 - [Components Reference](/content/guide/components-reference) — full YAML API for all components
 - [How to create a tabbed page](/content/howto/create-tabbed-page) — split pages into Quick Start and Technical Reference tabs
 - [Creating Components](/content/guide/creating-components) — build your own components
+- [Architecture](/content/guide/architecture) — how the three layers connect
+- [Backlinks Demo](/content/examples/backlinks-demo) — the page that shows which other pages link here
