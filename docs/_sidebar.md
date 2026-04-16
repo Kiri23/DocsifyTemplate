@@ -15,3 +15,4 @@
 * Examples
   * [Component Showcase](/content/examples/component-showcase)
   * [React Components](/content/examples/react-components)
+  * [Signals POC](/content/examples/signals-poc)
