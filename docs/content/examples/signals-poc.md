@@ -74,7 +74,7 @@ Fence 1 has one edge out (writes `selectedId`). The `computed` signal has two ed
 
 ## What this unblocks
 
-- **#12** backlinks — a reactive map of "who links to whom" read by every note page.
+- **#12** backlinks — a reactive map of "who links to whom" read by every note page. See the working POC at [Backlinks Demo](/content/examples/backlinks-demo).
 - **#13** dependency graph visual — a `GraphViewer` fence can write the hovered node id; a sidebar panel reads it.
 - **#14** impact analysis — a global filter signal read by multiple drift-detection views.
 
