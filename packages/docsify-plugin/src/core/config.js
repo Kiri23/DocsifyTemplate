@@ -10,7 +10,7 @@
  *     window.__docsifyTemplateConfig = { title: 'My Docs', ... };
  *   </script>
  *
- * Features read config via: import { getConfig } from '/lib/core/config.js';
+ * Features read config via: import { getConfig } from '/packages/docsify-plugin/src/core/config.js';
  */
 
 // ── Schema Defaults ─────────────────────────────────────────

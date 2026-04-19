@@ -293,24 +293,3 @@ export const exportFormats = {
   latex: latexRenderers,
   markdown: markdownRenderers
 };
-
-// Pandoc raw block wrappers — ensures output passes through verbatim
-const rawBlockWrappers = {
-  typst: (s) => '\n```{=typst}\n' + s + '\n```\n',
-  latex: (s) => '\n```{=latex}\n' + s + '\n```\n',
-  markdown: null  // markdown output IS markdown — no wrapping needed
-};
-
-// Returns a renderComponent callback for use with transformMarkdown
-export function createExportRenderer(format) {
-  const renderers = exportFormats[format];
-  if (!renderers) throw new Error('Unknown export format: ' + format);
-  const wrap = rawBlockWrappers[format];
-
-  return function renderForExport(lang, data) {
-    const renderer = renderers[lang];
-    if (!renderer) return null;
-    const output = renderer(data);
-    return wrap ? wrap(output) : output;
-  };
-}

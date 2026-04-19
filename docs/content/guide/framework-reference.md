@@ -10,38 +10,43 @@ For component YAML APIs, see [Components Reference](/content/guide/components-re
 DocsifyTemplate/
 ├── package.json
 ├── CLAUDE.md
-├── lib/                         # Framework library
-│   ├── core/                    # Core modules
-│   │   └── config.js            # Centralized config (defaults, validation, merge)
-│   ├── components/              # Data-driven template literal components
-│   │   ├── api-endpoint.js
-│   │   ├── card-grid.js
-│   │   ├── code-block.js
-│   │   ├── config-example.js
-│   │   ├── directive-table.js
-│   │   ├── entity-schema.js
-│   │   ├── region-toggle.js
-│   │   ├── side-by-side.js
-│   │   ├── status-flow.js
-│   │   ├── step-type.js
-│   │   └── tabs.js
-│   ├── plugins/
-│   │   ├── component-renderer-engine.js  # Pure transformation functions
-│   │   ├── component-renderer.js         # Docsify plugin wiring
-│   │   ├── htmx-virtual.js              # Tab switching interceptor
-│   │   ├── tutorial-header.js           # Tutorial frontmatter banner
-│   │   └── latex-export.js              # Export UI
-│   ├── styles/
-│   │   └── theme.css                    # CSS custom properties (design tokens)
-│   └── export/                          # Pandoc WASM export pipeline
-│       ├── filters/                     # Lua filters (latex, typst, llm)
-│       ├── templates/                   # LaTeX/Typst branded templates
-│       ├── pandoc.js
-│       ├── pipeline.js
-│       ├── mermaid-capture.js
-│       └── wasm-loaders.js
+├── packages/
+│   └── docsify-plugin/
+│       └── src/                         # Framework library
+│           ├── core/                    # Pure functions, no DOM dependency
+│           │   ├── config.js            # Centralized config (defaults, validation, merge)
+│           │   ├── markdown-utils.js    # Frontmatter, toCamelCase, COMPONENT_REGISTRY
+│           │   ├── markdown-transform.js # AST-based markdown processing (unified/remark)
+│           │   ├── dom-transform.js     # transformDOM/injectDOM/observeDOM patterns
+│           │   ├── export-renderers.js  # Typst/LaTeX/Markdown renderers for export
+│           │   └── registry.js          # Preact component registry + bridge
+│           ├── components/              # Data-driven Preact components
+│           │   ├── api-endpoint.js
+│           │   ├── card-grid.js
+│           │   ├── code-block.js
+│           │   ├── config-example.js
+│           │   ├── directive-table.js
+│           │   ├── entity-schema.js
+│           │   ├── region-toggle.js
+│           │   ├── side-by-side.js
+│           │   ├── status-flow.js
+│           │   ├── step-type.js
+│           │   └── tabs.js
+│           ├── adapters/
+│           │   └── docsify/
+│           │       ├── features/        # copy-button, htmx-virtual, latex-export, etc.
+│           │       └── export/          # Pandoc WASM export pipeline
+│           │           ├── filters/     # Lua filters (latex, typst, llm)
+│           │           ├── templates/   # LaTeX/Typst branded templates
+│           │           ├── pandoc.js
+│           │           ├── pipeline.js
+│           │           └── wasm-loaders.js
+│           ├── renderers/
+│           │   └── preact.js
+│           └── styles/
+│               └── theme.css            # CSS custom properties (design tokens)
 ├── docs/                                # Documentation content
-│   ├── index.html                       # Entry point (loads from ../lib/)
+│   ├── index.html                       # Entry point (loads from /packages/docsify-plugin/src/)
 │   ├── _sidebar.md
 │   ├── README.md
 │   └── content/
@@ -57,8 +62,8 @@ Every component requires registration in two places:
 
 | Location | What to add |
 |----------|-------------|
-| `docs/index.html` | `<script src="../lib/components/{name}.js"></script>` before Docsify core |
-| `lib/plugins/component-renderer-engine.js` | Component name string in `COMPONENT_REGISTRY` array |
+| `docs/index.html` | `<script type="module" src="/packages/docsify-plugin/src/index.js"></script>` (already present; components auto-registered via `components/index.js`) |
+| `packages/docsify-plugin/src/core/markdown-utils.js` | Component name string in `COMPONENT_REGISTRY` array |
 
 ### Registry Components
 
