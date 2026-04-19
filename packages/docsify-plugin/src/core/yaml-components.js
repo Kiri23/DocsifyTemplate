@@ -12,7 +12,7 @@
 
 export { yamlComponents } from './markdown-transform.js';
 
-import { exportFormats } from './export-renderers.js';
+import { exportFormats } from '../renderers/export-renderers.js';
 import { buildTransforms } from '../renderers/preact.js';
 
 // HTML — mounts Preact components (interactive, browser)
