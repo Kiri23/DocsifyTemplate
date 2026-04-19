@@ -153,3 +153,15 @@ Backwards-compat wrapper. Remove when all callers use `yamlComponents` unified p
 
 ### Package rename
 `packages/docsify-plugin/` is a misleading name — core has nothing to do with Docsify.
+
+### Fix and run the build
+`build.mjs` uses esbuild IIFE, but entry point is `src/index.js` (now a pure re-export).
+Needs two fixes before `npm run build` works:
+1. Entry point → `src/adapters/docsify/index.js` (the thing that actually wires Docsify)
+2. `package.json` exports map — update to reflect new folders (`serializers/`, `utils/`)
+Also: decide which CDN deps (preact, unified, remark-parse) should be `external` in esbuild vs bundled.
+
+### Deploy + index.html production test
+After build: swap `docs/index.html` from importing `src/adapters/docsify/index.js` (dev, needs importmap)
+to loading `dist/docsify-kiri.min.js` (prod, single script tag, no importmap needed).
+Verify full page renders correctly in production mode.
