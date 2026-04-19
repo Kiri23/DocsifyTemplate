@@ -39,7 +39,7 @@ export function yamlComponents(options = {}) {
         const data = parseYaml(node.value);
         const result = transforms[node.lang](data, node);
         if (result != null) {
-          replacements.push({ index, parent, result });
+          replacements.push({ index, parent, result, position: node.position });
         }
       } catch(e) {
         console.error('[yaml-components] Error processing fence:', node.lang, e);
@@ -47,8 +47,8 @@ export function yamlComponents(options = {}) {
     });
 
     // Apply in reverse so earlier indices stay valid
-    for (const { index, parent, result } of replacements.reverse()) {
-      parent.children.splice(index, 1, { type: 'html', value: result });
+    for (const { index, parent, result, position } of replacements.reverse()) {
+      parent.children.splice(index, 1, { type: 'html', value: result, position });
     }
   };
 }
