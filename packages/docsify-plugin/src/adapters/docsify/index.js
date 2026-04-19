@@ -8,9 +8,9 @@ import {
   stripFrontmatter
 } from '../../core/markdown-utils.js';
 import { transformMarkdown } from '../../core/markdown-transform.js';
-import { transformDOM, injectDOM, observeDOM } from '../../core/dom-transform.js';
+import { transformDOM, injectDOM, observeDOM } from '../../utils/dom-transform.js';
 import { registerAll, getComponent } from '../../core/registry.js';
-import { isFeatureEnabled, getConfig } from '../../core/config.js';
+import { isFeatureEnabled, getConfig, initConfig } from '../../core/config.js';
 import { Tabs } from '../../components/tabs.js';
 import { processRegionDirectives } from '../../components/region-toggle.js';
 import { preactRenderer } from '../../renderers/preact.js';
@@ -22,6 +22,8 @@ import { convertMermaidCode, runMermaid } from './dom-helpers/mermaid-dom.js';
 
 import './features/htmx-virtual.js';
 import './features/tutorial-header.js';
+
+initConfig(window.__docsifyTemplateConfig || {});
 
 export function createPlugin(options = {}) {
   const renderer = options.renderer;
