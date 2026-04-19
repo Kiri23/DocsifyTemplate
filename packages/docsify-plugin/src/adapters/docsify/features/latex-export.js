@@ -96,7 +96,7 @@ export function createExportUI() {
     status.textContent = '';
 
     try {
-      var pipeline = await import('/lib/adapters/docsify/export/pipeline.js');
+      var pipeline = await import('/packages/docsify-plugin/src/adapters/docsify/export/pipeline.js');
       var ok = await pipeline[exportFn](fmt, status);
       if (ok !== false) {
         status.textContent = '';

@@ -3,34 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DocsifyTemplate</title>
 
   <!-- Font preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <!-- Docsify theme -->
+  <!-- Docsify theme + Prism theme -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-
-  <!-- Prism themes for code blocks -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css">
 
   <!-- Tailwind CSS v4 browser -->
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-  <!-- Config: loads BEFORE everything, sets window.__docsifyTemplateConfig -->
+  <!-- User config (sync — sets window.__docsifyTemplateConfig before anything else) -->
   <script src="/docs/config.js"></script>
 
-  <!--
-    Theme injection: reads config.theme and generates @theme + :root CSS.
-    This replaces the hardcoded @theme block.
-  -->
+  <!-- Tailwind @theme + page title from config (project-specific, stays here) -->
   <script type="module">
-    import { getConfig, getThemeCSS } from '/lib/core/config.js';
+    import { getConfig } from '/packages/docsify-plugin/src/core/config.js';
     const cfg = getConfig();
     const t = cfg.theme;
 
-    // Inject Tailwind @theme from config
     const tailwindStyle = document.createElement('style');
     tailwindStyle.setAttribute('type', 'text/tailwindcss');
     tailwindStyle.textContent = `
@@ -60,10 +53,8 @@
     `;
     document.head.appendChild(tailwindStyle);
 
-    // Set page title from config
     document.title = cfg.title;
 
-    // Inject extra <head> tags from config
     if (cfg.head && cfg.head.length) {
       for (const entry of cfg.head) {
         const el = document.createElement(entry.tag);
@@ -79,34 +70,13 @@
     }
   </script>
 
-  <!-- Custom theme overrides -->
-  <link rel="stylesheet" href="/lib/styles/theme.css">
-</head>
-<body>
-  <div id="app"></div>
+  <!-- Plugin styles -->
+  <link rel="stylesheet" href="/packages/docsify-plugin/src/styles/theme.css">
 
   <!--
-    Script load order (all defer/module = parallel download, sequential execution):
-
-    Phase 0 — Config (sync, must run first)
-      config.js → sets window.__docsifyTemplateConfig
-
-    Phase 1 — Modules (execute first, in document order)
-      importmap → config-driven init → renderer.js → components/index.js
-
-    Phase 2 — Docsify plugins + core (depend on $docsify.plugins from Phase 1)
-      features/tutorial-header (standalone)
-      docsify@4 → search.min.js
-      (copy-button, latex-export, sidebar, gemma-chat now imported by renderer.js)
-
-    Phase 3 — Post-Docsify (depend on globals from Phase 2)
-      prism-*.js (need Prism bundled in docsify) → htmx → features/htmx-virtual (module)
-
-    Phase 4 — Independent, config-gated (no load-order dependency)
-      mermaid, eruda — only load if enabled in config
+    Import map — resolves npm packages to CDN for dev (no build step).
+    Not needed when consuming the built dist bundle.
   -->
-
-  <!-- Import map: Preact + HTM via esm.sh -->
   <script type="importmap">
   {
     "imports": {
@@ -121,72 +91,28 @@
     }
   }
   </script>
+</head>
+<body>
+  <div id="app"></div>
 
-  <!-- js-yaml for code fence components -->
+  <!--
+    Load order:
+      1. js-yaml (sync classic script — sets window.jsyaml before module executes)
+      2. docsify-kiri module (sets $docsify, registers all plugins + components)
+      3. Docsify + HTMX (deferred — module always runs before defer scripts)
+  -->
+
+  <!-- Peer dep: js-yaml must be a global before the plugin module runs -->
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
 
-  <!-- Components — single ES module entry point -->
-  <script type="module" src="/lib/components/index.js"></script>
+  <!-- THE plugin — everything else is wired inside -->
+  <script type="module" src="/packages/docsify-plugin/src/index.js"></script>
 
-  <!-- Docsify config — driven by config.js -->
-  <script type="module">
-    import { getConfig } from '/lib/core/config.js';
-    const cfg = getConfig();
-    window.$docsify = {
-      name: cfg.title,
-      ...cfg.docsify,
-    };
-  </script>
-
-  <!-- Adapter: Docsify renderer (ES module — imports core engine + features) -->
-  <script type="module" src="/lib/adapters/docsify/renderer.js"></script>
-  <!-- Docsify plugins (must load before docsify core to register via $docsify.plugins) -->
-  <script defer src="/lib/adapters/docsify/features/tutorial-header.js"></script>
-
-  <!-- Docsify core -->
+  <!-- Docsify core + search (deferred — plugin module registers hooks first) -->
   <script defer src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-
-  <!-- Docsify search plugin -->
   <script defer src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
 
-  <!-- Prism.js languages — config-driven dynamic loading -->
-  <script type="module">
-    import { getConfig } from '/lib/core/config.js';
-    const langs = getConfig().prism.languages;
-    for (const lang of langs) {
-      const s = document.createElement('script');
-      s.src = `https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-${lang}.min.js`;
-      s.defer = true;
-      document.body.appendChild(s);
-    }
-  </script>
-
-  <!-- HTMX -->
+  <!-- HTMX (deferred) -->
   <script defer src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.3/dist/htmx.min.js"></script>
-
-  <!-- Adapter: HTMX virtual routes for Docsify tab switching -->
-  <script type="module" src="/lib/adapters/docsify/features/htmx-virtual.js"></script>
-
-  <!-- Phase 4: Config-gated features -->
-  <script type="module">
-    import { isFeatureEnabled, getConfig } from '/lib/core/config.js';
-
-    // Mermaid — only load if enabled
-    if (isFeatureEnabled('mermaid')) {
-      const cfg = getConfig().features.mermaid;
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/mermaid@10.9/dist/mermaid.min.js';
-      s.onload = () => mermaid.initialize({ startOnLoad: cfg.startOnLoad ?? false, theme: cfg.theme || 'default' });
-      document.body.appendChild(s);
-    }
-
-    // Eruda dev tools — only load if enabled
-    if (isFeatureEnabled('devTools')) {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/eruda';
-      s.onload = () => { eruda.init(); console.log('Docsify dev tools loaded'); };
-      document.body.appendChild(s);
-    }
-  </script>
 </body>
 </html>

@@ -10,7 +10,8 @@ import {
 } from '../../core/markdown-utils.js';
 import { transformMarkdown } from '../../core/markdown-transform.js';
 import { transformDOM, injectDOM, observeDOM } from '../../core/dom-transform.js';
-import { bridge, getComponent } from '../../core/registry.js';
+import { getComponent } from '../../core/registry.js';
+import { preactRenderer } from '../../renderers/preact.js';
 import { Tabs } from '../../components/tabs.js';
 import { processRegionDirectives } from '../../components/region-toggle.js';
 import { isFeatureEnabled, getConfig } from '../../core/config.js';
@@ -22,14 +23,14 @@ import { injectGemmaChat } from './features/gemma-chat.js';
 import { initSidebarGroups, observeSidebar } from './features/sidebar.js';
 import { convertMermaidCode, runMermaid } from './dom-helpers/mermaid-dom.js';
 
-// --- Docsify-specific: render a component via bridge ---
+// --- Docsify-specific: render a component via preactRenderer ---
 
 function renderComponent(fnName, data) {
   if (getComponent(fnName)) {
-    if (bridge.mode === 'string' && bridge.renderToStringSync) {
-      return bridge.renderToStringSync(fnName, data);
+    if (preactRenderer.mode === 'string' && preactRenderer.renderToStringSync) {
+      return preactRenderer.renderToStringSync(fnName, data);
     }
-    return bridge.createPlaceholder(fnName, data);
+    return preactRenderer.createPlaceholder(fnName, data);
   }
   return null;
 }
@@ -133,7 +134,7 @@ window.$docsify.plugins = (window.$docsify.plugins || []).concat([
       if (isFeatureEnabled('mermaid')) runMermaid(section);
 
       // Mount Preact components
-      bridge.mountAll();
+      preactRenderer.mountAll();
 
       // HTMX activation
       if (window.htmx) htmx.process(section);
