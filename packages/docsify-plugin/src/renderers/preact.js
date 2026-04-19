@@ -95,3 +95,22 @@ Promise.all([
     }
   };
 });
+
+// ─── transforms map for yamlComponents plugin ─────────────────────────────────
+// Returns { [fenceName]: (data) => string } compatible with yamlComponents.
+// Evaluated lazily via Proxy so it reflects whatever is in the registry at call time.
+
+import { toCamelCase } from '../core/markdown-utils.js';
+
+export function buildTransforms() {
+  return new Proxy({}, {
+    get(_, lang) {
+      return (data) => {
+        const name = toCamelCase(lang);
+        if (_renderToStringSync) return _renderToStringSync(name, data);
+        return preactRenderer.createPlaceholder(name, data);
+      };
+    },
+    has() { return true; }
+  });
+}

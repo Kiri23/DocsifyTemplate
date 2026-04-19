@@ -10,7 +10,7 @@
  *     window.__docsifyTemplateConfig = { title: 'My Docs', ... };
  *   </script>
  *
- * Features read config via: import { getConfig } from '/lib/core/config.js';
+ * Features read config via: import { getConfig } from '/packages/docsify-plugin/src/core/config.js';
  */
 
 // ── Schema Defaults ─────────────────────────────────────────
@@ -254,11 +254,7 @@ export function initConfig(userConfig = {}) {
  * Get the current resolved config. Throws if not initialized.
  */
 export function getConfig() {
-  if (!_config) {
-    // Auto-init from window if available
-    const userConfig = (typeof window !== 'undefined' && window.__docsifyTemplateConfig) || {};
-    return initConfig(userConfig);
-  }
+  if (!_config) throw new Error('[config] Call initConfig() before getConfig()');
   return _config;
 }
 

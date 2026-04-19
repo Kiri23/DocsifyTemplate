@@ -2,7 +2,7 @@
 // No real HTTP requests. Reads from window.__pageSections.
 // Uses transformDOM to re-process content after swap (no duplicated logic).
 
-import { transformDOM } from '../../../core/dom-transform.js';
+import { transformDOM } from '../../../utils/dom-transform.js';
 import { convertMermaidCode, runMermaid } from '../dom-helpers/mermaid-dom.js';
 import { processRegionDirectives } from '../../../components/region-toggle.js';
 

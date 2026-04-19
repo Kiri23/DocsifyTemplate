@@ -3,11 +3,6 @@
 
 const FRONTMATTER_REGEX = /^---\s*\n([\s\S]*?)\n---/;
 
-export const COMPONENT_REGISTRY = [
-  'entity-schema', 'api-endpoint', 'status-flow', 'directive-table',
-  'step-type', 'config-example', 'card-grid', 'side-by-side', 'file-tree'
-];
-
 // --- Frontmatter ---
 
 export function hasFrontmatter(markdown) {
