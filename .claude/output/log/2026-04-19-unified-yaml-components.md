@@ -165,3 +165,22 @@ Also: decide which CDN deps (preact, unified, remark-parse) should be `external`
 After build: swap `docs/index.html` from importing `src/adapters/docsify/index.js` (dev, needs importmap)
 to loading `dist/docsify-kiri.min.js` (prod, single script tag, no importmap needed).
 Verify full page renders correctly in production mode.
+
+### CSS strategy for end users — ship pre-built CSS
+Currently `index.html` loads `@tailwindcss/browser@4` which scans DOM at runtime.
+Components use Tailwind for two things:
+- Colors → via CSS custom properties (`--color-primary` etc.) → end user overrides variables
+- Layout/spacing → (`flex`, `gap-2`, `p-4`) → must be in the shipped CSS
+
+**Plan:** `build.mjs` generates `dist/docsify-kiri.css` with all Tailwind classes pre-built.
+End user loads that file — no Tailwind knowledge needed.
+
+End user with Bootstrap / Tailwind 3 / Tailwind 4:
+- Load `dist/docsify-kiri.css` alongside their own framework (no conflict)
+- Override CSS custom properties for branding:
+  ```css
+  :root { --color-primary: #e11d48; --color-surface: #fafafa; }
+  ```
+- If they want to change layout/spacing too, they'd need to override component CSS — documented as advanced use.
+
+Expose in docs: what CSS custom properties exist + what each controls.
