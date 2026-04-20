@@ -22,7 +22,6 @@
   </script>
   <style>
     body { font-family: sans-serif; padding: 2rem; background: #f9fafb; }
-    #log { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: .5rem; font-size: 13px; white-space: pre-wrap; margin-bottom: 2rem; min-height: 3rem; }
     h2 { font-size: 1rem; font-weight: 600; color: #374151; margin: 1.5rem 0 .5rem; }
     .box { border: 1px solid #e5e7eb; border-radius: .5rem; padding: 1rem; background: white; min-height: 3rem; }
   </style>
@@ -30,9 +29,6 @@
 <body>
 
   <h1 style="font-size:1.5rem;font-weight:bold;margin-bottom:.5rem">No Docsify Demo</h1>
-  <p style="color:#6b7280;margin-bottom:1rem">Console log:</p>
-  <div id="log">loading...</div>
-
   <h2>1. Hand-written tag in HTML</h2>
   <div class="box">
     <entity-schema data-props='{"name":"User","fields":[{"name":"id","type":"uuid","required":true},{"name":"email","type":"string","required":true}]}'></entity-schema>
@@ -45,39 +41,21 @@
   <div class="box" id="late-output">waiting 2 seconds...</div>
 
   <script type="module">
-    const log = document.getElementById('log');
-    const lines = [];
-    function out(msg) { lines.push(msg); log.textContent = lines.join('\n'); }
+    const { defineCustomElements } = await import('/packages/docsify-plugin/src/core/custom-elements.js');
+    const { defaultComponents } = await import('/packages/docsify-plugin/src/components/index.js');
+    defineCustomElements(defaultComponents);
 
-    out('module started');
+    // 2 — simulate what any markdown renderer outputs
+    const data = { name: 'Product', fields: [{ name: 'sku', type: 'string', required: true }] };
+    const json = JSON.stringify(data).replace(/"/g, '&quot;');
+    document.getElementById('renderer-output').innerHTML = `<entity-schema data-props="${json}"></entity-schema>`;
 
-    try {
-      const { defineCustomElements } = await import('/packages/docsify-plugin/src/core/custom-elements.js');
-      out('✓ custom-elements.js loaded');
-
-      const { defaultComponents } = await import('/packages/docsify-plugin/src/components/index.js');
-      out(`✓ components loaded: ${Object.keys(defaultComponents).join(', ')}`);
-
-      defineCustomElements(defaultComponents);
-      out('✓ defineCustomElements() called');
-
-      // 2
-      const data = { name: 'Product', fields: [{ name: 'sku', type: 'string', required: true }] };
-      const json = JSON.stringify(data).replace(/"/g, '&quot;');
-      document.getElementById('renderer-output').innerHTML = `<entity-schema data-props="${json}"></entity-schema>`;
-      out('✓ innerHTML injected');
-
-      // 3
-      setTimeout(() => {
-        const lateData = { name: 'Order', fields: [{ name: 'total', type: 'number', required: true }] };
-        const lateJson = JSON.stringify(lateData).replace(/"/g, '&quot;');
-        document.getElementById('late-output').innerHTML = `<entity-schema data-props="${lateJson}"></entity-schema>`;
-        out('✓ late injection done (2s)');
-      }, 2000);
-
-    } catch(e) {
-      out(`✗ ERROR: ${e.message}\n${e.stack}`);
-    }
+    // 3 — late injection
+    setTimeout(() => {
+      const lateData = { name: 'Order', fields: [{ name: 'total', type: 'number', required: true }] };
+      const lateJson = JSON.stringify(lateData).replace(/"/g, '&quot;');
+      document.getElementById('late-output').innerHTML = `<entity-schema data-props="${lateJson}"></entity-schema>`;
+    }, 2000);
   </script>
 
 </body>
