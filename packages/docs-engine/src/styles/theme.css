@@ -977,3 +977,9 @@ body {
     font-size: 0.8rem !important;
   }
 }
+
+/* Custom Elements are inline by default — make them block so grids and layouts work correctly */
+entity-schema, card-grid, api-endpoint, status-flow, config-example,
+directive-table, step-type, side-by-side, file-tree {
+  display: block;
+}

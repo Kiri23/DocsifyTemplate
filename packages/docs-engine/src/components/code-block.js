@@ -14,8 +14,8 @@ export function CodeBlock(props) {
         '</div>'
       : '') +
     '<div class="relative">' +
-      '<pre class="!mt-0 ' + (title ? '!rounded-t-none' : '') + '"><code class="language-' + language + '">' + escapedCode + '</code></pre>' +
-      '<button class="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white text-xs px-3 py-1 rounded transition-colors" ' +
+      '<pre class="!m-0 ' + (title ? '!rounded-t-none' : '') + '"><code class="language-' + language + '">' + escapedCode + '</code></pre>' +
+      '<button class="code-copy-btn absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white text-xs px-3 py-1 rounded transition-colors" ' +
         'onclick="copyToClipboard(this)" ' +
         'data-code="' + escapedCode.replace(/"/g, '&quot;') + '">' +
         'Copy' +
