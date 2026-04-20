@@ -29,24 +29,35 @@ DocsifyTemplate is evolving from a docs framework into a **docs intelligence eng
 
 **Markdown is the language.** The author writes markdown. Docsify, Astro, any renderer can process it.
 
-**YAML is the transport.** It lives inside code fences — structured data, nothing more. The fence language name (`entity-schema`, `api-endpoint`) is the component selector.
+**YAML is the transport.** It lives inside code fences — structured data, nothing more. The fence language name (`entity-schema`, `api-endpoint`) is the component selector. Nobody writes the blob by hand — the engine generates it.
 
-**Post-processing is the layer that transforms data into output.** The `yamlComponents` unified plugin reads the AST, extracts YAML from matching fences, and replaces each node with serialized output. What that output is depends on the serializer/renderer passed in.
+**Post-processing is the layer that transforms data into output.** The `yamlComponents` unified plugin reads the AST, extracts YAML from matching fences, and calls `renderCustomElement()` to produce valid HTML.
 
-**Custom Elements are the browser-native output (PR #22).** Instead of a `<div id="rc-1">` placeholder requiring Docsify's `doneEach` to hydrate, post-processing now emits `<entity-schema data-props="...">`. The browser fires `connectedCallback` automatically — zero Docsify coupling, works in any HTML context.
+**Custom Elements are the renderer-agnostic bridge.** `defineCustomElements()` registers each component tag with the browser once. From that point, whenever `<entity-schema data-props="...">` lands in the DOM — from Docsify, Astro, or plain HTML — the browser fires `connectedCallback` and `preact-custom-element` mounts the Preact component automatically.
 
 ```
-Markdown (language the author writes)
+Markdown (author writes this)
   ↓ unified/remark-parse → AST
   ↓ yamlComponents plugin visits 'code' nodes
   ↓ YAML (transport) parsed → JS object
   ↓ renderCustomElement(tag, data) → <entity-schema data-props="...">
-  ↓ browser connectedCallback → Preact mounts
+  ↓ Docsify / Astro / any renderer outputs the HTML string to DOM
+  ↓ browser connectedCallback (preact-custom-element)
+  ↓ withJsonProps: data-props string → parsed object
+  ↓ Preact renders the component
   DOM (live UI — no framework lifecycle needed)
 ```
 
+**Components are pure Preact functions — they never know about the renderer:**
+```js
+function EntitySchema({ data }) {   // ← only knows about data
+  return html`<div>${data.name}</div>`
+}
+// No knowledge of Custom Elements, Docsify, or mounting strategy
+```
+
 Same YAML, different post-processing output:
-- `preactRenderer` → Custom Element (browser mounts it)
+- `renderCustomElement()` → `<entity-schema data-props="...">` → browser mounts
 - `latexRenderers` → `\commands` → Pandoc WASM → PDF
 - `typstRenderers` → `#functions` → Typst WASM → PDF
 - `markdownRenderers` → markdown text → LLM / Docsify
@@ -71,13 +82,12 @@ Docsify (routing, sidebar, search, markdown rendering)
         └── hook.doneEach: transformDOM + injectDOM + observeDOM lifecycle
 
 DAG layers (each depends only on layers below):
+  components/  ← pure Preact functions, zero external deps, zero renderer knowledge
   core/        ← pure functions (markdown-transform, registry, config, markdown-utils)
-  utils/       ← browser utils (dom-transform)
-  renderers/   ← DOM output (preact.js — renders to live DOM via Custom Elements)
   serializers/ ← text output (latex, typst, markdown — need external tool to render)
-  components/  ← Preact component definitions (zero side effects on import)
-  index.js     ← public API (pure re-exports, no DOM, no Docsify)
-  adapters/    ← framework wiring (docsify/, astro/)
+  utils/       ← browser utils (dom-transform)
+  custom-elements.js ← bridges components ↔ browser (preact-custom-element + withJsonProps)
+  adapters/    ← framework wiring (docsify/, astro/) — only layer that knows Docsify/Astro
 
 packages/chat/
   core/chat-engine.js  ← LLM inference (WebGPU, zero server)
@@ -86,21 +96,26 @@ packages/chat/
   adapters/docsify.js  ← Docsify plugin
 ```
 
-### Renderers vs Serializers
-
-| | `renderers/preact.js` | `serializers/*` |
-|---|---|---|
-| Output | Custom Element (browser mounts via connectedCallback) | Plain text string |
-| Renders itself? | Yes — browser handles mounting | No — needs external tool |
-| External tool | None | LaTeX engine / Typst WASM / Docsify |
-
-### Custom Elements (PR #22)
+### Custom Elements — the renderer-agnostic bridge
 
 `core/custom-elements.js` — two exports:
-- `defineCustomElements(components)` — registers each component as a Custom Element once at startup. Browser mounts via `connectedCallback`, unmounts via `disconnectedCallback`.
-- `renderCustomElement(tag, data)` — returns `<entity-schema data-props="...">` string (valid HTML, no placeholder ID needed).
+- `defineCustomElements(components)` — uses `preact-custom-element`'s `register()` to register each tag with the browser. Called once at adapter load. No framework lifecycle needed.
+- `renderCustomElement(tag, data)` — returns `<entity-schema data-props="...">` string. Called by `yamlComponents` plugin during markdown processing.
 
-The Docsify adapter calls `defineCustomElements(defaultComponents)` at module load. No `renderer.mountAll()` or `doneEach` coupling remains.
+`withJsonProps` (internal) — bridges the HTML string attribute → Preact object prop:
+```js
+// HTML attribute is always a string:   data-props='{"name":"User"}'
+// Component expects an object:         function EntitySchema({ data }) { data.name }
+// withJsonProps parses in between — components never see the string
+```
+
+**Replacing the renderer:** to swap Preact for React, write your own `defineCustomElements` using `ReactDOM.createRoot`. Components never change — they're pure functions.
+
+| | `custom-elements.js` | `serializers/*` |
+|---|---|---|
+| Output | Live DOM (browser mounts) | Plain text string |
+| Needs external tool? | No — browser handles it | Yes — LaTeX engine / Typst / Docsify |
+| Framework coupling | None | None |
 
 ### Export Pipeline (WASM)
 
@@ -204,6 +219,7 @@ Standard ` ```mermaid ` fences work.
 | js-yaml | YAML parsing for code fence components |
 | unified + remark-parse | AST-based markdown transformation |
 | unist-util-visit | AST tree traversal |
+| preact-custom-element | register() — bridges Preact components ↔ Custom Elements spec |
 
 ## Brand Colors
 
@@ -212,5 +228,5 @@ Standard ` ```mermaid ` fences work.
 ## Running
 
 ```bash
-npm run serve  # → http://localhost:3009/docs/
+npm run serve  # → http://localhost:3010/docs/
 ```
