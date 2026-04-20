@@ -9,12 +9,15 @@ import {
 } from '../../core/markdown-utils.js';
 import { transformMarkdown } from '../../core/markdown-transform.js';
 import { transformDOM, injectDOM, observeDOM } from '../../utils/dom-transform.js';
-import { registerAll, getComponent } from '../../core/registry.js';
+import { registerAll } from '../../core/registry.js';
 import { isFeatureEnabled, getConfig, initConfig } from '../../core/config.js';
+import { defineCustomElements, renderCustomElement } from '../../core/custom-elements.js';
 import { Tabs } from '../../components/tabs.js';
 import { processRegionDirectives } from '../../components/region-toggle.js';
-import { preactRenderer } from '../../renderers/preact.js';
 import { defaultComponents } from '../../components/index.js';
+
+// Register all components as Custom Elements once — browser mounts via connectedCallback
+defineCustomElements(defaultComponents);
 
 import { addCopyButton, observeCopyButtons } from './features/copy-button.js';
 import { initSidebarGroups, observeSidebar } from './features/sidebar.js';
@@ -26,15 +29,11 @@ import './features/tutorial-header.js';
 initConfig(window.__docsifyTemplateConfig || {});
 
 export function createPlugin(options = {}) {
-  const renderer = options.renderer;
-  if (!renderer) throw new Error('[docsify-adapter] createPlugin requires a renderer.');
-
   if (options.components) registerAll(options.components);
 
-  function renderComponent(name, data) {
-    if (!getComponent(name)) return null;
-    if (renderer.renderToStringSync) return renderer.renderToStringSync(name, data);
-    return renderer.createPlaceholder(name, data);
+  function renderComponent(name, data, lang) {
+    if (lang && lang in defaultComponents) return renderCustomElement(lang, data);
+    return null;
   }
 
   function buildTabbedPage(html, metadata) {
@@ -144,8 +143,6 @@ export function createPlugin(options = {}) {
         processRegionDirectives();
         if (isFeatureEnabled('mermaid')) runMermaid(section);
 
-        renderer.mountAll();
-
         if (window.htmx) htmx.process(section);
 
         injectDOM(section, {});
@@ -163,4 +160,4 @@ export function createPlugin(options = {}) {
 }
 
 // Batteries-included default — Docsify consumers get this for free
-createPlugin({ renderer: preactRenderer, components: defaultComponents });
+createPlugin({ components: defaultComponents });
