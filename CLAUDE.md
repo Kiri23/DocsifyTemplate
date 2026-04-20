@@ -25,6 +25,32 @@ DocsifyTemplate is evolving from a docs framework into a **docs intelligence eng
 - Engineering DNA (engine/transport mental model): `5997dffe-7089-4a0e-af04-1a834b6b7c1e`
 - DAG + credit assignment pattern: `9c106250-d098-4f56-91a2-ad1d64c0200f`
 
+## The Mental Model — Markdown / YAML / Post-processing / Custom Elements
+
+**Markdown is the language.** The author writes markdown. Docsify, Astro, any renderer can process it.
+
+**YAML is the transport.** It lives inside code fences — structured data, nothing more. The fence language name (`entity-schema`, `api-endpoint`) is the component selector.
+
+**Post-processing is the layer that transforms data into output.** The `yamlComponents` unified plugin reads the AST, extracts YAML from matching fences, and replaces each node with serialized output. What that output is depends on the serializer/renderer passed in.
+
+**Custom Elements are the browser-native output (PR #22).** Instead of a `<div id="rc-1">` placeholder requiring Docsify's `doneEach` to hydrate, post-processing now emits `<entity-schema data-props="...">`. The browser fires `connectedCallback` automatically — zero Docsify coupling, works in any HTML context.
+
+```
+Markdown (language the author writes)
+  ↓ unified/remark-parse → AST
+  ↓ yamlComponents plugin visits 'code' nodes
+  ↓ YAML (transport) parsed → JS object
+  ↓ renderCustomElement(tag, data) → <entity-schema data-props="...">
+  ↓ browser connectedCallback → Preact mounts
+  DOM (live UI — no framework lifecycle needed)
+```
+
+Same YAML, different post-processing output:
+- `preactRenderer` → Custom Element (browser mounts it)
+- `latexRenderers` → `\commands` → Pandoc WASM → PDF
+- `typstRenderers` → `#functions` → Typst WASM → PDF
+- `markdownRenderers` → markdown text → LLM / Docsify
+
 ## IMPORTANT: Design System Rules
 
 Before modifying ANY component or style, you MUST read `.interface-design/system.md` first. This file is the single source of truth for colors, spacing, typography, and patterns.
@@ -47,7 +73,7 @@ Docsify (routing, sidebar, search, markdown rendering)
 DAG layers (each depends only on layers below):
   core/        ← pure functions (markdown-transform, registry, config, markdown-utils)
   utils/       ← browser utils (dom-transform)
-  renderers/   ← DOM output (preact.js — renders to live DOM)
+  renderers/   ← DOM output (preact.js — renders to live DOM via Custom Elements)
   serializers/ ← text output (latex, typst, markdown — need external tool to render)
   components/  ← Preact component definitions (zero side effects on import)
   index.js     ← public API (pure re-exports, no DOM, no Docsify)
@@ -64,18 +90,17 @@ packages/chat/
 
 | | `renderers/preact.js` | `serializers/*` |
 |---|---|---|
-| Output | DOM nodes (live UI) | Plain text string |
-| Renders itself? | Yes | No — needs external tool |
+| Output | Custom Element (browser mounts via connectedCallback) | Plain text string |
+| Renders itself? | Yes — browser handles mounting | No — needs external tool |
 | External tool | None | LaTeX engine / Typst WASM / Docsify |
 
-### Code Fence Component Pipeline
+### Custom Elements (PR #22)
 
-1. Author writes ` ```component-name ` with YAML content in markdown
-2. `core/markdown-transform.js` parses markdown AST via unified/remark-parse
-3. Finds code fences matching registered component names
-4. Parses YAML via `js-yaml`, calls `transforms[lang](data)` → string
-5. Replaces AST node with `{ type: 'html', value: string, position }` (position required for serializeToMarkdown)
-6. Docsify renders the HTML string to DOM; Preact mounts into placeholders via `doneEach`
+`core/custom-elements.js` — two exports:
+- `defineCustomElements(components)` — registers each component as a Custom Element once at startup. Browser mounts via `connectedCallback`, unmounts via `disconnectedCallback`.
+- `renderCustomElement(tag, data)` — returns `<entity-schema data-props="...">` string (valid HTML, no placeholder ID needed).
+
+The Docsify adapter calls `defineCustomElements(defaultComponents)` at module load. No `renderer.mountAll()` or `doneEach` coupling remains.
 
 ### Export Pipeline (WASM)
 
@@ -85,8 +110,6 @@ markdown → Pandoc WASM + Lua filters → LaTeX/Typst → PDF
 
 Future target (planned): pre-process YAML fences via JS serializers → clean text → Pandoc (no Lua filters needed).
 
-See `docs/content/guide/wasm-capabilities.md` for full WASM architecture, competitor comparison, and future possibilities (semantic search, executable code blocks, isomorphic-git, local RAG).
-
 ## Project Structure
 
 ```
@@ -95,9 +118,10 @@ DocsifyTemplate/
 │   ├── docsify-plugin/          # Distributable npm package (docsify-kiri)
 │   │   ├── package.json
 │   │   └── src/
-│   │       ├── index.js         # Public API — pure re-exports
+│   │       ├── index.js         # Public API — pure re-exports, no DOM, no Docsify
 │   │       ├── core/            # Pure functions, no DOM
 │   │       │   ├── markdown-transform.js  # yamlComponents unified plugin
+│   │       │   ├── custom-elements.js     # defineCustomElements, renderCustomElement
 │   │       │   ├── registry.js            # Pure Map (register, getComponent)
 │   │       │   ├── config.js              # Feature flags (call initConfig() first)
 │   │       │   └── markdown-utils.js      # hasFrontmatter, stripFrontmatter, toCamelCase
@@ -124,8 +148,8 @@ DocsifyTemplate/
 │   │           │       ├── pipeline.js
 │   │           │       └── wasm-loaders.js
 │   │           └── astro/
-│   │               ├── remark-components.js  # remark plugin for Astro
-│   │               └── rehype-components.js  # rehype plugin for Astro
+│   │               ├── remark-components.js
+│   │               └── rehype-components.js
 │   └── chat/                    # AI chat engine (separate package)
 │       ├── package.json
 │       └── src/
@@ -147,7 +171,7 @@ Components live in `packages/docsify-plugin/src/components/index.js` as the `def
 To add a component:
 1. Create `src/components/my-component.js` — export a Preact function
 2. Add to `defaultComponents` map in `components/index.js`
-3. The Docsify adapter auto-registers all defaultComponents on load
+3. The Docsify adapter auto-registers all defaultComponents on load via `defineCustomElements`
 
 Current components: `entity-schema`, `api-endpoint`, `status-flow`, `directive-table`, `step-type`, `config-example`, `card-grid`, `side-by-side`
 

@@ -6,6 +6,7 @@ import { h, render } from 'preact';
 
 export function defineCustomElements(components) {
   for (const [tag, Component] of Object.entries(components)) {
+    if (!tag.includes('-')) continue; // Custom Element names must contain a hyphen
     if (customElements.get(tag)) continue;
 
     customElements.define(tag, class extends HTMLElement {
