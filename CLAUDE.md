@@ -57,7 +57,7 @@ Before modifying ANY component or style, you MUST read `.interface-design/system
 
 **ALWAYS use CSS custom properties from `:root` in `theme.css`** when writing or changing styles. NEVER hardcode hex, rgb, or rgba values outside of `:root`. For alpha variants use the `rgb(var(--*-rgb) / alpha)` pattern — NOT raw `rgba()`.
 
-Check `:root` in `packages/docsify-plugin/src/styles/theme.css` for available variables. If you need a color that doesn't exist, add it as a variable to `:root` first.
+Check `:root` in `packages/docs-engine/src/styles/theme.css` for available variables. If you need a color that doesn't exist, add it as a variable to `:root` first.
 
 The goal is: duplicate this project, change only `:root`, get a different brand.
 
@@ -115,7 +115,7 @@ Future target (planned): pre-process YAML fences via JS serializers → clean te
 ```
 DocsifyTemplate/
 ├── packages/
-│   ├── docsify-plugin/          # Distributable npm package (docsify-kiri)
+│   ├── docs-engine/             # Distributable npm package (docs-engine)
 │   │   ├── package.json
 │   │   └── src/
 │   │       ├── index.js         # Public API — pure re-exports, no DOM, no Docsify
@@ -166,7 +166,7 @@ DocsifyTemplate/
 
 ## Component Registry
 
-Components live in `packages/docsify-plugin/src/components/index.js` as the `defaultComponents` map. No `COMPONENT_REGISTRY` array exists — use `Object.keys(defaultComponents)` when you need the list.
+Components live in `packages/docs-engine/src/components/index.js` as the `defaultComponents` map. No `COMPONENT_REGISTRY` array exists — use `Object.keys(defaultComponents)` when you need the list.
 
 To add a component:
 1. Create `src/components/my-component.js` — export a Preact function
@@ -207,7 +207,7 @@ Standard ` ```mermaid ` fences work.
 
 ## Brand Colors
 
-- Primary: `#0891b2` (change in `packages/docsify-plugin/src/styles/theme.css` `:root` + `docs/index.html` Tailwind `@theme`)
+- Primary: `#0891b2` (change in `packages/docs-engine/src/styles/theme.css` `:root` + `docs/index.html` Tailwind `@theme`)
 
 ## Running
 

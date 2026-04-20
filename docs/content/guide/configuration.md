@@ -32,7 +32,7 @@ You only need to specify the values you want to change. Everything else falls ba
 ### Reading config from your own code
 
 ```javascript
-import { getConfig, isFeatureEnabled } from '/packages/docsify-plugin/src/core/config.js';
+import { getConfig, isFeatureEnabled } from '/packages/docs-engine/src/core/config.js';
 
 const config = getConfig();
 console.log(config.title); // 'My Docs'
@@ -47,7 +47,7 @@ if (isFeatureEnabled('chat')) {
 ### Applying theme colors as CSS
 
 ```javascript
-import { getThemeCSS } from '/packages/docsify-plugin/src/core/config.js';
+import { getThemeCSS } from '/packages/docs-engine/src/core/config.js';
 
 document.documentElement.style.cssText += getThemeCSS();
 ```

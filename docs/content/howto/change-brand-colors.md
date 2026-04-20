@@ -28,7 +28,7 @@ Set theme colors in your `docs/config.js` config object:
 Then apply the generated CSS variables:
 
 ```javascript
-import { getThemeCSS } from '/packages/docsify-plugin/src/core/config.js';
+import { getThemeCSS } from '/packages/docs-engine/src/core/config.js';
 document.documentElement.style.cssText += getThemeCSS();
 ```
 

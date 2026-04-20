@@ -1,7 +1,7 @@
 {
-  "name": "docsify-kiri",
+  "name": "docs-engine",
   "version": "0.1.0",
-  "description": "Docsify plugin: YAML components, collapsible sidebar, copy buttons, virtual tab routing",
+  "description": "Framework-agnostic docs intelligence engine: YAML components, Custom Elements, serializers, adapters for Docsify and Astro",
   "main": "dist/docsify-kiri.min.js",
   "exports": {
     ".":                   "./src/index.js",
@@ -38,7 +38,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kiri23/DocsifyTemplate.git",
-    "directory": "packages/docsify-plugin"
+    "directory": "packages/docs-engine"
   },
   "homepage": "https://github.com/Kiri23/DocsifyTemplate#readme",
   "license": "ISC",

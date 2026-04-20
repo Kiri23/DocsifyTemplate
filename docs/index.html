@@ -20,7 +20,7 @@
 
   <!-- Tailwind @theme + page title from config (project-specific, stays here) -->
   <script type="module">
-    import { getConfig } from '/packages/docsify-plugin/src/core/config.js';
+    import { getConfig } from '/packages/docs-engine/src/core/config.js';
     const cfg = getConfig();
     const t = cfg.theme;
 
@@ -71,7 +71,7 @@
   </script>
 
   <!-- Plugin styles -->
-  <link rel="stylesheet" href="/packages/docsify-plugin/src/styles/theme.css">
+  <link rel="stylesheet" href="/packages/docs-engine/src/styles/theme.css">
 
   <!--
     Import map — resolves npm packages to CDN for dev (no build step).
@@ -106,7 +106,7 @@
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
 
   <!-- Docsify adapter — wires core engine to Docsify lifecycle -->
-  <script type="module" src="/packages/docsify-plugin/src/adapters/docsify/index.js"></script>
+  <script type="module" src="/packages/docs-engine/src/adapters/docsify/index.js"></script>
 
   <!-- Docsify core + search (deferred — plugin module registers hooks first) -->
   <script defer src="https://cdn.jsdelivr.net/npm/docsify@4"></script>

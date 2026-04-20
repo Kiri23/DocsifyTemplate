@@ -12,7 +12,7 @@ A component is a JavaScript function that receives parsed YAML and returns an HT
 
 ### 1. Create the JS file
 
-Create `packages/docsify-plugin/src/components/my-component.js`:
+Create `packages/docs-engine/src/components/my-component.js`:
 
 ```javascript
 window.MyComponent = function MyComponent(data) {
@@ -32,13 +32,13 @@ window.MyComponent = function MyComponent(data) {
 
 ### 2. Register it
 
-**Export it from `packages/docsify-plugin/src/components/index.js`** by adding it to `defaultComponents`:
+**Export it from `packages/docs-engine/src/components/index.js`** by adding it to `defaultComponents`:
 
 ```javascript
 export { MyComponent } from './my-component.js';
 ```
 
-**Add the name to `packages/docsify-plugin/src/core/markdown-utils.js`** in the `COMPONENT_REGISTRY` array:
+**Add the name to `packages/docs-engine/src/core/markdown-utils.js`** in the `COMPONENT_REGISTRY` array:
 
 ```javascript
 export const COMPONENT_REGISTRY = [

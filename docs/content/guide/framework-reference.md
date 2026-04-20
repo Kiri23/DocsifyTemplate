@@ -46,7 +46,7 @@ DocsifyTemplate/
 │           └── styles/
 │               └── theme.css            # CSS custom properties (design tokens)
 ├── docs/                                # Documentation content
-│   ├── index.html                       # Entry point (loads from /packages/docsify-plugin/src/)
+│   ├── index.html                       # Entry point (loads from /packages/docs-engine/src/)
 │   ├── _sidebar.md
 │   ├── README.md
 │   └── content/
@@ -62,8 +62,8 @@ Every component requires registration in two places:
 
 | Location | What to add |
 |----------|-------------|
-| `docs/index.html` | `<script type="module" src="/packages/docsify-plugin/src/index.js"></script>` (already present; components auto-registered via `components/index.js`) |
-| `packages/docsify-plugin/src/core/markdown-utils.js` | Component name string in `COMPONENT_REGISTRY` array |
+| `docs/index.html` | `<script type="module" src="/packages/docs-engine/src/index.js"></script>` (already present; components auto-registered via `components/index.js`) |
+| `packages/docs-engine/src/core/markdown-utils.js` | Component name string in `COMPONENT_REGISTRY` array |
 
 ### Registry Components
 
