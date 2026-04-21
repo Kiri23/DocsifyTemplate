@@ -16,9 +16,6 @@ import { Tabs } from '../../components/tabs.js';
 import { processRegionDirectives } from '../../components/region-toggle.js';
 import { defaultComponents } from '../../components/index.js';
 
-// Register all components as Custom Elements once — browser mounts via connectedCallback
-defineCustomElements(defaultComponents);
-
 import { addCopyButton, observeCopyButtons } from './features/copy-button.js';
 import { initSidebarGroups, observeSidebar } from './features/sidebar.js';
 import { convertMermaidCode, runMermaid } from './dom-helpers/mermaid-dom.js';
@@ -29,10 +26,12 @@ import './features/tutorial-header.js';
 initConfig(window.__docsifyTemplateConfig || {});
 
 export function createPlugin(options = {}) {
-  if (options.components) registerAll(options.components);
+  const allComponents = { ...defaultComponents, ...(options.components || {}) };
+  registerAll(allComponents);
+  defineCustomElements(allComponents);
 
   function renderComponent(name, data, lang) {
-    if (lang && lang in defaultComponents) return renderCustomElement(lang, data);
+    if (lang && lang in allComponents) return renderCustomElement(lang, data);
     return null;
   }
 

@@ -21,6 +21,6 @@ export function defineCustomElements(components) {
 }
 
 export function renderCustomElement(tag, data) {
-  const json = JSON.stringify(data).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  const json = JSON.stringify(data || {}).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
   return `<${tag} data-props="${json}"></${tag}>`;
 }
