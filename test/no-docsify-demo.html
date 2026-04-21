@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>No Docsify Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="/packages/docs-engine/src/styles/theme.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "preact": "https://esm.sh/preact@10",
+      "preact-custom-element": "https://esm.sh/preact-custom-element?external=preact",
+      "preact/hooks": "https://esm.sh/preact@10/hooks",
+      "preact-render-to-string": "https://esm.sh/preact-render-to-string@6?external=preact",
+      "htm": "https://esm.sh/htm@3",
+      "htm/preact": "https://esm.sh/htm/preact",
+      "unified": "https://esm.sh/unified@11?bundle",
+      "remark-parse": "https://esm.sh/remark-parse@11?bundle",
+      "unist-util-visit": "https://esm.sh/unist-util-visit@5?bundle"
+    }
+  }
+  </script>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f9fafb; }
+  </style>
+</head>
+<body>
+
+  <h1 style="font-size:1.5rem;font-weight:bold;margin-bottom:.25rem">No Docsify Demo</h1>
+  <p style="color:#6b7280;margin-bottom:1.5rem">No framework. No Docsify. One script tag — the browser mounts the component.</p>
+
+  <entity-schema data-props='{"name":"User","fields":[{"name":"id","type":"uuid","required":true},{"name":"email","type":"string","required":true}]}'></entity-schema>
+
+  <script type="module">
+    const { defineCustomElements } = await import('/packages/docs-engine/src/core/custom-elements.js');
+    const { defaultComponents } = await import('/packages/docs-engine/src/components/index.js');
+    defineCustomElements(defaultComponents);
+  </script>
+
+</body>
+</html>
