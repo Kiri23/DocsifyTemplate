@@ -22,7 +22,7 @@ export function registerAll(map) {
 }
 
 export function getComponent(name) {
-  return _components[name] || _components[toCamelCase(name)];
+  return _components[toCamelCase(name)];
 }
 
 export function getRegisteredNames() {
