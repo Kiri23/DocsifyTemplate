@@ -1,4 +1,9 @@
 - [Update skill after export changes](feedback_skill_update.md) — remind to update export skill refs after modifying filters/templates
+- [Mobile touch-first UX](feedback_mobile_touch_first.md) — Pixel Chrome user; no hover-only, prefer tap/footer patterns
+- [Claude Code auto-update breaks Termux](feedback_claude_autoupdate.md) — pin v2.1.112, disable autoUpdaterStatus after every reinstall
+
+## References
+- [PyImageSearch tutorial index](reference_pyimagesearch.md) — 774 tutorials, sitemap at aiDocs/pyimagesearch/SITEMAP_URLS.txt, grep before crawling
 - [Plan: Diataxis Audit](plans/diataxis-audit/overview.md) — restructure DocsifyTemplate docs by Diataxis type (5 tasks, sequential)
 
 ## Planned Work
