@@ -4,6 +4,15 @@
 
 **Don't add SW/WASM unless JS can't solve it.** Service Workers and WebAssembly are justified only when plain JS hits a real capability or performance wall (e.g., Pandoc WASM exists because JS cannot convert markdown to LaTeX). Until then, it's recreational engineering — fun, but not necessary.
 
+**The engine is closed for modification, open for extension.** When a new capability is needed, the answer is always a plugin/writer — never a change to core. Ask: "what writes to the store, and what reads from it?" before touching any file in `core/`.
+
+- **Writers** (plugins) compute knowledge and write to the signal store: backlinks, drift detection, ML embeddings, AI inference, graph algorithms. Each is an independent package (`@docs-engine/backlinks`, `@docs-engine/chat`, etc.).
+- **Components** (views) read from the signal store reactively. They never know who wrote the data or how.
+- **Signals** are the contract between writers and views — the only shared surface.
+- **Core** (`core/`, `components/`, `serializers/`) never grows for a new feature. A new feature = a new plugin that hooks into the store.
+
+This is the same pattern as unified (plugins), webpack (loaders), and Docsify (plugins). The engine stays small and stable; the ecosystem grows around it.
+
 ## Project Vision
 
 DocsifyTemplate is evolving from a docs framework into a **docs intelligence engine** where every capability is a plugin/adapter. The engine is framework-agnostic; Docsify is the first adapter.
