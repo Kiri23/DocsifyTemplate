@@ -30,6 +30,11 @@ Both components import from the same store module:
 // packages/docs-engine/src/state/demo-store.js
 import { signal, computed } from '@preact/signals';
 
+export const nodes = [
+  { id: 'n1', title: 'Engineering DNA' },
+  // ...
+];
+
 export const selectedId = signal(null);
 export const selectedNode = computed(
   () => nodes.find((n) => n.id === selectedId.value) ?? null
