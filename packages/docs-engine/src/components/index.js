@@ -11,6 +11,8 @@ import { DirectiveTable } from './directive-table.js';
 import { StepType } from './step-type.js';
 import { SideBySide } from './side-by-side.js';
 import { FileTree } from './file-tree.js';
+import { NodeList } from './node-list.js';
+import { NodePanel } from './node-panel.js';
 
 export const defaultComponents = {
   'entity-schema':   EntitySchema,
@@ -28,6 +30,8 @@ export const defaultComponents = {
   'required-badge':  RequiredBadge,
   'chevron':         Chevron,
   'section-label':   SectionLabel,
+  'node-list':       NodeList,
+  'node-panel':      NodePanel,
 };
 
 export { Tabs } from './tabs.js';

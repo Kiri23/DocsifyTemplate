@@ -12,7 +12,7 @@ Two Preact components mounted via **separate code fences** share state through `
 _: _
 ```
 
-Plain markdown here. **The two components have no shared parent in the DOM.** This paragraph lives between them; there is no React/Preact context wrapping both. The only connection between fence 1 and fence 2 is a signal imported from `lib/state/demo-store.js`.
+Plain markdown here. **The two components have no shared parent in the DOM.** This paragraph lives between them; there is no React/Preact context wrapping both. The only connection between fence 1 and fence 2 is a signal imported from `packages/docs-engine/src/state/demo-store.js`.
 
 ## Fence 2 — Node panel
 
@@ -27,7 +27,7 @@ _: _
 Both components import from the same store module:
 
 ```js
-// lib/state/demo-store.js
+// packages/docs-engine/src/state/demo-store.js
 import { signal, computed } from '@preact/signals';
 
 export const selectedId = signal(null);
