@@ -12,14 +12,25 @@ Read this file:
 
 This is the master mental model. Internalize it — every suggestion you make should be consistent with it.
 
-## Step 2 — Load Engineering DNA and DAG pattern from MemoryGraph
+## Step 2 — Load context from MemoryGraph (3 queries, all silent)
 
-Fetch these two nodes silently (do not dump raw JSON to the user):
+**Query 1 — Engineering DNA (stable, never changes):**
+`get_memory("5997dffe-7089-4a0e-af04-1a834b6b7c1e")`
+Mental model: separate engine from transport. Lambda calculus. DAG thinking.
 
-- Engineering DNA — Engine/Transport: node `5997dffe-7089-4a0e-af04-1a834b6b7c1e`
-- DAG + credit assignment as unifying pattern: node `9c106250-d098-4f56-91a2-ad1d64c0200f`
+**Query 2 — DAG + credit assignment (stable, never changes):**
+`get_memory("9c106250-d098-4f56-91a2-ad1d64c0200f")`
+Forward pass builds the graph. Reverse traversal = credit assignment. Backprop, Bazel, PageRank — same verb.
 
-Use `mcp__memorygraph__get_memory` for each. Extract the key ideas and hold them as context.
+**Query 3 — DocsifyTemplate current state (dynamic, always fresh):**
+`search_memories(tags=["docsify-template", "in-progress"])`
+Returns whatever is actively in progress. No stale IDs — the tags do the work.
+
+Key nodes to hold as context if they appear:
+- `9bc211c9` — Signals + Custom Elements as reactive islands
+- `78bb09ea` — Writer/View Plugin Pattern (engine extends, never modifies)
+- `64657733` — Engine evolution plan
+- `aded1fa8` — Drift detection plan
 
 If MemoryGraph is unreachable, continue — the vision file covers the essentials.
 
