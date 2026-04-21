@@ -5,7 +5,7 @@
  * All values shown are defaults — only override what you need.
  *
  * The config is available at runtime via:
- *   import { getConfig } from '/lib/core/config.js';
+ *   import { getConfig } from '/packages/docs-engine/src/core/config.js';
  */
 window.__docsifyTemplateConfig = {
 

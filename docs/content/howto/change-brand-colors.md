@@ -10,7 +10,7 @@ This guide shows you how to replace the default brand colors with your own.
 
 ### Option A: Use the config module
 
-If your project uses `lib/core/config.js`, set theme colors in your config object:
+Set theme colors in your `docs/config.js` config object:
 
 ```html
 <script>
@@ -28,7 +28,7 @@ If your project uses `lib/core/config.js`, set theme colors in your config objec
 Then apply the generated CSS variables:
 
 ```javascript
-import { getThemeCSS } from '/lib/core/config.js';
+import { getThemeCSS } from '/packages/docs-engine/src/core/config.js';
 document.documentElement.style.cssText += getThemeCSS();
 ```
 

@@ -12,7 +12,7 @@ A component is a JavaScript function that receives parsed YAML and returns an HT
 
 ### 1. Create the JS file
 
-Create `lib/components/my-component.js`:
+Create `packages/docs-engine/src/components/my-component.js`:
 
 ```javascript
 window.MyComponent = function MyComponent(data) {
@@ -32,16 +32,16 @@ window.MyComponent = function MyComponent(data) {
 
 ### 2. Register it
 
-**Add the script to `docs/index.html`** in the component section (after the existing component scripts, before `window.$docsify`):
-
-```html
-<script src="../lib/components/my-component.js"></script>
-```
-
-**Add the name to `lib/plugins/component-renderer.js`** in the `COMPONENT_REGISTRY` array:
+**Export it from `packages/docs-engine/src/components/index.js`** by adding it to `defaultComponents`:
 
 ```javascript
-const COMPONENT_REGISTRY = [
+export { MyComponent } from './my-component.js';
+```
+
+**Add the name to `packages/docs-engine/src/core/markdown-utils.js`** in the `COMPONENT_REGISTRY` array:
+
+```javascript
+export const COMPONENT_REGISTRY = [
   'entity-schema', 'api-endpoint', 'status-flow',
   'directive-table', 'step-type', 'config-example',
   'card-grid', 'my-component'  // ← add here
