@@ -1,5 +1,9 @@
 # DocsifyTemplate
 
+## Session Start
+
+**At the start of every new session, run `/docsify-template:session-start` before doing any work.** This loads the vision, Engineering DNA, DAG pattern from MemoryGraph, open issues, and current branch — then asks what to work on.
+
 ## Rules
 
 **Don't add SW/WASM unless JS can't solve it.** Service Workers and WebAssembly are justified only when plain JS hits a real capability or performance wall (e.g., Pandoc WASM exists because JS cannot convert markdown to LaTeX). Until then, it's recreational engineering — fun, but not necessary.
