@@ -86,9 +86,13 @@ Consumer installs only what they need:
 
 Each writer is an independent package. `docs-engine` is the peer dep. Same model as `@preact/signals` is separate from `preact`.
 
-**Next: `packages/chat` → `@docs-engine/chat`**
+**Next: `packages/chat` → `@docs-engine/chat`** — tracked in issue #23
 
 The chat package already exists in the repo. Currently it writes to the DOM directly. Converting it to a proper writer means: it writes chat state into signals → components read reactively → chat becomes composable with any other writer. That's the next session goal.
+
+Two sub-writers planned (see #23 for full design):
+- **EmbeddingWriter** (EmbeddingGemma 300M) — runs on page load, no user action, writes embeddings + related docs to store
+- **InferenceWriter** (Gemma 2B–3B, WebGPU) — on-demand, user chat or programmatic calls (summarize, extract entities)
 
 ## Writer pattern — how a writer connects to the store
 
