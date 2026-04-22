@@ -11,7 +11,12 @@
   },
   "files": [
     "dist",
-    "src"
+    "src/**/*.js",
+    "src/**/*.json",
+    "src/serializers/README.md",
+    "!src/adapters/docsify/export/pandoc.wasm",
+    "!src/adapters/docsify/export/pandoc.wasm.bak",
+    "!src/vendor"
   ],
   "scripts": {
     "build": "node build.mjs",
