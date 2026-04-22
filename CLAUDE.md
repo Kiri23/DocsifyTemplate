@@ -4,6 +4,23 @@
 
 **At the start of every new session, run `/docsify-template:session-start` before doing any work.** This loads the vision, Engineering DNA, DAG pattern from MemoryGraph, open issues, and current branch — then asks what to work on.
 
+## Building `packages/docs-engine`
+
+Android shared storage (`/storage/emulated/0/...`) breaks symlinks — `npm install` fails there. Always build from `$HOME`:
+
+```bash
+cp -r /storage/emulated/0/Documents/Code/DocsifyTemplate/packages/docs-engine ~/docs-engine-build
+cd ~/docs-engine-build && npm install && node build.mjs
+cp ~/docs-engine-build/dist/* /storage/emulated/0/Documents/Code/DocsifyTemplate/packages/docs-engine/dist/
+```
+
+Build outputs:
+- `dist/docs-engine.esm.js` — core library (ESM, peer deps external)
+- `dist/docsify-adapter.js` — Docsify plugin (ESM, peer deps external — resolved via importmap)
+- `dist/theme.css` — styles
+
+In CI (GitHub Actions) this runs natively — no workaround needed.
+
 ## Rules
 
 **Don't add SW/WASM unless JS can't solve it.** Service Workers and WebAssembly are justified only when plain JS hits a real capability or performance wall (e.g., Pandoc WASM exists because JS cannot convert markdown to LaTeX). Until then, it's recreational engineering — fun, but not necessary.

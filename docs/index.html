@@ -16,41 +16,17 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
   <!-- User config (sync — sets window.__docsifyTemplateConfig before anything else) -->
-  <script src="/docs/config.js"></script>
+  <script src="./config.js"></script>
 
   <!-- Tailwind @theme + page title from config (project-specific, stays here) -->
   <script type="module">
-    import { getConfig } from '/packages/docs-engine/src/core/config.js';
+    import { initConfig, getConfig, getThemeCSS } from './vendor/docs-engine/docs-engine.esm.js';
+    initConfig(window.__docsifyTemplateConfig || {});
     const cfg = getConfig();
-    const t = cfg.theme;
 
     const tailwindStyle = document.createElement('style');
     tailwindStyle.setAttribute('type', 'text/tailwindcss');
-    tailwindStyle.textContent = `
-      @theme {
-        --color-primary: ${t.primary};
-        --color-primary-light: ${t.primaryLight};
-        --color-primary-text: ${t.primaryText};
-        --color-brand: ${t.brand};
-        --color-surface: ${t.surface};
-        --color-surface-raised: ${t.surfaceRaised};
-        --color-surface-sunken: ${t.surfaceSunken};
-        --color-border: ${t.border};
-        --color-border-strong: ${t.borderStrong};
-        --color-text-primary: ${t.textPrimary};
-        --color-text-secondary: ${t.textSecondary};
-        --color-text-tertiary: ${t.textTertiary};
-        --color-text-muted: ${t.textMuted};
-        --color-tech-surface: ${t.techSurface};
-        --color-tech-accent: ${t.techAccent};
-        --color-tech-heading: ${t.techHeading};
-        --color-tech-subheading: ${t.techSubheading};
-        --color-tech-text: ${t.techText};
-        --color-code-bg: ${t.codeBg};
-        --color-code-text: ${t.codeText};
-        --color-success: ${t.success};
-      }
-    `;
+    tailwindStyle.textContent = `@theme {\n${getThemeCSS()}\n}`;
     document.head.appendChild(tailwindStyle);
 
     document.title = cfg.title;
@@ -71,7 +47,7 @@
   </script>
 
   <!-- Plugin styles -->
-  <link rel="stylesheet" href="/packages/docs-engine/src/styles/theme.css">
+  <link rel="stylesheet" href="./vendor/docs-engine/theme.css">
 
   <!--
     Import map — resolves npm packages to CDN for dev (no build step).
@@ -109,7 +85,7 @@
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
 
   <!-- Docsify adapter — wires core engine to Docsify lifecycle -->
-  <script type="module" src="/packages/docs-engine/src/adapters/docsify/index.js"></script>
+  <script type="module" src="./vendor/docs-engine/docsify-adapter.js"></script>
 
   <!-- Docsify core + search (deferred — plugin module registers hooks first) -->
   <script defer src="https://cdn.jsdelivr.net/npm/docsify@4"></script>

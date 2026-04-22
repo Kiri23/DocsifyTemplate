@@ -5,6 +5,7 @@ export { yamlComponents } from './core/markdown-transform.js';
 export { defaultComponents } from './components/index.js';
 export { register, registerAll, getComponent } from './core/registry.js';
 export { defineCustomElements, renderCustomElement } from './core/custom-elements.js';
+export { initConfig, getConfig, getThemeCSS, isFeatureEnabled } from './core/config.js';
 
 // Serializers — output text strings (need external tool to render)
 export { latexRenderers as latexTransforms } from './serializers/latex.js';
