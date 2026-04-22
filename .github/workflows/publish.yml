@@ -5,8 +5,8 @@ on:
     types: [published]
 
 permissions:
-  id-token: write   # required for OIDC trusted publishing
-  contents: read    # required for provenance
+  id-token: write
+  contents: read
 
 jobs:
   publish:
@@ -19,6 +19,9 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
+      - name: Upgrade npm (Trusted Publishing requires npm >= 9.5)
+        run: npm install -g npm@latest
+
       - name: Install and build
         working-directory: packages/docs-engine
         run: npm install && npm run build
@@ -26,5 +29,3 @@ jobs:
       - name: Publish
         working-directory: packages/docs-engine
         run: npm publish --provenance --access public
-        env:
-          NPM_CONFIG_USERCONFIG: /dev/null  # bypass setup-node .npmrc, let OIDC handle auth
