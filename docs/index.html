@@ -18,58 +18,60 @@
   <!-- User config (sync — sets window.__docsifyTemplateConfig before anything else) -->
   <script src="./config.js"></script>
 
-  <!-- Tailwind @theme + page title from config (project-specific, stays here) -->
+  <!-- Tailwind @theme — merges user theme over defaults, no imports needed -->
   <script type="module">
-    import { initConfig, getConfig, getThemeCSS } from './vendor/docs-engine/docs-engine.esm.js';
-    initConfig(window.__docsifyTemplateConfig || {});
-    const cfg = getConfig();
+    const defaults = {
+      primary: '#0891b2', primaryLight: '#ecfeff', primaryText: '#0e7490', brand: '#95c22f',
+      surface: '#faf9f7', surfaceRaised: '#f5f5f4', surfaceSunken: '#efedeb',
+      border: '#e7e5e4', borderStrong: '#d6d3d1',
+      textPrimary: '#1c1917', textSecondary: '#44403c', textTertiary: '#78716c', textMuted: '#a8a29e',
+      techSurface: '#f8fafc', techAccent: '#6366f1', techHeading: '#1e293b',
+      techSubheading: '#334155', techText: '#475569',
+      codeBg: '#1e1e2e', codeText: '#cdd6f4', success: '#34d399'
+    };
+    const cfg = window.__docsifyTemplateConfig || {};
+    const t = { ...defaults, ...cfg.theme };
 
-    const tailwindStyle = document.createElement('style');
-    tailwindStyle.setAttribute('type', 'text/tailwindcss');
-    tailwindStyle.textContent = `@theme {\n${getThemeCSS()}\n}`;
-    document.head.appendChild(tailwindStyle);
+    const style = document.createElement('style');
+    style.setAttribute('type', 'text/tailwindcss');
+    style.textContent = `@theme {
+      --color-primary: ${t.primary};
+      --color-primary-light: ${t.primaryLight};
+      --color-primary-text: ${t.primaryText};
+      --color-brand: ${t.brand};
+      --color-surface: ${t.surface};
+      --color-surface-raised: ${t.surfaceRaised};
+      --color-surface-sunken: ${t.surfaceSunken};
+      --color-border: ${t.border};
+      --color-border-strong: ${t.borderStrong};
+      --color-text-primary: ${t.textPrimary};
+      --color-text-secondary: ${t.textSecondary};
+      --color-text-tertiary: ${t.textTertiary};
+      --color-text-muted: ${t.textMuted};
+      --color-tech-surface: ${t.techSurface};
+      --color-tech-accent: ${t.techAccent};
+      --color-tech-heading: ${t.techHeading};
+      --color-tech-subheading: ${t.techSubheading};
+      --color-tech-text: ${t.techText};
+      --color-code-bg: ${t.codeBg};
+      --color-code-text: ${t.codeText};
+      --color-success: ${t.success};
+    }`;
+    document.head.appendChild(style);
 
-    document.title = cfg.title;
+    document.title = cfg.title || 'DocsifyTemplate';
 
-    if (cfg.head && cfg.head.length) {
-      for (const entry of cfg.head) {
-        const el = document.createElement(entry.tag);
-        if (entry.attrs) {
-          for (const [k, v] of Object.entries(entry.attrs)) {
-            if (v === true) el.setAttribute(k, '');
-            else el.setAttribute(k, v);
-          }
-        }
-        if (entry.content) el.textContent = entry.content;
-        document.head.appendChild(el);
-      }
+    for (const entry of cfg.head || []) {
+      const el = document.createElement(entry.tag);
+      for (const [k, v] of Object.entries(entry.attrs || {}))
+        v === true ? el.setAttribute(k, '') : el.setAttribute(k, v);
+      if (entry.content) el.textContent = entry.content;
+      document.head.appendChild(el);
     }
   </script>
 
   <!-- Plugin styles -->
-  <link rel="stylesheet" href="./vendor/docs-engine/theme.css">
-
-  <!--
-    Import map — resolves npm packages to CDN for dev (no build step).
-    Not needed when consuming the built dist bundle.
-  -->
-  <script type="importmap">
-  {
-    "imports": {
-      "preact": "https://esm.sh/preact@10",
-      "preact/hooks": "https://esm.sh/preact@10/hooks",
-      "preact-render-to-string": "https://esm.sh/preact-render-to-string@6?external=preact",
-      "preact-custom-element": "https://esm.sh/preact-custom-element?external=preact",
-      "htm": "https://esm.sh/htm@3",
-      "htm/preact": "https://esm.sh/htm/preact",
-      "@preact/signals": "https://esm.sh/@preact/signals@1?external=preact",
-      "@preact/signals-core": "https://esm.sh/@preact/signals-core@1",
-      "unified": "https://esm.sh/unified@11?bundle",
-      "remark-parse": "https://esm.sh/remark-parse@11?bundle",
-      "unist-util-visit": "https://esm.sh/unist-util-visit@5?bundle"
-    }
-  }
-  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docs-engine@0.1.7/dist/theme.css">
 </head>
 <body>
   <div id="app"></div>
@@ -77,15 +79,15 @@
   <!--
     Load order:
       1. js-yaml (sync classic script — sets window.jsyaml before module executes)
-      2. docsify-kiri module (sets $docsify, registers all plugins + components)
+      2. docs-engine adapter (sets $docsify, registers all plugins + components)
       3. Docsify + HTMX (deferred — module always runs before defer scripts)
   -->
 
   <!-- Peer dep: js-yaml must be a global before the plugin module runs -->
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
 
-  <!-- Docsify adapter — wires core engine to Docsify lifecycle -->
-  <script type="module" src="./vendor/docs-engine/docsify-adapter.js"></script>
+  <!-- Docsify adapter — self-contained bundle, no importmap needed -->
+  <script type="module" src="https://esm.sh/docs-engine@0.1.7/docsify?bundle"></script>
 
   <!-- Docsify core + search (deferred — plugin module registers hooks first) -->
   <script defer src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
