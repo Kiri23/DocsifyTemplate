@@ -21,6 +21,22 @@ Build outputs:
 
 In CI (GitHub Actions) this runs natively — no workaround needed.
 
+## Publishing `docs-engine` to npm
+
+Workflow: `.github/workflows/publish.yml` — triggers on GitHub Release.
+
+**To publish a new version:**
+1. Bump `version` in `packages/docs-engine/package.json`
+2. Commit + push
+3. `gh release create vX.Y.Z --title "vX.Y.Z" --notes "..." --repo Kiri23/DocsifyTemplate`
+4. CI builds and publishes automatically via npm Trusted Publishing (OIDC — no token needed)
+
+**Key gotchas learned:**
+- `setup-node` with `registry-url` creates an `.npmrc` — do NOT add `NPM_CONFIG_USERCONFIG=/dev/null`, it breaks OIDC
+- Must run `npm install -g npm@latest` in CI — npm Trusted Publishing requires npm >= 9.5
+- No `NODE_AUTH_TOKEN` needed — OIDC handles auth entirely
+- Trusted Publisher configured on npmjs.com: owner=`Kiri23`, repo=`DocsifyTemplate`, workflow=`publish.yml`
+
 ## Rules
 
 **Don't add SW/WASM unless JS can't solve it.** Service Workers and WebAssembly are justified only when plain JS hits a real capability or performance wall (e.g., Pandoc WASM exists because JS cannot convert markdown to LaTeX). Until then, it's recreational engineering — fun, but not necessary.
