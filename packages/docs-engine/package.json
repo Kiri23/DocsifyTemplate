@@ -33,7 +33,7 @@
     "htm": "^3.1.1",
     "js-yaml": "^4.1.1",
     "preact": "^10.29.1",
-    "preact-custom-element": "^5.0.0",
+    "preact-custom-element": "^4.6.0",
     "preact-render-to-string": "^6.6.7",
     "remark-parse": "^11.0.0",
     "unified": "^11.0.5",
