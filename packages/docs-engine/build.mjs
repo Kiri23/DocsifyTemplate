@@ -5,26 +5,25 @@ const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
 const watch = process.argv.includes('--watch');
 
 mkdirSync('dist', { recursive: true });
-// Also output to docs/vendor/ so docs/index.html can reference with relative paths
-mkdirSync('../../docs/vendor/docs-engine', { recursive: true });
 
 copyFileSync('src/styles/theme.css', 'dist/theme.css');
-copyFileSync('src/styles/theme.css', '../../docs/vendor/docs-engine/theme.css');
 
 const banner = { js: `/* docs-engine v${pkg.version} | https://github.com/Kiri23/DocsifyTemplate */` };
 
+const peerExternals = ['preact', 'preact/hooks', 'preact-custom-element', '@preact/signals', 'htm', 'unified', 'remark-parse', 'unist-util-visit'];
+
 const builds = [
-  // Core library — ESM, for bundlers and esm.sh
+  // Core library — ESM, peer deps external (for bundlers and esm.sh importmap users)
   {
     entryPoints: ['src/index.js'],
     bundle: true,
     format: 'esm',
     outfile: 'dist/docs-engine.esm.js',
     banner,
-    // peer deps — consumer provides these
-    external: ['preact', 'preact/hooks', 'preact-custom-element', '@preact/signals', 'htm', 'unified', 'remark-parse', 'unist-util-visit'],
+    external: peerExternals,
   },
-  // Docsify adapter — ESM bundle, self-contained, for <script type="module">
+  // Docsify adapter — self-contained bundle (everything inlined, one preact instance)
+  // Use this for simple <script type="module"> with no importmap
   {
     entryPoints: ['src/adapters/docsify/index.js'],
     bundle: true,
@@ -32,8 +31,16 @@ const builds = [
     outfile: 'dist/docsify-adapter.js',
     minify: true,
     banner,
-    // loaded via importmap in Docsify context
-    external: ['preact', 'preact/hooks', 'preact-custom-element', '@preact/signals', 'htm', 'unified', 'remark-parse', 'unist-util-visit'],
+  },
+  // Docsify adapter — ESM, peer deps external (for importmap users who control preact version)
+  {
+    entryPoints: ['src/adapters/docsify/index.js'],
+    bundle: true,
+    format: 'esm',
+    outfile: 'dist/docsify-adapter.esm.js',
+    minify: true,
+    banner,
+    external: peerExternals,
   },
 ];
 
@@ -46,10 +53,5 @@ if (watch) {
     const result = await esbuild.build(config);
     if (result.errors.length) process.exit(1);
     console.log(`Built ${config.outfile}`);
-    // Mirror to docs/vendor/ for the demo site
-    const vendorPath = config.outfile.replace('dist/', '../../docs/vendor/docs-engine/');
-    copyFileSync(config.outfile, vendorPath);
-    console.log(`  → ${vendorPath}`);
   }
-  console.log('Copied dist/theme.css → docs/vendor/docs-engine/theme.css');
 }

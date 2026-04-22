@@ -1,4 +1,4 @@
-/* docs-engine v0.1.0 | https://github.com/Kiri23/DocsifyTemplate */
+/* docs-engine v0.1.8 | https://github.com/Kiri23/DocsifyTemplate */
 
 // src/core/markdown-transform.js
 import { unified } from "unified";
