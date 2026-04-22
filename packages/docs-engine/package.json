@@ -1,6 +1,6 @@
 {
   "name": "docs-engine",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Framework-agnostic docs intelligence engine: YAML components, Custom Elements, serializers, adapters for Docsify and Astro",
   "main": "dist/docs-engine.esm.js",
   "module": "dist/docs-engine.esm.js",
@@ -23,10 +23,24 @@
     "build:watch": "node build.mjs --watch"
   },
   "peerDependencies": {
+    "preact": ">=10",
+    "preact-custom-element": ">=4",
+    "@preact/signals": ">=1",
+    "htm": ">=3",
+    "unified": ">=11",
+    "remark-parse": ">=11",
+    "unist-util-visit": ">=5",
     "js-yaml": ">=4"
   },
   "peerDependenciesMeta": {
-    "js-yaml": { "optional": true }
+    "preact":                { "optional": true },
+    "preact-custom-element": { "optional": true },
+    "@preact/signals":       { "optional": true },
+    "htm":                   { "optional": true },
+    "unified":               { "optional": true },
+    "remark-parse":          { "optional": true },
+    "unist-util-visit":      { "optional": true },
+    "js-yaml":               { "optional": true }
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
