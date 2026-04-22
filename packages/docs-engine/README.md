@@ -1,6 +1,16 @@
 # docs-engine
 
-Framework-agnostic docs intelligence engine. YAML code fences → Custom Elements → reactive UI. First adapter: Docsify.
+A toolkit for transforming YAML embedded in markdown into any output format. HTML via Custom Elements, LaTeX, Typst, and Markdown out of the box. New output formats are a serializer away.
+
+First adapter: **Docsify** — takes markdown + YAML fences as input, outputs HTML for a doc site.
+
+## Beyond YAML
+
+The pipeline separates **what** (structured data) from **how** (serializers/renderers). Today the input is YAML in markdown code fences — but the parser is swappable. Any format that produces a plain JS object works: JSON, TOML, or a custom DSL. The rest of the pipeline doesn't change.
+
+```js
+unified().use(yamlComponents, { parseYaml: myCustomParser, transforms })
+```
 
 ## Consumer
 
