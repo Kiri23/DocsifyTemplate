@@ -85,3 +85,34 @@ esbuild handles the bundle in one pass → single preact instance shared between
 
 ### Android build gotcha
 Self-contained build requires `@preact/signals` resolvable at build time. Must be in devDependencies — was missing, caused `Could not resolve "@preact/signals"` esbuild error.
+
+---
+
+## Session 3 — Writer pattern + @docs-engine/chat design
+
+### Writer pattern (explicit registration, no importmap)
+
+Consumer configures plugins in `config.js`:
+```js
+window.__docsifyTemplateConfig = {
+  plugins: [
+    ChatPlugin({ model: 'gemma-2b', maxTokens: 512 }),
+  ]
+}
+```
+
+Core creates the store and passes it to each plugin via `plugin.init(store)`. The store is owned by the core — not a global, not a URL-based singleton. Writers hold a reference and write whenever they compute.
+
+### @docs-engine/chat — two sub-writers (issue #23)
+
+| Writer | Model | When | Writes to |
+|---|---|---|---|
+| EmbeddingWriter | EmbeddingGemma 300M | page load, background | `embeddingsSignal`, `relatedSignal` |
+| InferenceWriter | Gemma 2B–3B WebGPU | on-demand (user or programmatic) | `chatSignal`, `summarySignal`, `entitySignal` |
+
+Consumers are only things we control — custom elements in markdown (`<related-pages>`, `<doc-summary>`) and UI injected via `injectDOM`. Not Docsify's sidebar (Docsify owns that).
+
+### Key learnings
+- Two models for two jobs: generative (Gemma) for chat/extraction, embedding (EmbeddingGemma 300M) for similarity/search — Gemma chat is not optimized for vector space geometry
+- Gemma can run programmatically on page load without user input — e.g., summarize doc, extract entities — same model, different invocation pattern
+- WebGPU is now default across all major browsers (Nov 2025)
