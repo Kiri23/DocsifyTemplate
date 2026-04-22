@@ -58,6 +58,38 @@ engine (framework-agnostic core)
 
 Same pattern as: React (reconciler + react-dom), unified (AST + remark/rehype), webpack (core + loaders).
 
+## Distribution model (unlocked in v0.1.8)
+
+`docs-engine` is now a published npm package. This makes the plugin model real — not just architectural aspiration.
+
+**How a writer is distributed:**
+
+```
+npm create @docs-engine/backlinks
+  peerDependencies: { "docs-engine": ">=0.1.8" }
+  imports: signal store from docs-engine core
+  writes: backlink data into signals
+  exports: a Docsify plugin function
+```
+
+Consumer installs only what they need:
+```bash
+# minimal — just the engine
+<script src="esm.sh/docs-engine/docsify">
+
+# with backlinks writer
+<script src="esm.sh/@docs-engine/backlinks/docsify">
+
+# with chat writer
+<script src="esm.sh/@docs-engine/chat/docsify">
+```
+
+Each writer is an independent package. `docs-engine` is the peer dep. Same model as `@preact/signals` is separate from `preact`.
+
+**Next: `packages/chat` → `@docs-engine/chat`**
+
+The chat package already exists in the repo. Currently it writes to the DOM directly. Converting it to a proper writer means: it writes chat state into signals → components read reactively → chat becomes composable with any other writer. That's the next session goal.
+
 ## What makes this different from existing doc tools
 
 Existing tools (Mintlify, GitBook, Docusaurus) are frameworks — they own the pipeline. This is an engine — it exposes primitives that anyone can compose. The docs themselves are a graph; components are views over that graph; plugins enrich the graph with computed knowledge.
