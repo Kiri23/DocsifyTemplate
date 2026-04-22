@@ -90,6 +90,45 @@ Each writer is an independent package. `docs-engine` is the peer dep. Same model
 
 The chat package already exists in the repo. Currently it writes to the DOM directly. Converting it to a proper writer means: it writes chat state into signals → components read reactively → chat becomes composable with any other writer. That's the next session goal.
 
+## Writer pattern — how a writer connects to the store
+
+**No importmap. Explicit registration. Core owns the store.**
+
+Consumer wires plugins in `config.js`:
+```js
+window.__docsifyTemplateConfig = {
+  plugins: [
+    ChatPlugin({ model: 'gemma-2b', maxTokens: 512 }),
+    BacklinksPlugin({ maxDepth: 2 }),
+  ]
+}
+```
+
+Core initializes:
+```
+core creates store
+  → reads config.plugins
+  → for each plugin: plugin.init(store)   ← store travels as argument
+  → writer holds a reference, writes whenever it computes
+```
+
+The store is **owned by the core** — not a global, not a singleton shared via importmap. Writers receive it because the core passes it explicitly. Full config control, zero magic.
+
+**Why this is beneficial — the forward/backward split:**
+```
+page loads
+  → chat writer receives store, starts WebGPU engine
+  → user sends message → writer computes response
+  → chatSignal.value = { messages: [...], status: 'idle' }   ← forward pass
+
+chat component    reads chatSignal → renders conversation
+sidebar component reads chatSignal → shows unread badge     ← backward pass
+```
+
+The sidebar has zero knowledge of the chat engine. Swap Gemma for GPT → sidebar unchanged. That's the DAG: forward pass builds the graph, components are views over it.
+
+Same pattern as `unified().use(plugin, options)` — consumer composes, core orchestrates, plugins receive what they need.
+
 ## What makes this different from existing doc tools
 
 Existing tools (Mintlify, GitBook, Docusaurus) are frameworks — they own the pipeline. This is an engine — it exposes primitives that anyone can compose. The docs themselves are a graph; components are views over that graph; plugins enrich the graph with computed knowledge.
