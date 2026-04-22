@@ -51,3 +51,37 @@ Made `packages/docs-engine` a properly publishable npm package and wired up CI t
 ## Published
 
 `docs-engine@0.1.6` on npm — first version published manually, CI working from v0.1.6 onwards.
+
+---
+
+## Session 2 — Two adapter builds (v0.1.8)
+
+### Problem
+`?bundle` on esm.sh caused two separate preact instances: the adapter bundled its own preact, and `@preact/signals` bundled its own. Both anonymous copies → no shared module singleton → `n.setState is not a function` / signals broken.
+
+### Fix
+Two adapter builds via esbuild:
+
+| Output | Externals | Use case |
+|---|---|---|
+| `dist/docsify-adapter.js` | none | `<script type="module">` — everything inlined, one preact instance |
+| `dist/docsify-adapter.esm.js` | peer deps | `./docsify/esm` export — importmap users who control preact version |
+
+esbuild handles the bundle in one pass → single preact instance shared between adapter and `@preact/signals` → signals work.
+
+### Key changes
+- **`build.mjs`**: added self-contained adapter build (no externals); removed vendor folder mirroring
+- **`package.json`**: added `@preact/signals` to devDependencies (needed for self-contained bundle); added `./docsify/esm` export; bumped to v0.1.8
+- **`docs/index.html`**: updated to `@0.1.8`, removed `?bundle` — no longer needed since dist file is already self-contained
+
+### CDN usage after v0.1.8
+```html
+<!-- Simple (self-contained, no importmap) -->
+<script type="module" src="https://esm.sh/docs-engine@0.1.8/docsify"></script>
+
+<!-- Advanced (importmap, user controls preact version) -->
+<script type="module" src="https://esm.sh/docs-engine@0.1.8/docsify/esm"></script>
+```
+
+### Android build gotcha
+Self-contained build requires `@preact/signals` resolvable at build time. Must be in devDependencies — was missing, caused `Could not resolve "@preact/signals"` esbuild error.
