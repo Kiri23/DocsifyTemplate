@@ -1,6 +1,6 @@
 ---
 name: ML Weights Portability, Cloud GPU Training, Local Embeddings
-description: Weights are portable across runtimes (phone/browser/server/enterprise). Cloud GPU training via Modal ($0.19/run). Local embeddings for MemoryGraph semantic search. Full MainAI tiered architecture.
+description: Weights are portable across runtimes (phone/browser/server/enterprise). Cloud GPU training via Modal ($0.19/run). Local embeddings for on-device semantic search. Full MainAI tiered architecture.
 type: reference
 ---
 
@@ -39,7 +39,7 @@ Best practice: train → .onnx → .tflite for mobile. Keep both.
 
 **Recommendation: Modal.com** — per-second billing, $30/mo free, works from Termux (`modal run train.py`), Claude Code can trigger it. Zero idle cost.
 
-## Local Embeddings for MemoryGraph
+## Local Embeddings for Semantic Search
 
 ### Models
 - **all-MiniLM-L6-v2**: 22M params, ~80MB, 384-dim vectors. Has .tflite quantized version.
@@ -51,7 +51,7 @@ Best practice: train → .onnx → .tflite for mobile. Keep both.
 - Brute-force cosine similarity (fine for ~500 nodes, instant)
 
 ### Pipeline
-1. Dump MemoryGraph nodes → JSON
+1. Dump knowledge nodes → JSON
 2. Generate embeddings (Mac/VPS with all-MiniLM-L6-v2)
 3. Store vectors on phone (500 × 384 × 4 bytes = 750KB)
 4. Query: embed on-device → cosine similarity → top 5 results
@@ -73,7 +73,7 @@ Custom on-device embedding model for enterprises:
 Training: Modal.com A100 ($0.19/run)
 Browser:  Gemma 4 E2B (WebGPU) + custom embeddings (Transformers.js)
 Phone:    Gemma 4 E2B (LiteRT-LM) + custom embeddings (LiteRT)
-VPS:      Gemma 4 31B (Ollama) + full MemoryGraph (Neo4j)
+VPS:      Gemma 4 31B (Ollama)
 Cloud:    Claude API (complex reasoning)
 ```
 
@@ -85,7 +85,3 @@ Cloud:    Claude API (complex reasoning)
 - EmbeddingGemma: developers.googleblog.com/introducing-embeddinggemma
 - Keras → Android: medium.com/geekculture/train-ml-model-and-build-android-application
 - LiteRT-LM: github.com/google-ai-edge/LiteRT-LM
-
-## MemoryGraph IDs
-- This research: 7a4a6c15-bc7a-4761-b794-1330a76751ae
-- Linked to MainAI: fef401b5-3939-4c24-8009-810cdc1a262f

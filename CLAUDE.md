@@ -2,7 +2,7 @@
 
 ## Session Start
 
-**At the start of every new session, run `/docsify-template:session-start` before doing any work.** This loads the vision, Engineering DNA, DAG pattern from MemoryGraph, open issues, and current branch — then asks what to work on.
+**At the start of every new session, run `/docsify-template:session-start` before doing any work.** This loads the vision, open issues, and current branch — then asks what to work on.
 
 ## Building `packages/docs-engine`
 
@@ -65,11 +65,6 @@ DocsifyTemplate is evolving from a docs framework into a **docs intelligence eng
 **The pattern:** engine (framework-agnostic) + adapters (Docsify, Astro, future others) + serializers (HTML, PDF, Markdown). Same pattern as React (reconciler + react-dom / react-native) and unified (AST + remark/rehype adapters).
 
 **When suggesting new features:** frame them as plugins that extend the engine, not features baked into the Docsify adapter.
-
-**MemoryGraph nodes for this project:**
-- Engine evolution & plugin vision: `64657733-bc23-4313-8dcc-06ab6f59915f`
-- Engineering DNA (engine/transport mental model): `5997dffe-7089-4a0e-af04-1a834b6b7c1e`
-- DAG + credit assignment pattern: `9c106250-d098-4f56-91a2-ad1d64c0200f`
 
 ## The Mental Model — Markdown / YAML / Post-processing / Custom Elements
 
