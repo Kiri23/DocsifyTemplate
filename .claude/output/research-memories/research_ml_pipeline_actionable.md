@@ -55,10 +55,3 @@ Train your own: create dataset × thousands of examples → fine-tune on Modal (
 ## llm.c Clarification
 llm.c is TRAINING code (produces weights), NOT pre-trained weights you download.
 You compile it, feed data, it trains → outputs weights. Pure C, no Python.
-
-## MemoryGraph IDs
-- This pipeline: 6dd05ae5-65ae-46e0-b9eb-dedf21af9d38
-- BUILDS → MainAI: fef401b5-3939-4c24-8009-810cdc1a262f
-- RELATED_TO → Gemma 4 ecosystem: 4440d844-e276-4bbe-9cb6-59c3ffa5bf23
-- RELATED_TO → Weights portability: 7a4a6c15-bc7a-4761-b794-1330a76751ae
-- RELATED_TO → LiteRT/ONNX deep dive: 2c22e81d-dbc3-423d-aaf4-eec184b6fa25

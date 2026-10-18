@@ -48,10 +48,6 @@ Tiered inference architecture:
 
 Strategic: MainAI demands sovereignty but on-device quality gap vs Claude is still wide. Hybrid approach: simple tasks on-device, complex tasks to cloud.
 
-## MemoryGraph ID
-Research stored: 4440d844-e276-4bbe-9cb6-59c3ffa5bf23
-Linked to MainAI vision: fef401b5-3939-4c24-8009-810cdc1a262f
-
 ## Sources
 - https://ai.google.dev/edge
 - https://ai.google.dev/edge/litert-lm/overview
