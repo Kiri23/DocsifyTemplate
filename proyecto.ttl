@@ -1,0 +1,23 @@
+# El proyecto.ttl de DocsifyTemplate (formato y reglas: ontologyLearning domain/proyecto.ttl y
+# domain/proyecto-reglas.ttl). Dice lo que usa hoy y lo que debería usar; la diferencia es la brecha
+# (ontologyLearning consultas/proyectos-que-usan.rq la muestra por concepto).
+# Las schema:softwareRequirements hacia un vocabulario no van a mano: las escribe el bloque generado del final, desde
+# el código (ontologyLearning `python3 main.py cli proyectos --aristas --escribir`). Acá arriba, solo el juicio.
+@prefix ontologia: <https://kiri231.com/ontologia#> .
+@prefix proyecto: <https://kiri231.com/proyecto/> .
+@prefix doap:   <http://usefulinc.com/ns/doap#> .
+@prefix schema: <https://schema.org/> .
+
+proyecto:docsifytemplate a ontologia:Proyecto ;
+    doap:shortdesc "Documentación interactiva sin build sobre Docsify: bloques YAML en el markdown que se vuelven componentes, export a PDF, LaTeX o Typst con pandoc en WASM, y un chat con Gemma 4 que corre en el navegador (WebGPU)." ;
+    schema:codeRepository <https://github.com/Kiri23/DocsifyTemplate> ;
+    # .github/workflows/claude-test.yml:21-26: un workflow manual (workflow_dispatch) llama a Claude por
+    # Kiri23/claude-action@v1 con CLAUDE_GATEWAY_TOKEN, o sea por claude-gateway, que exporta ontologia:ClaudeHeadless.
+    # Es solo una prueba: el chat de la página no lo usa.
+    schema:softwareRequirements ontologia:ClaudeHeadless ;
+    # Kiri23/DocsifyTemplate#23 (el plugin @docs-engine/chat). Hoy el chat corre el modelo en el navegador:
+    # packages/chat/core/worker.js:155-157 carga Gemma con transformers.js en `device: 'webgpu'` y generate()
+    # (worker.js:235) contesta ahí mismo. Sin WebGPU no hay chat, y no hay Claude, OpenAI ni xAI. llm-endpoint es
+    # un solo lugar para pedirle a cualquiera de esos (o a Gemma en Modal) con la API de OpenAI, y dice en cada
+    # respuesta cuántos créditos quedan: sería el proveedor del worker cuando el navegador no puede, o el de siempre.
+    ontologia:deberiaUsar ontologia:EndpointDeIAConCreditos .
