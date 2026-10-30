@@ -1,0 +1,27 @@
+# Fichas — valida el proyecto.ttl de la raíz contra POST /proyectos de ontology.kiri231.com con la action
+# pública Kiri23/ontology-client (docs/action.md de ese repo). El motor y las reglas
+# (ontologyLearning domain/proyecto-reglas.ttl) viven en el servidor; la action solo manda la ficha y anota
+# en el PR lo que no conforma. El token es el del servidor: secret ONTOLOGY_PROYECTOS_TOKEN (Doppler ontology/prd).
+name: Fichas
+
+on:
+  pull_request:
+    paths: ["proyecto.ttl", ".github/workflows/fichas.yml"]
+  push:
+    branches: [main]
+    paths: ["proyecto.ttl", ".github/workflows/fichas.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: Kiri23/ontology-client@v0
+        with:
+          token: ${{ secrets.ONTOLOGY_PROYECTOS_TOKEN }}
+          archivos: proyecto.ttl
