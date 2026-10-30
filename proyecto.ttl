@@ -1,0 +1,32 @@
+# El proyecto.ttl de DocsifyTemplate (formato y reglas: ontologyLearning domain/proyecto.ttl y
+# domain/proyecto-reglas.ttl). Los términos preact: salen de Secondbrain/Vocabularios/preact/vocabulary.ttl.
+# Las schema:softwareRequirements no van a mano: las escribe el bloque generado del final, desde el código
+# (ontologyLearning `python3 main.py cli proyectos --aristas --escribir`). Acá arriba, solo el juicio.
+@prefix ontologia: <https://kiri231.com/ontologia#> .
+@prefix proyecto: <https://kiri231.com/proyecto/> .
+@prefix doap:   <http://usefulinc.com/ns/doap#> .
+@prefix schema: <https://schema.org/> .
+
+proyecto:docsify-template a ontologia:Proyecto ;
+    doap:shortdesc "Un motor de documentación con plugins: convierte bloques YAML del markdown en componentes interactivos (Preact) y exporta a LaTeX y PDF; Docsify es su primer adaptador." ;
+    schema:codeRepository <https://github.com/Kiri23/DocsifyTemplate> .
+
+# --- generado por `python3 main.py cli proyectos --aristas --escribir`: no editar a mano ---
+@prefix proyecto: <https://kiri231.com/proyecto/> .
+@prefix schema: <https://schema.org/> .
+@prefix vocabulario.preact: <https://kiri231.com/vocabulario/preact#> .
+# from: packages/docs-engine/src/adapters/astro/rehype-components.js:51 const htmlString = renderToString(h(Component, { data }));
+proyecto:docsify-template schema:softwareRequirements vocabulario.preact:componente .
+# from: packages/docs-engine/src/core/custom-elements.js:19 register(withJsonProps(Component), tag, ['data-props'], { shadow: false });
+proyecto:docsify-template schema:softwareRequirements vocabulario.preact:custom-element .
+# from: packages/docs-engine/src/adapters/astro/rehype-components.js:51 const htmlString = renderToString(h(Component, { data }));
+proyecto:docsify-template schema:softwareRequirements vocabulario.preact:elemento-virtual .
+# from: packages/docs-engine/src/components/api-endpoint.js:15 const [open, setOpen] = useState(false);
+proyecto:docsify-template schema:softwareRequirements vocabulario.preact:hook .
+# from: packages/docs-engine/src/components/api-endpoint.js:23 return html`
+proyecto:docsify-template schema:softwareRequirements vocabulario.preact:htm .
+# from: packages/docs-engine/src/adapters/astro/rehype-components.js:51 const htmlString = renderToString(h(Component, { data }));
+proyecto:docsify-template schema:softwareRequirements vocabulario.preact:render-a-string .
+# from: packages/docs-engine/src/state/demo-store.js:20 export const selectedId = signal(null);
+proyecto:docsify-template schema:softwareRequirements vocabulario.preact:signal .
+# --- fin generado ---
