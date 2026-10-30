@@ -1,7 +1,7 @@
 # El proyecto.ttl de DocsifyTemplate (formato y reglas: ontologyLearning domain/proyecto.ttl y
 # domain/proyecto-reglas.ttl). Dice lo que usa hoy y lo que debería usar; la diferencia es la brecha
 # (ontologyLearning consultas/proyectos-que-usan.rq la muestra por concepto).
-# Los términos preact: salen de Secondbrain/Vocabularios/preact/vocabulary.ttl.
+# Los términos preact:, docsify:, remark: y pandoc: salen de Secondbrain/Vocabularios/<nombre>/vocabulary.ttl.
 # Las schema:softwareRequirements hacia un vocabulario no van a mano: las escribe el bloque generado del final, desde
 # el código (ontologyLearning `python3 main.py cli proyectos --aristas --escribir`). Acá arriba, solo el juicio.
 @prefix ontologia: <https://kiri231.com/ontologia#> .
@@ -26,7 +26,32 @@ proyecto:docsifytemplate a ontologia:Proyecto ;
 # --- generado por `python3 main.py cli proyectos --aristas --escribir`: no editar a mano ---
 @prefix proyecto: <https://kiri231.com/proyecto/> .
 @prefix schema: <https://schema.org/> .
+@prefix vocabulario.docsify: <https://kiri231.com/vocabulario/docsify#> .
+@prefix vocabulario.pandoc: <https://kiri231.com/vocabulario/pandoc#> .
 @prefix vocabulario.preact: <https://kiri231.com/vocabulario/preact#> .
+@prefix vocabulario.remark: <https://kiri231.com/vocabulario/remark#> .
+# from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:56 window.$docsify = window.$docsify || {};
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:configuracion .
+# from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:59 hook.afterEach(function (html, next) {
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:hook .
+# from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:57 window.$docsify.plugins = (window.$docsify.plugins || []).concat([
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:plugin .
+# from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:7 var path = vm.route.path || '';
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:vm .
+# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:89 var result = await convert(options, md, files);
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:conversion .
+# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:68 options.filters = ['filter.lua'];
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:filtro .
+# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:59 var options = { from: 'markdown', to: fmt.to, standalone: true };
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:formato-de-entrada .
+# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:59 var options = { from: 'markdown', to: fmt.to, standalone: true };
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:formato-de-salida .
+# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:85 if (h1) options.metadata = { title: h1.textContent.trim() };
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:metadatos .
+# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:77 options.template = templateName;
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:plantilla .
+# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:59 var options = { from: 'markdown', to: fmt.to, standalone: true };
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:standalone .
 # from: packages/docs-engine/src/adapters/astro/rehype-components.js:51 const htmlString = renderToString(h(Component, { data }));
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:componente .
 # from: packages/docs-engine/src/core/custom-elements.js:19 register(withJsonProps(Component), tag, ['data-props'], { shadow: false });
@@ -41,4 +66,16 @@ proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:htm .
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:render-a-string .
 # from: packages/docs-engine/src/state/demo-store.js:20 export const selectedId = signal(null);
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:signal .
+# from: packages/docs-engine/src/core/markdown-transform.js:51 parent.children.splice(index, 1, { type: 'html', value: result, position });
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:mdast .
+# from: packages/docs-engine/src/core/markdown-transform.js:11 import remarkParse from 'remark-parse';
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:parser .
+# from: packages/docs-engine/src/core/markdown-transform.js:70 const processor = unified().use(remarkParse).use(yamlComponents, { parseYaml, transforms: resolvedTransforms });
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:plugin .
+# from: packages/docs-engine/src/core/markdown-transform.js:70 const processor = unified().use(remarkParse).use(yamlComponents, { parseYaml, transforms: resolvedTransforms });
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:procesador .
+# from: packages/docs-engine/src/core/markdown-transform.js:32 return function transformer(tree) {
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:transformador .
+# from: packages/docs-engine/src/core/markdown-transform.js:35 visit(tree, 'code', (node, index, parent) => {
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:visitar .
 # --- fin generado ---
