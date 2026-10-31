@@ -27,6 +27,7 @@ proyecto:docsifytemplate a ontologia:Proyecto ;
 @prefix ontologia: <https://kiri231.com/ontologia#> .
 @prefix proyecto: <https://kiri231.com/proyecto/> .
 @prefix schema: <https://schema.org/> .
+@prefix ancla.docsifytemplate: <https://kiri231.com/proyecto/docsifytemplate/ancla/> .
 @prefix vocabulario.docsify: <https://kiri231.com/vocabulario/docsify#> .
 @prefix vocabulario.pandoc: <https://kiri231.com/vocabulario/pandoc#> .
 @prefix vocabulario.preact: <https://kiri231.com/vocabulario/preact#> .
@@ -34,97 +35,121 @@ proyecto:docsifytemplate a ontologia:Proyecto ;
 
 # from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:56 window.$docsify = window.$docsify || {};
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:configuracion .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.docsify:configuracion ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 56 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:docsify.configuracion .
+ancla.docsifytemplate:docsify.configuracion ontologia:termino vocabulario.docsify:configuracion ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 56 .
 
 # from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:59 hook.afterEach(function (html, next) {
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:hook .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.docsify:hook ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 59 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:docsify.hook .
+ancla.docsifytemplate:docsify.hook ontologia:termino vocabulario.docsify:hook ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 59 .
 
 # from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:57 window.$docsify.plugins = (window.$docsify.plugins || []).concat([
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:plugin .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.docsify:plugin ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 57 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:docsify.plugin .
+ancla.docsifytemplate:docsify.plugin ontologia:termino vocabulario.docsify:plugin ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 57 .
 
 # from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:7 var path = vm.route.path || '';
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:vm .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.docsify:vm ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 7 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:docsify.vm .
+ancla.docsifytemplate:docsify.vm ontologia:termino vocabulario.docsify:vm ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 7 .
 
 # from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:89 var result = await convert(options, md, files);
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:conversion .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.pandoc:conversion ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 89 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.conversion .
+ancla.docsifytemplate:pandoc.conversion ontologia:termino vocabulario.pandoc:conversion ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 89 .
 
 # from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:68 options.filters = ['filter.lua'];
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:filtro .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.pandoc:filtro ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 68 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.filtro .
+ancla.docsifytemplate:pandoc.filtro ontologia:termino vocabulario.pandoc:filtro ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 68 .
 
 # from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:59 var options = { from: 'markdown', to: fmt.to, standalone: true };
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:formato-de-entrada .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.pandoc:formato-de-entrada ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 59 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.formato-de-entrada .
+ancla.docsifytemplate:pandoc.formato-de-entrada ontologia:termino vocabulario.pandoc:formato-de-entrada ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 59 .
 
 # from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:59 var options = { from: 'markdown', to: fmt.to, standalone: true };
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:formato-de-salida .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.pandoc:formato-de-salida ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 59 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.formato-de-salida .
+ancla.docsifytemplate:pandoc.formato-de-salida ontologia:termino vocabulario.pandoc:formato-de-salida ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 59 .
 
 # from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:85 if (h1) options.metadata = { title: h1.textContent.trim() };
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:metadatos .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.pandoc:metadatos ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 85 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.metadatos .
+ancla.docsifytemplate:pandoc.metadatos ontologia:termino vocabulario.pandoc:metadatos ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 85 .
 
 # from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:77 options.template = templateName;
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:plantilla .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.pandoc:plantilla ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 77 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.plantilla .
+ancla.docsifytemplate:pandoc.plantilla ontologia:termino vocabulario.pandoc:plantilla ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 77 .
 
 # from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:59 var options = { from: 'markdown', to: fmt.to, standalone: true };
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:standalone .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.pandoc:standalone ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 59 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.standalone .
+ancla.docsifytemplate:pandoc.standalone ontologia:termino vocabulario.pandoc:standalone ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 59 .
 
 # from: packages/docs-engine/src/adapters/astro/rehype-components.js:51 const htmlString = renderToString(h(Component, { data }));
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:componente .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.preact:componente ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/astro/rehype-components.js" ; ontologia:linea 51 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.componente .
+ancla.docsifytemplate:preact.componente ontologia:termino vocabulario.preact:componente ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/astro/rehype-components.js" ; ontologia:linea 51 .
 
 # from: packages/docs-engine/src/core/custom-elements.js:19 register(withJsonProps(Component), tag, ['data-props'], { shadow: false });
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:custom-element .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.preact:custom-element ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/custom-elements.js" ; ontologia:linea 19 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.custom-element .
+ancla.docsifytemplate:preact.custom-element ontologia:termino vocabulario.preact:custom-element ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/custom-elements.js" ; ontologia:linea 19 .
 
 # from: packages/docs-engine/src/adapters/astro/rehype-components.js:51 const htmlString = renderToString(h(Component, { data }));
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:elemento-virtual .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.preact:elemento-virtual ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/astro/rehype-components.js" ; ontologia:linea 51 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.elemento-virtual .
+ancla.docsifytemplate:preact.elemento-virtual ontologia:termino vocabulario.preact:elemento-virtual ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/astro/rehype-components.js" ; ontologia:linea 51 .
 
 # from: packages/docs-engine/src/components/api-endpoint.js:15 const [open, setOpen] = useState(false);
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:hook .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.preact:hook ; ontologia:archivoDeCodigo "packages/docs-engine/src/components/api-endpoint.js" ; ontologia:linea 15 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.hook .
+ancla.docsifytemplate:preact.hook ontologia:termino vocabulario.preact:hook ; ontologia:archivoDeCodigo "packages/docs-engine/src/components/api-endpoint.js" ; ontologia:linea 15 .
 
 # from: packages/docs-engine/src/components/api-endpoint.js:23 return html`
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:htm .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.preact:htm ; ontologia:archivoDeCodigo "packages/docs-engine/src/components/api-endpoint.js" ; ontologia:linea 23 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.htm .
+ancla.docsifytemplate:preact.htm ontologia:termino vocabulario.preact:htm ; ontologia:archivoDeCodigo "packages/docs-engine/src/components/api-endpoint.js" ; ontologia:linea 23 .
 
 # from: packages/docs-engine/src/adapters/astro/rehype-components.js:51 const htmlString = renderToString(h(Component, { data }));
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:render-a-string .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.preact:render-a-string ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/astro/rehype-components.js" ; ontologia:linea 51 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.render-a-string .
+ancla.docsifytemplate:preact.render-a-string ontologia:termino vocabulario.preact:render-a-string ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/astro/rehype-components.js" ; ontologia:linea 51 .
 
 # from: packages/docs-engine/src/state/demo-store.js:20 export const selectedId = signal(null);
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:signal .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.preact:signal ; ontologia:archivoDeCodigo "packages/docs-engine/src/state/demo-store.js" ; ontologia:linea 20 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.signal .
+ancla.docsifytemplate:preact.signal ontologia:termino vocabulario.preact:signal ; ontologia:archivoDeCodigo "packages/docs-engine/src/state/demo-store.js" ; ontologia:linea 20 .
 
 # from: packages/docs-engine/src/core/markdown-transform.js:51 parent.children.splice(index, 1, { type: 'html', value: result, position });
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:mdast .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.remark:mdast ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 51 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.mdast .
+ancla.docsifytemplate:remark.mdast ontologia:termino vocabulario.remark:mdast ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 51 .
 
 # from: packages/docs-engine/src/core/markdown-transform.js:11 import remarkParse from 'remark-parse';
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:parser .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.remark:parser ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 11 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.parser .
+ancla.docsifytemplate:remark.parser ontologia:termino vocabulario.remark:parser ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 11 .
 
 # from: packages/docs-engine/src/core/markdown-transform.js:70 const processor = unified().use(remarkParse).use(yamlComponents, { parseYaml, transforms: resolvedTransforms });
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:plugin .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.remark:plugin ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 70 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.plugin .
+ancla.docsifytemplate:remark.plugin ontologia:termino vocabulario.remark:plugin ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 70 .
 
 # from: packages/docs-engine/src/core/markdown-transform.js:70 const processor = unified().use(remarkParse).use(yamlComponents, { parseYaml, transforms: resolvedTransforms });
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:procesador .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.remark:procesador ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 70 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.procesador .
+ancla.docsifytemplate:remark.procesador ontologia:termino vocabulario.remark:procesador ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 70 .
 
 # from: packages/docs-engine/src/core/markdown-transform.js:32 return function transformer(tree) {
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:transformador .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.remark:transformador ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 32 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.transformador .
+ancla.docsifytemplate:remark.transformador ontologia:termino vocabulario.remark:transformador ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 32 .
 
 # from: packages/docs-engine/src/core/markdown-transform.js:35 visit(tree, 'code', (node, index, parent) => {
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:visitar .
-proyecto:docsifytemplate ontologia:ancla [ ontologia:termino vocabulario.remark:visitar ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 35 ] .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.visitar .
+ancla.docsifytemplate:remark.visitar ontologia:termino vocabulario.remark:visitar ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 35 .
 # --- fin generado ---
