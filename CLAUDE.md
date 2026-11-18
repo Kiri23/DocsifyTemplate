@@ -206,6 +206,8 @@ DocsifyTemplate/
 │   │           └── astro/
 │   │               ├── remark-components.js
 │   │               └── rehype-components.js
+│   ├── docs-site/               # Docsify 5 + prompt-bench theme, no build: Markdown → components
+│   │                            # with <!-- as: name -->, site.js, bin/serve.mjs, bin/check.mjs
 │   └── chat/                    # AI chat engine (separate package)
 │       ├── package.json
 │       └── src/
