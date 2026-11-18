@@ -1,0 +1,67 @@
+/* The on-this-page plugin: the headings of the page in a third column, on wide screens only. */
+
+.on-this-page {
+  display: none;
+}
+
+.on-this-page h2 {
+  margin: 0 0 10px;
+  color: var(--text-dim);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.on-this-page ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: 1px solid var(--line);
+}
+
+.on-this-page a {
+  display: block;
+  margin-left: -1px;
+  padding: 4px 0 4px 14px;
+  border-left: 2px solid transparent;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.45;
+  text-decoration: none;
+}
+
+.on-this-page .depth-3 a {
+  padding-left: 26px;
+}
+
+.on-this-page a:hover {
+  color: var(--text);
+}
+
+.on-this-page a[aria-current="location"] {
+  border-left-color: var(--amber);
+  color: var(--amber);
+}
+
+@media (min-width: 1280px) {
+  .on-this-page {
+    display: block;
+    position: fixed;
+    top: calc(var(--pb-top) + 48px);
+    right: 0;
+    bottom: 0;
+    width: var(--pb-toc-width);
+    padding: 0 24px 40px 0;
+    overflow-y: auto;
+  }
+
+  body:has(.on-this-page) main > .content {
+    right: var(--pb-toc-width);
+  }
+
+  /* the right column lists the headings, so the sidebar does not */
+  body:has(.on-this-page) .sidebar-nav .app-sub-sidebar {
+    display: none;
+  }
+}

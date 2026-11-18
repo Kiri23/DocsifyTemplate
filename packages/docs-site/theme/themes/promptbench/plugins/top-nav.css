@@ -1,0 +1,134 @@
+/* The top-nav plugin: the bar on top, and what changes in the page when it is there. */
+
+/* the page starts under the bar */
+:root:has(.top-nav) {
+  --pb-top: var(--navbar-height);
+}
+
+/* the top nav carries the name; the sidebar does not repeat it */
+body:has(.top-nav) .sidebar .app-name {
+  display: none;
+}
+
+/* the top nav links to GitHub, so the corner ribbon goes */
+body:has(.top-nav) .github-corner {
+  display: none;
+}
+
+/* the top nav has its own menu button, so Docsify's handle is not drawn */
+body:has(.top-nav) .sidebar-toggle {
+  display: none;
+}
+
+.top-nav {
+  position: fixed;
+  z-index: 40;
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--navbar-height);
+  padding: 0 clamp(12px, 3vw, 24px);
+  border-bottom: 1px solid var(--line);
+  background: var(--ink);
+}
+
+.top-nav .top-nav-brand {
+  display: inline-flex;
+  align-items: center;
+  margin-right: auto;
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: var(--fs-17);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.top-nav .logo-mark {
+  color: var(--amber);
+  margin-right: 0.15em;
+}
+
+.top-nav-links {
+  display: flex;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.top-nav-links a {
+  display: block;
+  padding: 7px 12px;
+  border-radius: 999px;
+  color: var(--text-soft);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.top-nav-links a:hover {
+  color: var(--text);
+  background: var(--ink-raised);
+}
+
+.top-nav-links a[aria-current="page"] {
+  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 11%, transparent);
+}
+
+.top-nav-menu {
+  display: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.top-nav-menu svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 640px) {
+  .top-nav-menu {
+    display: grid;
+  }
+
+  .top-nav {
+    gap: 4px;
+  }
+
+  .top-nav .top-nav-brand {
+    padding-inline: 6px;
+    font-size: var(--fs-15);
+  }
+
+  .top-nav-links a {
+    padding: 6px 9px;
+    font-size: 14px;
+  }
+
+  /* with the drawer open, the rest of the page is one big "close" target */
+  body:has(.top-nav):has(.sidebar.show) .sidebar-toggle {
+    display: flex;
+    top: var(--pb-top);
+  }
+
+  body:has(.top-nav) .sidebar-toggle-button {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-nav-links a {
+    transition: none;
+  }
+}

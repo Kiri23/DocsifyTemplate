@@ -1,0 +1,115 @@
+/* stepper: the steps of a how-to one at a time, numbered dots on top. */
+
+.as-st {
+  margin: var(--margin-block) 0;
+}
+
+.as-st-tabs {
+  display: grid;
+  grid-template-columns: repeat(var(--as-st-count), minmax(0, 1fr));
+  margin-bottom: 8px;
+}
+
+.as-st-tabs [role="tab"] {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px 8px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: var(--text-soft);
+  font: 13.5px/1.3 var(--sans);
+  cursor: pointer;
+}
+
+/* the line between two dots; amber up to the step the reader is at */
+.as-st-tabs [role="tab"] + [role="tab"]::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  right: 50%;
+  width: 100%;
+  border-top: 2px solid var(--line);
+}
+
+.as-st-tabs [role="tab"].done + [role="tab"]::before {
+  border-color: var(--amber);
+}
+
+.as-st-dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--ink-code);
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.as-st-tabs .done .as-st-dot {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.as-st-tabs [aria-selected="true"] {
+  border-bottom-color: var(--amber);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.as-st-tabs [aria-selected="true"] .as-st-dot {
+  border-color: var(--amber);
+  background: var(--amber);
+  color: var(--amber-ink);
+}
+
+.as-st-panel {
+  padding: 4px 16px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--ink-raised);
+}
+
+.as-st-panel > h2:first-child {
+  margin-top: 12px;
+}
+
+.as-st-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.as-st-nav button {
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--ink-code);
+  color: var(--text);
+  font: 14px var(--sans);
+  cursor: pointer;
+}
+
+.as-st-nav button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  /* on a phone the dots stay and the titles go: the panel says which step it is */
+  .as-st-title {
+    display: none;
+  }
+}

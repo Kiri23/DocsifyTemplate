@@ -1,6 +1,11 @@
 # DocsifyTemplate
 A zero-build-step interactive documentation framework powered by Docsify with custom data-driven components.
 
+> **Docs as a service:** [`packages/docs-site`](packages/docs-site/README.md) serves any repo's folder of
+> Markdown with prompt-bench's theme (Docsify 5, no build) and components that read the Markdown itself,
+> marked with `<!-- as: component -->`. One `index.html` in the other repo, or
+> `npm run docs:serve -- <folder>` without touching it.
+
 ## Quick Start
 
 ```bash

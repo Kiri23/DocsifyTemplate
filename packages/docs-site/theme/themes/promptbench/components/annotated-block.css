@@ -1,0 +1,86 @@
+/* annotated-block: a code block with numbered notes; pointing at a number lights up its note. */
+
+.as-ab-layout {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+  margin: var(--margin-block) 0;
+}
+
+
+/* a grid cell may shrink below the width of the block, which then scrolls inside its window */
+.as-ab-layout > * {
+  min-width: 0;
+}
+
+.as-ab-code .window,
+.as-ab-code pre {
+  margin: 0;
+}
+
+.as-hit {
+  position: relative;
+  border-radius: 2px;
+  outline: 1px dashed var(--amber);
+  outline-offset: 1px;
+  cursor: help;
+}
+
+/* the number sits over the text, so the columns of the block don't move */
+.as-hit::before {
+  content: attr(data-n);
+  position: absolute;
+  top: -0.95em;
+  left: -0.5em;
+  min-width: 1.35em;
+  height: 1.35em;
+  border-radius: 50%;
+  background: var(--amber);
+  color: var(--amber-ink);
+  font: 700 10px/1.35em var(--sans);
+  text-align: center;
+}
+
+.as-hit.on,
+.as-hit:focus-visible {
+  outline-style: solid;
+  background: color-mix(in srgb, var(--amber) 18%, transparent);
+}
+
+.markdown-section .as-ab-notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.markdown-section .as-ab-notes li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--ink-raised);
+  color: var(--text-soft);
+  font-size: var(--fs-15);
+  line-height: 1.5;
+}
+
+.markdown-section .as-ab-notes li.on {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 1px var(--amber);
+}
+
+.as-ab-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--amber);
+  color: var(--amber-ink);
+  font: 700 11px/20px var(--sans);
+  text-align: center;
+}

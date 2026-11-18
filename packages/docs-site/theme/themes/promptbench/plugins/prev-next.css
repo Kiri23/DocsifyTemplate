@@ -1,0 +1,69 @@
+/* The prev-next plugin: the pages before and after, at the end of the page. */
+
+.prev-next {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: var(--content-max-width);
+  max-width: calc(100% - (var(--content-margin-inline) * 2));
+  margin: 8px auto 0;
+  padding: 32px 0 64px;
+  border-top: 1px solid var(--line);
+}
+
+.prev-next:empty {
+  display: none;
+}
+
+/* a page outside the sidebar has no neighbours: the empty box is not drawn */
+.prev-next:empty {
+  display: none;
+}
+
+.prev-next a {
+  display: block;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.prev-next a:hover {
+  border-color: var(--amber);
+  background: var(--ink-raised);
+}
+
+.prev-next .next {
+  grid-column: 2;
+  text-align: right;
+}
+
+.prev-next small {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.prev-next span {
+  font-weight: 650;
+}
+
+@media (max-width: 640px) {
+  .prev-next {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prev-next .next {
+    grid-column: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prev-next a {
+    transition: none;
+  }
+}
