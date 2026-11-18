@@ -2,7 +2,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdtempSync, mkdirSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { networkInterfaces, tmpdir } from "node:os";
 import { join } from "node:path";
 import { connect } from "node:net";
@@ -12,9 +12,10 @@ const SERVE = fileURLToPath(new URL("../bin/serve.mjs", import.meta.url));
 const PORT = 3900 + Math.floor(Math.random() * 90);
 const BASE = `http://127.0.0.1:${PORT}`;
 let server;
+let root;
 
 before(async () => {
-  const root = mkdtempSync(join(tmpdir(), "serve-"));
+  root = mkdtempSync(join(tmpdir(), "serve-"));
   const folder = join(root, "repo");
   mkdirSync(folder);
   mkdirSync(join(folder, ".github"));
@@ -31,7 +32,10 @@ before(async () => {
   });
 });
 
-after(() => server.kill());
+after(() => {
+  server.kill();
+  rmSync(root, { recursive: true, force: true });
+});
 
 const status = async (path) => (await fetch(BASE + path)).status;
 

@@ -1,18 +1,22 @@
 // check.mjs run as a command, the way `npm run check:docs` runs it, from a folder whose path has a
 // space (Christian's clone lives in "~/Documents/Personal projects/…").
-import { test } from "node:test";
+import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const PACKAGE = fileURLToPath(new URL("..", import.meta.url));
 
+const made = [];
+after(() => made.forEach((dir) => rmSync(dir, { recursive: true, force: true })));
+
 /** The package reached through a folder named "con espacio", and a folder of Markdown. */
 function setUp(markdown) {
   const dir = mkdtempSync(join(tmpdir(), "check-"));
+  made.push(dir);
   symlinkSync(PACKAGE, join(dir, "con espacio"));
   mkdirSync(join(dir, "docs"));
   writeFileSync(join(dir, "docs", "page.md"), markdown);
