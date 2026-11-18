@@ -14,7 +14,9 @@ export function fileLinks() {
     });
 
     hook.doneEach(() => {
-      const page = new URL((vm.config.basePath || "/") + vm.route.file, location.origin);
+      // From the folder the site is served at, which is not the root of the domain on GitHub
+      // Pages (kiri23.github.io/MyClaudeSkills/).
+      const page = new URL(vm.route.file, new URL(".", location.href));
       for (const a of document.querySelectorAll("#main a[href]")) {
         const href = a.getAttribute("href");
         if (!new RegExp(`^${FILE_LINK}$`).test(href)) continue;

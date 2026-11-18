@@ -3,7 +3,7 @@
 
 It starts bin/serve.mjs for the folder, visits the home page and every page the sidebar links to,
 and collects console errors and warnings (the `as:` plugin warns when it leaves Markdown as is),
-uncaught errors and responses of 400 or more. It counts the components each page drew. With
+uncaught errors, responses of 400 or more and links to files that don't open. It counts the components each page drew. With
 --shots it saves a screenshot per page. The server is stopped at the end, pass or fail.
 
     python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs --shots /tmp/shots
@@ -87,6 +87,13 @@ def visit_all(base, opts):
             # The sidebar is the same on every page: a link that changes with the page is relative.
             if sidebar_links(page) != sidebar:
                 said.append("el sidebar cambia en esta página: sus links tienen que empezar en /")
+            # Each link to a file of the site (not a page, not another site) has to open it.
+            for href in page.eval_on_selector_all(
+                "#main a[href]", "as => as.map(a => a.href).filter(h => h.startsWith(location.origin) && !h.includes('#'))"
+            ):
+                code = page.request.get(href).status
+                if code >= 400:
+                    said.append(f"link a archivo roto: {href} → {code}")
             drawn = page.eval_on_selector_all("#main .as", "els => els.map(e => e.className)")
             h1 = page.query_selector("#main h1")
             title = h1.text_content() if h1 else "(sin título)"

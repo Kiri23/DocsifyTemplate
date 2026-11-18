@@ -5,8 +5,10 @@
 // prints file:line and why, and exits with 1. A marker that passes here is drawn by the site.
 //
 //   node packages/docs-site/bin/check.mjs packages/docs-site/docs ~/Code/MyClaudeSkills
+import { realpathSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { marked } from "marked";
 import { parseHTML } from "linkedom";
 import { findMarks, prepare } from "../as/core.js";
@@ -61,7 +63,9 @@ export function problemsIn(source) {
   return problems;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run as a command, not imported by a test. The path is compared as a URL ("con%20espacio") and
+// with links resolved, so a folder with a space or a symlink in its path still runs the check.
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const folders = process.argv.slice(2);
   if (!folders.length) {
     console.error("uso: check.mjs <carpeta> [<carpeta>…]");
