@@ -48,6 +48,15 @@ Por qué githack y no jsDelivr: jsDelivr no sirve un repo de más de 50 MB, y Do
 repo, `https://cdn.jsdelivr.net/gh/Kiri23/DocsifyTemplate@<tag>/packages/docs-site/site.js` también
 sirve: `site.js` toma la base de su propia URL, así que nada más cambia.
 
+Y un `_sidebar.md` al lado, con links que empiezan en `/` (el sidebar se ve en todas las páginas).
+`serve.mjs` lo inventa cuando falta; un hosting estático no, y Docsify lo pide igual. Sin sidebar,
+`loadSidebar: false` en la config.
+
+```md
+* [Scripts](/bin/SCRIPTS.md)
+* [Cómo se instalan](/conducta/reference/scripts.md)
+```
+
 Lo que el repo pone en `window.$docsify` es la config de Docsify de siempre y gana sobre la de
 `site.js`. Sus `plugins` van después de los del tema.
 
