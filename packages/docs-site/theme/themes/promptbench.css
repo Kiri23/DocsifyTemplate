@@ -1,0 +1,19 @@
+/* The PromptBench theme for Docsify 5: the landing's ink and amber on a layout like react.dev
+   (nav on top, sections on the left, the page in the middle, "On this page" on the right).
+   It only names tokens. Swapping the theme is swapping the <link> to this file in docs/index.html. */
+
+@import url("../tokens.css");
+
+/* The look of the page, then one file per plugin: dropping a plugin can drop its file too. */
+@import url("promptbench/variables.css");
+@import url("promptbench/layout.css");
+@import url("promptbench/plugins/top-nav.css");
+@import url("promptbench/plugins/sidebar-sections.css");
+@import url("promptbench/plugins/on-this-page.css");
+@import url("promptbench/plugins/prev-next.css");
+@import url("promptbench/plugins/code-window.css");
+
+/* The components a page names with <!-- as: … --> (packages/docs-site/components/), one file each. */
+@import url("promptbench/components/annotated-block.css");
+@import url("promptbench/components/option-picker.css");
+@import url("promptbench/components/stepper.css");

@@ -1,0 +1,5 @@
+/* The sidebar-sections plugin: the title of the section of the open page stands out a little. */
+
+.sidebar-nav li.current-section > p.group-title {
+  color: var(--text-soft);
+}

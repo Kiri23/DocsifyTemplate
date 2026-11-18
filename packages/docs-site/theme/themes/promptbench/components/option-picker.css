@@ -1,0 +1,138 @@
+/* option-picker: pick a value and the pieces drop through the filter or stay out. */
+
+.as-op {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: var(--margin-block) 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--ink-code);
+}
+
+.as-op-modes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.as-op-modes legend {
+  float: left;
+  margin-right: 4px;
+  color: var(--text-soft);
+  font-size: var(--fs-15);
+}
+
+.as-op-modes label {
+  position: relative;
+}
+
+/* the radio stays for the keyboard and the screen reader; the button-like label is what shows */
+.as-op-modes input {
+  position: absolute;
+  opacity: 0;
+}
+
+.as-op-modes span {
+  display: inline-block;
+  min-width: 84px;
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--ink-raised);
+  color: var(--text);
+  font: 600 var(--fs-code) var(--mono);
+  text-align: center;
+  cursor: pointer;
+}
+
+.as-op-modes input:checked + span {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.as-op-modes input:focus-visible + span {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.as-op-zone {
+  padding: 8px 10px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.markdown-section .as-op-zone h4 {
+  margin: 0 0 6px;
+  color: var(--text-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.markdown-section .as-op-zone ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 30px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.markdown-section .as-op-chip {
+  margin: 0;
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--ink-raised);
+  color: var(--text);
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+.markdown-section .as-op-chip.stopped {
+  border-style: dashed;
+  background: none;
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+
+.markdown-section .as-op-chip.instead {
+  border-color: var(--syn-f);
+  color: var(--syn-f);
+}
+
+/* "stopped" is said by the strike-through and the zone, not by colour alone */
+.markdown-section .as-op-chip.instead::before {
+  content: "↳ ";
+}
+
+.as-op-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.as-op-filter::before,
+.as-op-filter::after {
+  content: "";
+  flex: 1;
+  border-top: 3px dotted var(--amber);
+}
+
+.as-op-filter b {
+  color: var(--amber);
+  font: 600 var(--fs-code) var(--mono);
+  white-space: nowrap;
+}
+
+.markdown-section .as-op-summary {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 14px;
+}
