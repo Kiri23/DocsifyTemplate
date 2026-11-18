@@ -76,6 +76,7 @@ def visit_all(base, opts):
             ".sidebar-nav a.page-link[href^='#/']", "as => as.map(a => a.getAttribute('href').slice(1))"
         )
         routes = list(dict.fromkeys(routes))[: opts.max]
+        sidebar = sidebar_links(page)
 
         for i, route in enumerate(routes):
             # The first page keeps what the console said while the site loaded.
@@ -83,8 +84,12 @@ def visit_all(base, opts):
                 said.clear()
                 page.goto(f"{base}#{route}")
                 settle(page)
+            # The sidebar is the same on every page: a link that changes with the page is relative.
+            if sidebar_links(page) != sidebar:
+                said.append("el sidebar cambia en esta página: sus links tienen que empezar en /")
             drawn = page.eval_on_selector_all("#main .as", "els => els.map(e => e.className)")
-            title = page.text_content("#main h1") or "(sin título)"
+            h1 = page.query_selector("#main h1")
+            title = h1.text_content() if h1 else "(sin título)"
             mark = "✗" if said else "✓"
             print(f"{mark} #{route}  «{title.strip()}»  componentes: {len(drawn)} {drawn if drawn else ''}")
             for line in said:
@@ -98,9 +103,17 @@ def visit_all(base, opts):
     return failures
 
 
+def sidebar_links(page):
+    """Where each page link of the sidebar points, in order (not the headings it lists under the
+    open page)."""
+    return page.eval_on_selector_all(
+        ".sidebar-nav a[href]", "as => as.map(a => a.getAttribute('href')).filter(h => !h.includes('?id='))"
+    )
+
+
 def settle(page):
     """Waits until Docsify drew the page and the module scripts had time to run."""
-    page.wait_for_selector("#main h1", timeout=15000)
+    page.wait_for_function("document.querySelector('#main')?.children.length > 0", timeout=15000)
     page.wait_for_load_state("networkidle")
     page.wait_for_timeout(400)
 

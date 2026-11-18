@@ -3,7 +3,7 @@
 //
 //   <div id="app"></div>
 //   <script>window.$docsify = { name: "MyClaudeSkills", homepage: "bin/SCRIPTS.md" };</script>
-//   <script src="https://cdn.jsdelivr.net/gh/Kiri23/DocsifyTemplate@<tag>/packages/docs-site/site.js"></script>
+//   <script src="https://rawcdn.githack.com/Kiri23/DocsifyTemplate/<tag>/packages/docs-site/site.js"></script>
 //
 // It writes what that index.html would otherwise say by hand: Docsify 5, the theme, the import
 // map for Preact, the theme's plugins and the components. What the repo puts in window.$docsify
@@ -36,10 +36,18 @@
   }, own);
 
   // A home page inside a folder (bin/SCRIPTS.md) is opened at its own route, so its relative
-  // links resolve from its folder, as they do on GitHub.
+  // links resolve from its folder, as they do on GitHub. Docsify isn't told about it: its
+  // `homepage` would show that page for README.md too, and the repo's README would be lost.
   var home = own.homepage;
-  if (home && home.indexOf("/") !== -1 && (location.hash === "" || location.hash === "#/")) {
-    location.replace("#/" + home.replace(/\.md$/, ""));
+  if (home && home.indexOf("/") !== -1) {
+    delete window.$docsify.homepage;
+    var toHome = function () {
+      if (location.hash === "" || location.hash === "#/") {
+        location.replace("#/" + home.replace(/\.md$/, ""));
+      }
+    };
+    toHome();
+    addEventListener("hashchange", toHome);
   }
 
   document.write(

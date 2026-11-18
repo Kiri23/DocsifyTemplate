@@ -76,14 +76,15 @@ function indexHtml() {
 `;
 }
 
-/** A sidebar for a folder that has none: its Markdown files, grouped by their first folder. */
+/** A sidebar for a folder that has none: its Markdown files, grouped by their first folder. The
+ *  sidebar shows on every page, so its links start at the root, not at the open page. */
 function sidebarFor(files) {
   const groups = new Map();
   for (const path of [...files.keys()].filter((p) => p.endsWith(".md")).sort()) {
     const parts = path.slice(1).split("/");
     const group = parts.length > 1 ? parts[0] : "";
     if (!groups.has(group)) groups.set(group, []);
-    groups.get(group).push(`  * [${parts.slice(1).join("/") || parts[0]}](${path.slice(1)})`);
+    groups.get(group).push(`  * [${parts.slice(1).join("/") || parts[0]}](${path})`);
   }
   return [...groups].map(([group, items]) =>
     group ? `* ${group}\n${items.join("\n")}` : items.map((i) => i.trim()).join("\n")
