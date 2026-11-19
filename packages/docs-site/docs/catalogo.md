@@ -98,6 +98,10 @@ npm run docs:armar -- ~/Code/MyClaudeSkills/docs
   arma un camino con él, así que `../*.md` no encuentra nada.
 - **Un link que apunta afuera del repo** no entra. Uno que apunta adentro entra con el contenido
   del archivo al que apunta.
+- **En un repo git, lo que git no versiona** (`git ls-files`): lo que una máquina genera y está
+  en el `.gitignore` (`ontologia/grafo/` de MyClaudeSkills) o un archivo suelto que nunca se
+  commiteó. Así el catálogo es el mismo en todas las máquinas, y `--check` también. Un archivo
+  nuevo entra cuando se hace `git add`. Fuera de un repo git cuenta todo lo visible.
 - **La propia carpeta `docs/`**: ya está en el sitio.
 - `node_modules/`.
 
