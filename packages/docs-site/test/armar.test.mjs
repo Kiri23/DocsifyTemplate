@@ -207,6 +207,9 @@ test("--check fails when a file changed, was added or left the patterns", () => 
     assert.match(run.stderr, new RegExp(line.replace(".", "\\.")));
   }
   assert.ok(existsSync(catalog("b.md")), "--check doesn't touch the catalog");
+  // It doesn't guess how this repo runs armar: just docs, npx and node all rebuild without --check.
+  assert.match(run.stderr, /Rearmalo: corré el mismo comando sin --check\./);
+  assert.doesNotMatch(run.stderr, /armar\.mjs/);
 });
 
 test("--check fails when there's no catalog yet", () => {

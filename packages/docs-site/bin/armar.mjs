@@ -8,7 +8,7 @@
 //
 // From another repo, pinned to a commit of DocsifyTemplate (packages/docs-site/docs/catalogo.md):
 //
-//   npx -y --package=github:Kiri23/DocsifyTemplate#<sha> docs-armar docs
+//   npx -y --package=https://codeload.github.com/Kiri23/DocsifyTemplate/tar.gz/<sha> docs-armar docs
 //
 // With --check it writes nothing: it exits with 1 and says what changed if <docs>/_catalogo/ isn't
 // what it would build. For a repo that commits its catalog, from its pre-commit.
@@ -48,7 +48,8 @@ if (values.check) {
   } else {
     console.error(`${catalog} está atrasado respecto de incluir.txt y del repo:`);
     for (const difference of result.differences) console.error(`  ${difference}`);
-    console.error(`Rearmalo: armar.mjs ${docs}`);
+    // Each repo runs armar its own way (just docs, npx, node), so it names none of them.
+    console.error("Rearmalo: corré el mismo comando sin --check.");
     process.exit(1);
   }
 } else {
