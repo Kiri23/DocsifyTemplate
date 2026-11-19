@@ -9,7 +9,7 @@ Markdown con una marca invisible, `<!-- as: componente -->`. Los docs de este pa
 npm run serve                                   # → http://localhost:3010/packages/docs-site/docs/
 npm run docs:serve -- ~/Code/MyClaudeSkills --home bin/SCRIPTS.md   # otro repo → http://localhost:3011/
 npm run check:docs -- ~/Code/MyClaudeSkills     # las marcas de una carpeta, sin navegador
-npm run docs:armar -- ~/Code/MyClaudeSkills/docs # copia a docs/_catalogo/ lo que nombra docs/incluir.txt
+npm run docs:armar -- ~/Code/MyClaudeSkills/docs # copia a docs/_catalogo/ lo que nombra docs/incluir.txt (--check: solo revisa)
 npm test                                        # node --test: marcas, formas, componentes, colores
 python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs   # cada página en Chromium
 ```

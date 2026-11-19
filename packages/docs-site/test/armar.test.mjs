@@ -177,3 +177,43 @@ test("without incluir.txt it says what's missing and exits with 1", () => {
   assert.equal(run.status, 1);
   assert.match(run.stderr, /falta .*incluir\.txt/);
 });
+
+/** Runs armar --check on the test repo's docs folder. */
+function check() {
+  return spawnSync("node", [ARMAR, "--check", join(repo, "docs")], { encoding: "utf8" });
+}
+
+test("--check passes right after armar and writes nothing", () => {
+  write("docs/incluir.txt", "a.md\n");
+  write("a.md", "# a\n");
+  armar();
+  const run = check();
+  assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout, /está al día/);
+});
+
+test("--check fails when a file changed, was added or left the patterns", () => {
+  write("docs/incluir.txt", "*.md\n");
+  write("a.md", "# a\n");
+  write("b.md", "# b\n");
+  armar();
+  write("a.md", "# a, otra vez\n");
+  write("c.md", "# c\n");
+  rmSync(join(repo, "b.md"));
+  write("docs/_catalogo/.a-mano", "x\n");
+  const run = check();
+  assert.equal(run.status, 1);
+  for (const line of ["cambió a.md", "falta c.md", "sobra b.md", "sobra .a-mano", "cambió README.md"]) {
+    assert.match(run.stderr, new RegExp(line.replace(".", "\\.")));
+  }
+  assert.ok(existsSync(catalog("b.md")), "--check doesn't touch the catalog");
+});
+
+test("--check fails when there's no catalog yet", () => {
+  write("docs/incluir.txt", "a.md\n");
+  write("a.md", "# a\n");
+  const run = check();
+  assert.equal(run.status, 1);
+  assert.match(run.stderr, /falta a\.md/);
+  assert.ok(!existsSync(catalog("")));
+});

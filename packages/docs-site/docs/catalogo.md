@@ -57,9 +57,27 @@ docs:
     npx -y --package=github:Kiri23/DocsifyTemplate#<sha> docs-armar docs
 ```
 
-`docs/_catalogo/` es generado: va en el `.gitignore`. Para GitHub Pages, el workflow arma antes
-de publicar, y `docs/` necesita un `.nojekyll` (Jekyll ignora las carpetas que empiezan con `_`,
-como ya pasa con `_sidebar.md`).
+`docs/_catalogo/` es generado, y el repo elige si lo versiona:
+
+- **Versionado** (MyClaudeSkills): el repo se muestra igual sin correr nada, desde un clon o desde
+  Pages. A cambio puede quedar atrasado, así que el pre-commit corre el chequeo:
+
+  ```sh
+  npx -y --package=github:Kiri23/DocsifyTemplate#<sha> docs-armar --check docs
+  ```
+
+  ```
+  docs/_catalogo/ está atrasado respecto de incluir.txt y del repo:
+    cambió skills/brainstorm/SKILL.md
+    falta agents/nuevo.md
+  Rearmalo: armar.mjs docs
+  ```
+
+  No escribe nada: sale con 1 y dice qué falta, qué sobra y qué cambió. Al día, sale con 0.
+- **En el `.gitignore`**: el que publica (un workflow de Pages, un deploy) arma antes de servir.
+
+Para GitHub Pages, `docs/` necesita un `.nojekyll`: Jekyll ignora las carpetas que empiezan con
+`_`, como ya pasa con `_sidebar.md`.
 
 Desde DocsifyTemplate, sin npx:
 
@@ -69,6 +87,7 @@ npm run docs:armar -- ~/Code/MyClaudeSkills/docs
 
 | Opción | Qué es | Si no está |
 | --- | --- | --- |
+| `--check` | no escribe: sale con 1 si `_catalogo/` no es lo que armaría | arma |
 | `--root` | la raíz del repo, de donde parten los patrones | la carpeta de arriba de `docs` |
 
 ## Qué queda afuera, siempre

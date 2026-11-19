@@ -1,7 +1,8 @@
 // The catalog: files that already exist in a repo, shown as they are, chosen by the patterns of
-// <docs>/incluir.txt. bin/armar.mjs calls buildCatalog; it rebuilds <docs>/_catalogo/ from scratch
-// so that afterwards docs/ holds everything the site shows and nothing else.
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+// <docs>/incluir.txt. bin/armar.mjs calls buildCatalog, which rebuilds <docs>/_catalogo/ from
+// scratch so that afterwards docs/ holds everything the site shows and nothing else, or
+// checkCatalog, which says how the catalog on disk differs from what buildCatalog would write.
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { filesUnder } from "./files.mjs";
 import { globToRegExp, readPatterns } from "./glob.mjs";
@@ -20,7 +21,38 @@ const LANGUAGES = { ".ttl": "turtle", ".sh": "bash", ".py": "python", ".js": "ja
  * @returns {Promise<{ pages: { path: string, link: string }[], empty: string[] }>} the pages written,
  *   and the patterns that matched nothing
  */
-export async function buildCatalog(docs, root = dirname(resolve(docs))) {
+export async function buildCatalog(docs, root) {
+  const plan = await planCatalog(docs, root);
+  await rm(plan.folder, { recursive: true, force: true });
+  for (const [page, text] of plan.files) {
+    const target = join(plan.folder, page);
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, text);
+  }
+  return { pages: plan.pages, empty: plan.empty };
+}
+
+/**
+ * How <docs>/_catalogo/ differs from what buildCatalog would write: a list of "falta X",
+ * "sobra X" and "cambió X", empty when they match. Writes nothing.
+ * @returns {Promise<{ differences: string[], empty: string[] }>}
+ */
+export async function checkCatalog(docs, root) {
+  const plan = await planCatalog(docs, root);
+  const onDisk = await filesOnDisk(plan.folder);
+  const differences = [];
+  for (const [page, text] of plan.files) {
+    if (!onDisk.has(page)) differences.push(`falta ${page}`);
+    else if ((await readFile(onDisk.get(page), "utf8")) !== text) differences.push(`cambió ${page}`);
+  }
+  for (const page of onDisk.keys()) {
+    if (!plan.files.has(page)) differences.push(`sobra ${page}`);
+  }
+  return { differences: differences.sort(), empty: plan.empty };
+}
+
+/** What the catalog should hold: each page by its path inside _catalogo/, with its text. */
+async function planCatalog(docs, root = dirname(resolve(docs))) {
   const docsFolder = resolve(docs);
   const repoRoot = resolve(root);
   const docsInRepo = relative(repoRoot, docsFolder).split(sep).join("/");
@@ -45,23 +77,35 @@ export async function buildCatalog(docs, root = dirname(resolve(docs))) {
   }
   chosen.sort();
 
-  const catalog = join(docsFolder, CATALOG);
-  await rm(catalog, { recursive: true, force: true });
-  await mkdir(catalog, { recursive: true });
+  const files = new Map();
   const pages = [];
   for (const path of chosen) {
     const page = pagePath(path);
     if (OWN_PAGES.has(page)) throw new Error(`${path} ocuparía el ${page} que arma el catálogo; sacalo de incluir.txt`);
-    const text = await readFile(shown.get(path), "utf8");
-    const target = join(catalog, page);
-    await mkdir(dirname(target), { recursive: true });
-    await writeFile(target, pageText(path, text));
+    files.set(page, pageText(path, await readFile(shown.get(path), "utf8")));
     pages.push({ path, link: `/${CATALOG}/${page}` });
   }
   const menu = sidebarFor(pages);
-  await writeFile(join(catalog, "_sidebar.md"), `* [← Docs](/README.md)\n* [Catálogo](/${CATALOG}/README.md)\n${menu}\n`);
-  await writeFile(join(catalog, "README.md"), indexText(menu, patterns));
-  return { pages, empty };
+  files.set("_sidebar.md", `* [← Docs](/README.md)\n* [Catálogo](/${CATALOG}/README.md)\n${menu}\n`);
+  files.set("README.md", indexText(menu, patterns));
+  return { folder: join(docsFolder, CATALOG), files, pages, empty };
+}
+
+/** Every file now in the catalog folder, hidden ones too, by its path inside it. None if the
+ *  folder doesn't exist. */
+async function filesOnDisk(folder) {
+  const found = new Map();
+  const walk = async (dir) => {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) await walk(path);
+      else found.set(relative(folder, path).split(sep).join("/"), path);
+    }
+  };
+  await walk(folder).catch((error) => {
+    if (error.code !== "ENOENT") throw error;
+  });
+  return found;
 }
 
 /** Where a file of the repo lands in the catalog: Markdown as is, anything else as a page of its own. */
