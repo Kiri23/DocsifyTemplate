@@ -30,6 +30,10 @@ agrupados por la primera carpeta.
 Solo sirve archivos que existen dentro de la carpeta: una ruta se busca en la lista de archivos,
 nunca se arma un camino con ella, así que `/../` da 404.
 
+Sirve todo lo visible de la carpeta. Para publicar solo una parte (los docs escritos y algunos
+archivos elegidos del repo), el repo arma su `docs/` con
+[el catálogo](catalogo.md) y lo sirve un servidor estático.
+
 ## Publicado, con un archivo
 
 El repo suma un `index.html` en la carpeta que publica (GitHub Pages, por ejemplo). El tema sale de

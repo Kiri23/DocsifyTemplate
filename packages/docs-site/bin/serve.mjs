@@ -7,13 +7,14 @@
 //
 //   node packages/docs-site/bin/serve.mjs ~/Code/MyClaudeSkills --home bin/SCRIPTS.md
 import { createServer } from "node:http";
-import { readdir, readFile, realpath, stat } from "node:fs/promises";
-import { basename, extname, join, relative, resolve, sep } from "node:path";
+import { readFile } from "node:fs/promises";
+import { basename, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { filesUnder } from "./lib/files.mjs";
+import { sidebarFor } from "./lib/sidebar.mjs";
 
 const PACKAGE = resolve(fileURLToPath(import.meta.url), "../..");
-const SKIP = new Set(["node_modules"]);
 const TYPES = {
   ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css",
   ".md": "text/markdown", ".json": "application/json", ".svg": "image/svg+xml",
@@ -40,32 +41,6 @@ const config = {
   ...(values.repo ? { repo: values.repo } : {}),
 };
 
-/** Every file under a folder, by its URL path ("/bin/SCRIPTS.md" → its place on disk). A request
- *  is looked up here, never turned into a path, so "/../" can't reach outside the folder. Hidden
- *  files and folders stay out, and so does a link to a file outside the folder. */
-async function filesUnder(root, prefix) {
-  const found = new Map();
-  const inside = (await realpath(root)) + sep;
-  const walk = async (dir) => {
-    for (const entry of await readdir(dir, { withFileTypes: true })) {
-      if (entry.name.startsWith(".") || SKIP.has(entry.name)) continue;
-      const path = join(dir, entry.name);
-      if (entry.isDirectory()) await walk(path);
-      else if (entry.isFile() || (entry.isSymbolicLink() && await linksInside(path, inside))) {
-        found.set(prefix + relative(root, path).split(sep).join("/"), path);
-      }
-    }
-  };
-  await walk(root);
-  return found;
-}
-
-/** Whether a link points at a file inside the folder (`inside` ends with the separator). */
-async function linksInside(path, inside) {
-  const target = await realpath(path).catch(() => null);
-  return target !== null && target.startsWith(inside) && (await stat(target)).isFile();
-}
-
 /** The page the browser opens: Docsify's config, then site.js. */
 function indexHtml() {
   return `<!DOCTYPE html>
@@ -85,19 +60,13 @@ function indexHtml() {
 `;
 }
 
-/** A sidebar for a folder that has none: its Markdown files, grouped by their first folder. The
- *  sidebar shows on every page, so its links start at the root, not at the open page. */
-function sidebarFor(files) {
-  const groups = new Map();
-  for (const path of [...files.keys()].filter((p) => p.endsWith(".md")).sort()) {
-    const parts = path.slice(1).split("/");
-    const group = parts.length > 1 ? parts[0] : "";
-    if (!groups.has(group)) groups.set(group, []);
-    groups.get(group).push(`  * [${parts.slice(1).join("/") || parts[0]}](${path})`);
+/** The Markdown files of the folder, as sidebar entries: a folder without _sidebar.md gets one. */
+function markdownPages(files) {
+  const pages = [];
+  for (const path of files.keys()) {
+    if (path.endsWith(".md")) pages.push({ path: path.slice(1), link: path });
   }
-  return [...groups].map(([group, items]) =>
-    group ? `* ${group}\n${items.join("\n")}` : items.map((i) => i.trim()).join("\n")
-  ).join("\n");
+  return pages;
 }
 
 function escapeHtml(text) {
@@ -123,7 +92,7 @@ const server = createServer(async (req, res) => {
   if (!own.has(path) && !files.has(path)) files = await filesUnder(folder, "/");
   const file = own.get(path) ?? files.get(path);
   if (file) return send(200, TYPES[extname(file)] ?? "text/plain", await readFile(file));
-  if (path === "/_sidebar.md") return send(200, "text/markdown", sidebarFor(files));
+  if (path === "/_sidebar.md") return send(200, "text/markdown", sidebarFor(markdownPages(files)));
   send(404, "text/plain", "no está");
 });
 
