@@ -48,7 +48,8 @@ if (values.check) {
   } else {
     console.error(`${catalog} está atrasado respecto de incluir.txt y del repo:`);
     for (const difference of result.differences) console.error(`  ${difference}`);
-    console.error(`Rearmalo: armar.mjs ${docs}`);
+    // Each repo runs armar its own way (just docs, npx, node), so it names none of them.
+    console.error("Rearmalo: corré el mismo comando sin --check.");
     process.exit(1);
   }
 } else {

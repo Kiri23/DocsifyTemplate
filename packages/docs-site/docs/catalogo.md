@@ -73,7 +73,7 @@ docs:
   docs/_catalogo/ está atrasado respecto de incluir.txt y del repo:
     cambió skills/brainstorm/SKILL.md
     falta agents/nuevo.md
-  Rearmalo: armar.mjs docs
+  Rearmalo: corré el mismo comando sin --check.
   ```
 
   No escribe nada: sale con 1 y dice qué falta, qué sobra y qué cambió. Al día, sale con 0.
