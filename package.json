@@ -6,7 +6,8 @@
     "serve": "npx http-server . -p 3010 -c-1 --cors",
     "test": "node --test \"packages/docs-site/test/*.test.mjs\"",
     "check:docs": "node packages/docs-site/bin/check.mjs",
-    "docs:serve": "node packages/docs-site/bin/serve.mjs"
+    "docs:serve": "node packages/docs-site/bin/serve.mjs",
+    "docs:armar": "node packages/docs-site/bin/armar.mjs"
   },
   "description": "A zero-build-step interactive documentation framework powered by Docsify with custom data-driven components.",
   "main": "index.js",
@@ -23,6 +24,12 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "bin": {
+    "docs-armar": "packages/docs-site/bin/armar.mjs"
+  },
+  "files": [
+    "packages/docs-site/bin/"
+  ],
   "bugs": {
     "url": "https://github.com/Kiri23/DocsifyTemplate/issues"
   },

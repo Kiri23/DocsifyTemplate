@@ -31,8 +31,13 @@
     auto2top: true,
     // The pages link to each other with relative paths, so they also work on GitHub.
     relativePath: true,
-    // One sidebar, at the root: without this each folder asks for its own and logs a 404.
-    alias: { "/.*/_sidebar.md": "/_sidebar.md" },
+    // One sidebar at the root, and one for the catalog that armar.mjs builds in _catalogo/: without
+    // this each folder asks for its own and logs a 404. Docsify applies aliases again to their
+    // result, so the root one has to leave the catalog's sidebar alone.
+    alias: {
+      "/_catalogo/.*/_sidebar.md": "/_catalogo/_sidebar.md",
+      "/(?!_catalogo/).*/_sidebar.md": "/_sidebar.md",
+    },
   }, own);
 
   // A home page inside a folder (bin/SCRIPTS.md) is opened at its own route, so its relative
