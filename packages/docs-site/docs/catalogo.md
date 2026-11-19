@@ -36,7 +36,7 @@ cambia el repo ve qué se publica y lo cambia en el mismo PR.
 Desde la raíz del repo, con el armador fijado a un commit de DocsifyTemplate:
 
 ```sh
-npx -y --package=github:Kiri23/DocsifyTemplate#<sha> docs-armar docs
+npx -y --package=https://codeload.github.com/Kiri23/DocsifyTemplate/tar.gz/<sha> docs-armar docs
 python3 -m http.server -d docs 8000
 ```
 
@@ -46,15 +46,18 @@ python3 -m http.server -d docs 8000
 
 El commit va fijo por la misma razón que el `index.html` fija `site.js` en rawcdn.githack: el repo
 dice qué versión usa y una actualización de DocsifyTemplate no le cambia el sitio sin un PR. La
-primera vez tarda unos segundos (npm baja el commit); después sale de la caché de npm. Anda sin
-llaves ssh: npm prueba ssh y cae a https. Del paquete se instala solo `packages/docs-site/bin/`
-(el campo `files` del `package.json` raíz), sin dependencias.
+primera vez tarda unos segundos (npm baja el tarball del commit, unos 74 MB porque trae el repo
+entero); después sale de la caché de npm. No necesita git ni llaves ssh, y no instala dependencias.
+
+Por qué el tarball de codeload y no `--package=github:Kiri23/DocsifyTemplate#<sha>`: con npm 10
+(el de Node 22) esa forma falla con `GitFetcher requires an Arborist constructor`. Con npm 11 anda
+y baja solo `packages/docs-site/bin/` (el campo `files` del `package.json` raíz).
 
 En el repo conviene una receta que lo diga una vez, por ejemplo en un `justfile`:
 
 ```make
 docs:
-    npx -y --package=github:Kiri23/DocsifyTemplate#<sha> docs-armar docs
+    npx -y --package=https://codeload.github.com/Kiri23/DocsifyTemplate/tar.gz/<sha> docs-armar docs
 ```
 
 `docs/_catalogo/` es generado, y el repo elige si lo versiona:
@@ -63,7 +66,7 @@ docs:
   Pages. A cambio puede quedar atrasado, así que el pre-commit corre el chequeo:
 
   ```sh
-  npx -y --package=github:Kiri23/DocsifyTemplate#<sha> docs-armar --check docs
+  npx -y --package=https://codeload.github.com/Kiri23/DocsifyTemplate/tar.gz/<sha> docs-armar --check docs
   ```
 
   ```

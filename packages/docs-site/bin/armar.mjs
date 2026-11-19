@@ -8,7 +8,7 @@
 //
 // From another repo, pinned to a commit of DocsifyTemplate (packages/docs-site/docs/catalogo.md):
 //
-//   npx -y --package=github:Kiri23/DocsifyTemplate#<sha> docs-armar docs
+//   npx -y --package=https://codeload.github.com/Kiri23/DocsifyTemplate/tar.gz/<sha> docs-armar docs
 //
 // With --check it writes nothing: it exits with 1 and says what changed if <docs>/_catalogo/ isn't
 // what it would build. For a repo that commits its catalog, from its pre-commit.

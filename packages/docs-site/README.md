@@ -38,7 +38,7 @@ python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs   # c
 repo que nombra `docs/incluir.txt`. El armador se corre fijado a un commit de DocsifyTemplate:
 
 ```sh
-npx -y --package=github:Kiri23/DocsifyTemplate#<sha> docs-armar docs
+npx -y --package=https://codeload.github.com/Kiri23/DocsifyTemplate/tar.gz/<sha> docs-armar docs
 python3 -m http.server -d docs
 ```
 
