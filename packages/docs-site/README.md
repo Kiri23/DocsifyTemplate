@@ -9,6 +9,7 @@ Markdown con una marca invisible, `<!-- as: componente -->`. Los docs de este pa
 npm run serve                                   # → http://localhost:3010/packages/docs-site/docs/
 npm run docs:serve -- ~/Code/MyClaudeSkills --home bin/SCRIPTS.md   # otro repo → http://localhost:3011/
 npm run check:docs -- ~/Code/MyClaudeSkills     # las marcas de una carpeta, sin navegador
+npm run docs:armar -- ~/Code/MyClaudeSkills/docs # copia a docs/_catalogo/ lo que nombra docs/incluir.txt
 npm test                                        # node --test: marcas, formas, componentes, colores
 python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs   # cada página en Chromium
 ```
@@ -26,7 +27,22 @@ python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs   # c
 | `plugins/file-links.js` | Un link sin `.md` abre el archivo, como en GitHub. |
 | `bin/serve.mjs` | Sirve una carpeta de otro repo con este paquete, en un origen. |
 | `bin/check.mjs` | Revisa las marcas de una carpeta con marked y linkedom, sin navegador. |
+| `bin/armar.mjs` | Arma el catálogo de un repo: copia a `docs/_catalogo/` lo que nombra `docs/incluir.txt`, con su menú. Sin dependencias. |
+| `bin/lib/` | Lo que comparten `serve.mjs` y `armar.mjs`: qué archivos se pueden mostrar, el sidebar y los patrones. |
 | `test/` | Los tests de Node y el recorrido en Chromium. |
+
+## Desde otro repo, fijado a un commit
+
+`serve.mjs` es el atajo para mirar una carpeta en tu máquina. Para publicar, el repo arma su
+`docs/` y lo sirve un servidor estático: los docs escritos a mano más el catálogo, los archivos del
+repo que nombra `docs/incluir.txt`. El armador se corre fijado a un commit de DocsifyTemplate:
+
+```sh
+npx -y --package=github:Kiri23/DocsifyTemplate#<sha> docs-armar docs
+python3 -m http.server -d docs
+```
+
+Cómo funciona y qué nunca entra (ocultos, links afuera): [`docs/catalogo.md`](docs/catalogo.md).
 
 ## Un componente
 

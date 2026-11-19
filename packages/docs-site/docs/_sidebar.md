@@ -6,3 +6,4 @@
   * [stepper](/componentes/stepper.md)
 * Cómo
   * [Servir los docs de otro repo](/servir-otro-repo.md)
+  * [Mostrar archivos del repo: el catálogo](/catalogo.md)
