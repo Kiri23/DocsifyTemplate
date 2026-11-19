@@ -15,7 +15,9 @@
   var base = new URL(".", document.currentScript.src).href;
   var docsify = "https://cdn.jsdelivr.net/npm/docsify@5.1.0/dist/";
   var prism = "https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/";
-  var languages = ["bash", "json", "yaml", "typescript", "python", "turtle", "markdown"];
+  // In load order: sparql extends turtle, so it goes after it. The catalog shows a .rq file as a
+  // block of language "rq", an alias prism-sparql defines.
+  var languages = ["bash", "json", "yaml", "typescript", "python", "turtle", "sparql", "markdown"];
   var imports = {
     "preact": "https://esm.sh/preact@10.29.8",
     "preact/hooks": "https://esm.sh/preact@10.29.8/hooks",
