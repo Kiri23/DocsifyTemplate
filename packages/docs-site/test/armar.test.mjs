@@ -217,3 +217,15 @@ test("--check fails when there's no catalog yet", () => {
   assert.match(run.stderr, /falta a\.md/);
   assert.ok(!existsSync(catalog("")));
 });
+
+test("in a git repo, only the files git keeps", () => {
+  write("docs/incluir.txt", "**/*.ttl\n");
+  write("proyecto.ttl", "@prefix a: <x> .\n");
+  write("grafo/generado.ttl", "@prefix b: <y> .\n");
+  write(".gitignore", "grafo/\n");
+  execFileSync("git", ["init", "-q"], { cwd: repo });
+  execFileSync("git", ["add", "proyecto.ttl", ".gitignore"], { cwd: repo });
+  armar();
+  assert.ok(existsSync(catalog("proyecto.ttl.md")));
+  assert.ok(!existsSync(catalog("grafo/generado.ttl.md")));
+});

@@ -2,6 +2,7 @@
 // <docs>/incluir.txt. bin/armar.mjs calls buildCatalog, which rebuilds <docs>/_catalogo/ from
 // scratch so that afterwards docs/ holds everything the site shows and nothing else, or
 // checkCatalog, which says how the catalog on disk differs from what buildCatalog would write.
+import { execFileSync } from "node:child_process";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { filesUnder } from "./files.mjs";
@@ -62,9 +63,12 @@ async function planCatalog(docs, root = dirname(resolve(docs))) {
 
   const patterns = readPatterns(await readFile(join(docsFolder, "incluir.txt"), "utf8"));
   const shown = await filesUnder(repoRoot, "");
-  // The docs folder is already on the site; the catalog is for what lives outside it.
+  const tracked = trackedFiles(repoRoot);
   for (const path of shown.keys()) {
+    // The docs folder is already on the site; the catalog is for what lives outside it.
     if (path.startsWith(docsInRepo + "/")) shown.delete(path);
+    // In a git repo, only what the repo keeps: not what a machine generates or a secret left there.
+    else if (tracked !== null && !tracked.has(path)) shown.delete(path);
   }
 
   const chosen = [];
@@ -89,6 +93,17 @@ async function planCatalog(docs, root = dirname(resolve(docs))) {
   files.set("_sidebar.md", `* [← Docs](/README.md)\n* [Catálogo](/${CATALOG}/README.md)\n${menu}\n`);
   files.set("README.md", indexText(menu, patterns));
   return { folder: join(docsFolder, CATALOG), files, pages, empty };
+}
+
+/** The files git keeps under a folder, relative to it, or null when the folder isn't in a git repo. */
+function trackedFiles(folder) {
+  let output;
+  try {
+    output = execFileSync("git", ["-C", folder, "ls-files", "-z"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  } catch {
+    return null;
+  }
+  return new Set(output.split("\0").filter((path) => path !== ""));
 }
 
 /** Every file now in the catalog folder, hidden ones too, by its path inside it. None if the
