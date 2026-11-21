@@ -1,0 +1,373 @@
+{
+  "pr": 40,
+  "repo": "Kiri23/DocsifyTemplate",
+  "escenas": [
+    {
+      "tipo": "intro",
+      "seccion": "intro",
+      "problema": "Un repo no podía traer su propia UI al sitio de docs",
+      "texto": "Ahora trae sus componentes, y uno puede ser la página",
+      "narracion": "El sitio solo dibujaba sus tres componentes; con este PR un repo trae los suyos, y uno puede ser la página entera, dibujada desde un JSON.",
+      "huella": "1a4540849cb0"
+    },
+    {
+      "tipo": "ya_sabes",
+      "seccion": "intro",
+      "puntos": [
+        {
+          "texto": "Una marca as: stepper vuelve componente el Markdown de abajo",
+          "cita": "packages/docs-site/as/mod.js:33",
+          "funcion": "asComponents()"
+        },
+        {
+          "texto": "MyClaudeSkills configura el sitio en window.$docsify"
+        },
+        {
+          "texto": "MyClaudeSkills#45 usaba un Custom Element de parche"
+        }
+      ],
+      "narracion": "Ya conocés la marca as, que vuelve componente el Markdown, y que MyClaudeSkills configura el sitio en window punto docsify.",
+      "huella": "1a4540849cb0"
+    },
+    {
+      "tipo": "funcion",
+      "seccion": "Lo que necesitás verificar",
+      "texto": "Tus componentes, sumados a los de fábrica",
+      "cita": "packages/docs-site/site.js:96",
+      "trozos": [
+        {
+          "linea": 93,
+          "codigo": "        return \"import * as \" + m.name + \" from \" + JSON.stringify(m.url) + \";\";\n      }).join(\"\") +\n      \"const c = window.$docsify;\" +\n      \"const { components, problems } = addComponents([annotatedBlock, optionPicker, stepper], {\" +"
+        }
+      ],
+      "pasos": [
+        {
+          "lineas": [
+            93,
+            94,
+            95
+          ],
+          "narracion": "site.js escribe un import por cada módulo que nombra window.$docsify.components."
+        },
+        {
+          "lineas": [
+            96
+          ],
+          "narracion": "Y los junta con los tres de fábrica en un solo addComponents: un solo asComponents, sin doble registro."
+        }
+      ],
+      "ejemplo": {
+        "comando": "node packages/docs-site/bin/check.mjs packages/docs-site/docs | tail -1; node packages/docs-site/bin/check.mjs packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js",
+        "salida": "2 de 5 marcas no se dibujarían.\n5 marcas, todas se dibujan.",
+        "narracion": "Probalo: sin el flag, el chequeo no conoce retro-semanal; con components, las cinco marcas se dibujan."
+      },
+      "narracion": "Primer punto: un repo nombra sus módulos en window.$docsify.components, y site.js los suma a los de fábrica.",
+      "huella": "43fde8982b00"
+    },
+    {
+      "tipo": "funcion",
+      "seccion": "Lo que necesitás verificar",
+      "texto": "Una página entera, desde un JSON",
+      "cita": "packages/docs-site/as/shapes.js:67",
+      "funcion": "page()",
+      "trozos": [
+        {
+          "linea": 67,
+          "codigo": "export function page() {"
+        },
+        {
+          "linea": 71,
+          "codigo": "      const nodes = [];\n      for (let n = mark.nextSibling; n; n = n.nextSibling) {\n        if (n.nodeType === 1) nodes.push(n);\n      }"
+        },
+        {
+          "linea": 86,
+          "codigo": "    json(attr) {\n      return { describe: `${describe} + el JSON de ${attr}=\"\"`, collect, jsonFrom: attr };\n    },"
+        }
+      ],
+      "pasos": [
+        {
+          "lineas": [
+            67,
+            71,
+            72
+          ],
+          "narracion": "page toma todos los elementos debajo de la marca, hasta el final de la página."
+        },
+        {
+          "lineas": [
+            86,
+            87
+          ],
+          "narracion": "Cualquier forma tiene json: dice qué atributo de la marca nombra el archivo; prepare lo carga y read lo recibe como data."
+        }
+      ],
+      "ejemplo": {
+        "comando": "node --input-type=module <<'EOF'\nimport { parseHTML } from \"linkedom\";\nimport { findMarks, prepare } from \"./packages/docs-site/as/core.js\";\nimport { componentsWith } from \"./packages/docs-site/bin/check.mjs\";\nconst { components } = await componentsWith([\"packages/docs-site/docs/propios/retro-semanal.js\"]);\nconst { document } = parseHTML('<main><h1>Retro</h1><!-- as: retro-semanal src=\"semana-47.json\" --><p>En GitHub, este párrafo.</p></main>');\nconst load = (src) => ({ semana: \"2026-W47\", metas: [{ meta: \"Un PR por día\", hecho: 5, de: 5 }] });\nconst { nodes, props } = prepare(findMarks(document)[0], components, { load });\nconsole.log(nodes.map((n) => n.outerHTML), props.semana, props.metas.length);\nEOF",
+        "salida": "[ '<p>En GitHub, este párrafo.</p>' ] 2026-W47 1",
+        "narracion": "Probalo: el componente lee la semana del JSON, y el párrafo de abajo es lo que ve GitHub."
+      },
+      "narracion": "Segundo punto: page punto json toma la página y el JSON que nombra la marca.",
+      "huella": "2de3caf84113"
+    },
+    {
+      "tipo": "funcion",
+      "seccion": "Lo que necesitás verificar",
+      "texto": "El JSON llega antes de dibujar",
+      "cita": "packages/docs-site/as/mod.js:50",
+      "funcion": "hook.afterEach()",
+      "trozos": [
+        {
+          "linea": 50,
+          "codigo": "    hook.afterEach(function (html, next) {\n      const file = vm.route.file;\n      const mine = ++drawing;"
+        },
+        {
+          "linea": 63,
+          "codigo": "        // that page), or a later drawing started: that one is drawn, not this one.\n        if (vm.route.file !== file || mine !== drawing) return;\n        fetched = new Map(results);"
+        }
+      ],
+      "pasos": [
+        {
+          "lineas": [
+            50,
+            51,
+            52
+          ],
+          "narracion": "afterEach anota qué página y qué dibujo son, y busca en el HTML las marcas que leen un JSON."
+        },
+        {
+          "lineas": [
+            63,
+            64,
+            65
+          ],
+          "narracion": "Con los archivos ya traídos deja dibujar; si el lector se fue a otra página, no dibuja nada."
+        }
+      ],
+      "ejemplo": {
+        "comando": "python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js --width 390 | grep semana",
+        "salida": "✓ #/propios/semana-46  «Retro: semana 46»  componentes: 1 ['as as-retro-semanal']\n✓ #/propios/semana-47  «Retro: semana 47»  componentes: 1 ['as as-retro-semanal']",
+        "narracion": "Probalo: las dos semanas del demo se abren en Chromium a 390 píxeles, sin errores, cada una con su vista."
+      },
+      "narracion": "Tercer punto: el sitio trae el JSON antes de dibujar la página.",
+      "huella": "fb1062538486"
+    },
+    {
+      "tipo": "funcion",
+      "seccion": "Lo que necesitás verificar",
+      "texto": "El chequeo lee el JSON como el sitio",
+      "cita": "packages/docs-site/bin/check.mjs:85",
+      "funcion": "jsonBeside()",
+      "trozos": [
+        {
+          "linea": 85,
+          "codigo": "export function jsonBeside({ page, folder, files }) {\n  return (src) => {\n    const inside = relative(folder, resolve(dirname(page), src));"
+        },
+        {
+          "linea": 89,
+          "codigo": "    const path = files.get(\"/\" + inside.split(sep).join(\"/\"));\n    if (!path) {"
+        }
+      ],
+      "pasos": [
+        {
+          "lineas": [
+            85,
+            86,
+            87
+          ],
+          "narracion": "El src se resuelve desde la página; si sale de la carpeta, falla."
+        },
+        {
+          "lineas": [
+            89,
+            90
+          ],
+          "narracion": "El archivo se busca en la lista de los que el sitio sirve, nunca se arma un camino; y si git no lo versiona, también falla."
+        }
+      ],
+      "ejemplo": {
+        "comando": "sh <<'EOF'\nr=$PWD; d=$(mktemp -d) && cp -r packages/docs-site/docs/propios \"$d/\" && rm \"$d/propios/semana-46.json\"\ngit -C \"$d\" init -q && git -C \"$d\" add propios/semana-47.md propios/retro-semanal.js\ncd \"$d\" && node \"$r/packages/docs-site/bin/check.mjs\" . --components propios/retro-semanal.js || echo \"sale con $?\"\nEOF",
+        "salida": "propios/semana-46.md:3: no existe semana-46.json al lado de la página\npropios/semana-47.md:3: semana-47.json existe, pero git no lo versiona: publicado sería un 404\n2 de 2 marcas no se dibujarían.\nsale con 1",
+        "narracion": "Probalo: sin el JSON de la semana 46 y con el de la 47 sin versionar, las dos marcas fallan."
+      },
+      "narracion": "Cuarto punto: check punto mjs busca el JSON entre los archivos que el sitio sirve.",
+      "huella": "c5d58ef14cd9"
+    },
+    {
+      "tipo": "funcion",
+      "seccion": "Lo que necesitás verificar",
+      "texto": "Un nombre repetido es error",
+      "cita": "packages/docs-site/as/core.js:96",
+      "funcion": "addComponents()",
+      "trozos": [
+        {
+          "linea": 96,
+          "codigo": "export function addComponents(builtIn, modules) {"
+        },
+        {
+          "linea": 99,
+          "codigo": "  for (const [path, exports] of Object.entries(modules)) {\n    for (const [key, value] of Object.entries(exports)) {\n      const missing = [\"name\", \"takes\", \"read\", \"view\"].filter((field) => !value?.[field]);\n      if (missing.length) {\n        problems.push(`${path} exporta \"${key}\", que no es un componente: le falta ${missing.join(\", \")}`);\n      } else if (components.some((c) => c.name === value.name)) {\n        problems.push(`${path}: ya hay un componente \"${value.name}\"; ponele otro nombre`);\n      } else {"
+        }
+      ],
+      "pasos": [
+        {
+          "lineas": [
+            101,
+            102,
+            103
+          ],
+          "narracion": "Un export al que le falta name, takes, read o view no es un componente."
+        },
+        {
+          "lineas": [
+            104,
+            105
+          ],
+          "narracion": "Un nombre que ya existe tampoco entra: no reemplaza en silencio al de fábrica."
+        }
+      ],
+      "ejemplo": {
+        "comando": "node --input-type=module <<'EOF'\nimport { addComponents } from \"./packages/docs-site/as/core.js\";\nimport * as fabrica from \"./packages/docs-site/components/mod.js\";\nconst mio = { name: \"stepper\", takes: {}, read() {}, view() {} };\nconsole.log(addComponents(Object.values(fabrica), { \"propios/x.js\": { mio, ayuda: 1 } }).problems);\nEOF",
+        "salida": "[\n  'propios/x.js: ya hay un componente \"stepper\"; ponele otro nombre',\n  'propios/x.js exporta \"ayuda\", que no es un componente: le falta name, takes, read, view'\n]",
+        "narracion": "Probalo: un stepper propio y un export suelto salen como dos problemas."
+      },
+      "narracion": "Quinto punto: addComponents dice qué no entró y por qué.",
+      "huella": "4241df559e7c"
+    },
+    {
+      "tipo": "arquitectura",
+      "seccion": "Arquitectura de carpetas",
+      "carpetas": [
+        {
+          "ruta": "as/",
+          "marca": "~",
+          "dice": "page(), .json(), read con nombre, addComponents"
+        },
+        {
+          "ruta": "bin/check.mjs",
+          "marca": "~",
+          "dice": "check y serve toman --components"
+        },
+        {
+          "ruta": "propios/",
+          "marca": "+",
+          "dice": "retro-semanal: el demo, dos semanas"
+        },
+        {
+          "ruta": "src/adapters/docsify/index.js",
+          "marca": "~",
+          "dice": "el auto-registro lee los componentes de la config"
+        },
+        {
+          "ruta": "test/",
+          "marca": "+",
+          "dice": "docs-engine: el adapter con linkedom, hooks una vez"
+        }
+      ],
+      "narracion": "El motor cambia en as y en bin; el demo es una carpeta nueva; docs-engine suma una línea y su test.",
+      "huella": "251d6b2244d2"
+    },
+    {
+      "tipo": "flujo",
+      "seccion": "El flujo",
+      "nodos": [
+        {
+          "nombre": "window.$docsify.components",
+          "cita": "packages/docs-site/docs/index.html:17"
+        },
+        {
+          "nombre": "addComponents()",
+          "cita": "packages/docs-site/as/core.js:96"
+        },
+        {
+          "nombre": "hook.afterEach()",
+          "cita": "packages/docs-site/as/mod.js:50"
+        },
+        {
+          "nombre": "prepare()",
+          "cita": "packages/docs-site/as/core.js:43"
+        },
+        {
+          "nombre": "la vista reemplaza el cuerpo"
+        }
+      ],
+      "narracion": "El index nombra los módulos, se suman a los de fábrica, la página trae su JSON y la vista reemplaza el cuerpo.",
+      "huella": "a8144edbde0b"
+    },
+    {
+      "tipo": "texto",
+      "seccion": "Antes y después",
+      "pasos": [
+        {
+          "texto": "Antes, el sitio no conoce retro-semanal y muestra el párrafo de GitHub",
+          "narracion": "Antes, la misma página mostraba solo el párrafo de GitHub."
+        },
+        {
+          "texto": "después, la vista dibuja el JSON",
+          "narracion": "Después, la vista dibuja la semana desde su JSON, en el teléfono y en la compu."
+        }
+      ],
+      "narracion": "La misma página de la semana 47, en la base y con este PR.",
+      "huella": "bdb597cdf4ce"
+    },
+    {
+      "tipo": "texto",
+      "seccion": "Lo que decidí sin el dueño",
+      "pasos": [
+        {
+          "texto": "read({ nodes, attrs, data }) con nombre, en vez de un tercer argumento por posición",
+          "narracion": "read recibe todo con nombre, por el gusto de que el tipo cargue el rol."
+        },
+        {
+          "texto": "Un nombre repetido es error, no gana el del repo",
+          "narracion": "Un nombre repetido es error, por consejo del consultor."
+        },
+        {
+          "texto": "check.mjs recibe los módulos con --components, no los lee del index.html",
+          "narracion": "El chequeo recibe los módulos por flag, no leyendo el index."
+        },
+        {
+          "texto": "site.js importa los módulos del repo de forma estática",
+          "narracion": "Y site.js los importa antes de que arranque Docsify, sin carreras."
+        }
+      ],
+      "narracion": "Cuatro decisiones sin vos, cada una con cómo volver atrás.",
+      "huella": "cc2876a2c42e"
+    },
+    {
+      "tipo": "texto",
+      "seccion": "Lo que cambió con la revisión",
+      "pasos": [
+        {
+          "texto": "check.mjs buscaba el JSON armando un camino",
+          "narracion": "El chequeo ahora busca el JSON en la lista de archivos, con test."
+        },
+        {
+          "texto": "\"Los hooks de Docsify se registran una sola vez\" ahora tiene test",
+          "narracion": "Y el registro de hooks una sola vez ya tiene su test en docs-engine."
+        }
+      ],
+      "narracion": "La revisión pidió cambios, y estos se arreglaron.",
+      "huella": "fd6ee50eedf9"
+    },
+    {
+      "tipo": "texto",
+      "seccion": "La salida del gate",
+      "pasos": [
+        {
+          "texto": "ℹ tests 63",
+          "narracion": "Sesenta y tres tests pasan."
+        },
+        {
+          "texto": "OK: 0 problemas",
+          "narracion": "Chromium abre cada página sin errores."
+        },
+        {
+          "texto": "docs/_catalogo/ está al día",
+          "narracion": "Y docs-armar sigue pasando en MyClaudeSkills."
+        }
+      ],
+      "narracion": "El gate local, en verde.",
+      "huella": "0594d8ea616a"
+    }
+  ]
+}
