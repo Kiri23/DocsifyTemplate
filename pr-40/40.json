@@ -62,7 +62,7 @@
         "narracion": "Probalo: sin el flag, el chequeo no conoce retro-semanal; con components, las cinco marcas se dibujan."
       },
       "narracion": "Primer punto: un repo nombra sus módulos en window.$docsify.components, y site.js los suma a los de fábrica.",
-      "huella": "43fde8982b00"
+      "huella": "f14c23c673ce"
     },
     {
       "tipo": "funcion",
@@ -107,7 +107,7 @@
         "narracion": "Probalo: el componente lee la semana del JSON, y el párrafo de abajo es lo que ve GitHub."
       },
       "narracion": "Segundo punto: page punto json toma la página y el JSON que nombra la marca.",
-      "huella": "2de3caf84113"
+      "huella": "293e4f42a456"
     },
     {
       "tipo": "funcion",
@@ -149,7 +149,7 @@
         "narracion": "Probalo: las dos semanas del demo se abren en Chromium a 390 píxeles, sin errores, cada una con su vista."
       },
       "narracion": "Tercer punto: el sitio trae el JSON antes de dibujar la página.",
-      "huella": "fb1062538486"
+      "huella": "d6787c363d00"
     },
     {
       "tipo": "funcion",
@@ -190,7 +190,7 @@
         "narracion": "Probalo: sin el JSON de la semana 46 y con el de la 47 sin versionar, las dos marcas fallan."
       },
       "narracion": "Cuarto punto: check punto mjs busca el JSON entre los archivos que el sitio sirve.",
-      "huella": "c5d58ef14cd9"
+      "huella": "e3078ffb0c41"
     },
     {
       "tipo": "funcion",
@@ -231,7 +231,7 @@
         "narracion": "Probalo: un stepper propio y un export suelto salen como dos problemas."
       },
       "narracion": "Quinto punto: addComponents dice qué no entró y por qué.",
-      "huella": "4241df559e7c"
+      "huella": "d757f7a112a1"
     },
     {
       "tipo": "arquitectura",
