@@ -18,7 +18,7 @@ writeFileSync(join(root, "afuera.js"), "export {};\n");
 after(() => rmSync(root, { recursive: true, force: true }));
 
 test("the page serve.mjs builds names the module from the folder", async () => {
-  const port = 3990 + Math.floor(Math.random() * 9);
+  const port = 40000 + Math.floor(Math.random() * 20000);
   const server = spawn("node", [SERVE, folder, "--port", String(port), "--components", join(folder, "propios", "retro.js")]);
   try {
     await new Promise((resolve, reject) => {
@@ -33,10 +33,10 @@ test("the page serve.mjs builds names the module from the folder", async () => {
 });
 
 test("serve.mjs refuses a module outside the folder or one that isn't there", () => {
-  const outside = spawnSync("node", [SERVE, folder, "--components", join(root, "afuera.js")], { encoding: "utf8" });
+  const outside = spawnSync("node", [SERVE, folder, "--components", join(root, "afuera.js")], { encoding: "utf8", timeout: 5000 });
   assert.equal(outside.status, 2);
   assert.match(outside.stderr, /tiene que estar dentro de/);
-  const missing = spawnSync("node", [SERVE, folder, "--components", join(folder, "propios", "nada.js")], { encoding: "utf8" });
+  const missing = spawnSync("node", [SERVE, folder, "--components", join(folder, "propios", "nada.js")], { encoding: "utf8", timeout: 5000 });
   assert.equal(missing.status, 2);
   assert.match(missing.stderr, /no existe/);
 });
