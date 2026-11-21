@@ -46,17 +46,17 @@ export function prepare(mark, components, { load } = {}) {
   if (!component) {
     throw new ShapeError(`no hay un componente "${name}"; los que hay: ${[...components.keys()].join(", ")}`);
   }
-  const source = component.takes?.jsonFrom;
-  const known = [...(component.attrs ?? []), ...(source ? [source] : [])];
+  const jsonAttr = component.takes?.jsonFrom;
+  const known = [...(component.attrs ?? []), ...(jsonAttr ? [jsonAttr] : [])];
   const unknown = Object.keys(attrs).filter((a) => !known.includes(a));
   if (unknown.length) {
     throw new ShapeError(`${name} no conoce ${unknown.map((a) => `"${a}"`).join(", ")}; conoce: ${known.join(", ") || "ninguno"}`);
   }
   let data;
-  if (source) {
-    if (!attrs[source]) throw new ShapeError(`${name} lee un JSON: falta ${source}="archivo.json" en la marca`);
-    if (!load) throw new ShapeError(`${name} lee ${attrs[source]}, y aquí no hay cómo cargarlo`);
-    data = load(attrs[source]);
+  if (jsonAttr) {
+    if (!attrs[jsonAttr]) throw new ShapeError(`${name} lee un JSON: falta ${jsonAttr}="archivo.json" en la marca`);
+    if (!load) throw new ShapeError(`${name} lee ${attrs[jsonAttr]}, y aquí no hay cómo cargarlo`);
+    data = load(attrs[jsonAttr]);
   }
   const nodes = component.takes.collect(mark);
   const props = component.read({ nodes, attrs, data });
@@ -71,7 +71,7 @@ export function prepare(mark, components, { load } = {}) {
  * @returns {string[]} what each marker says in its JSON attribute, in order
  */
 export function jsonSources(root, components) {
-  const sources = [];
+  const files = [];
   for (const mark of findMarks(root)) {
     let said;
     try {
@@ -80,9 +80,9 @@ export function jsonSources(root, components) {
       continue;
     }
     const attr = components.get(said.name)?.takes.jsonFrom;
-    if (attr && said.attrs[attr]) sources.push(said.attrs[attr]);
+    if (attr && said.attrs[attr]) files.push(said.attrs[attr]);
   }
-  return sources;
+  return files;
 }
 
 /**

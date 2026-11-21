@@ -93,3 +93,16 @@ test("check.mjs without --components says the name doesn't exist", () => {
   assert.match(run.stdout, /no hay un componente "retro"/);
   assert.equal(run.status, 1);
 });
+
+test("check.mjs fails a JSON outside the folder, by ../ or by a link that leaves it, as the site 404s them", () => {
+  const up = withOwn(null, '<!-- as: retro src="../fuera.json" -->\n');
+  writeFileSync(join(up, "fuera.json"), '{ "weeks": [] }');
+  assert.match(checkOwn(up).stdout, /page\.md:1: \.\.\/fuera\.json queda fuera de /);
+
+  const linked = withOwn(null, '<!-- as: retro src="link.json" -->\n');
+  writeFileSync(join(linked, "fuera.json"), '{ "weeks": [] }');
+  symlinkSync(join(linked, "fuera.json"), join(linked, "docs", "link.json"));
+  const run = checkOwn(linked);
+  assert.match(run.stdout, /page\.md:1: link\.json existe, pero el sitio no lo sirve/);
+  assert.equal(run.status, 1);
+});

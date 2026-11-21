@@ -52,7 +52,7 @@ export function asComponents(components) {
       const mine = ++drawing;
       const box = document.createElement("template");
       box.innerHTML = html;
-      const wanted = jsonSources(box.content, byName).map((src) => address(src, file));
+      const wanted = jsonSources(box.content, byName).map((src) => address({ src, page: file }));
       if (!wanted.length) {
         fetched = new Map();
         next(html);
@@ -73,13 +73,13 @@ export function asComponents(components) {
       if (!main) return;
       const file = vm.route.file;
       const load = (src) => {
-        const result = fetched.get(address(src, file));
+        const result = fetched.get(address({ src, page: file }));
         if (!result) throw new ShapeError(`${src} no se cargó`);
         if (result.error) throw new ShapeError(`no pude leer ${src}: ${result.error}`);
         return result.data;
       };
       for (const mark of findMarks(main)) {
-        const host = mount(mark, byName, file, load);
+        const host = mount(mark, { components: byName, page: file, load });
         if (host) hosts.push(host);
       }
     });
@@ -87,8 +87,8 @@ export function asComponents(components) {
 }
 
 /** Where a JSON file named on a page lives: relative to the page, as a link on it would be. */
-function address(src, file) {
-  return new URL(src, new URL(file, document.baseURI)).href;
+function address({ src, page }) {
+  return new URL(src, new URL(page, document.baseURI)).href;
 }
 
 /** A JSON file, parsed, or why it couldn't be: never throws, so the page is always drawn. */
@@ -104,12 +104,12 @@ async function fetchJson(url) {
 
 /** Draws one marker's component in place of its Markdown. Returns the box it drew into, or
  *  nothing when it left the Markdown as it was. */
-function mount(mark, byName, file, load) {
+function mount(mark, { components, page, load }) {
   let prepared;
   try {
-    prepared = prepare(mark, byName, { load });
+    prepared = prepare(mark, components, { load });
   } catch (error) {
-    console.warn(`as: ${file}: ${error.message}. La página muestra el Markdown tal cual.`);
+    console.warn(`as: ${page}: ${error.message}. La página muestra el Markdown tal cual.`);
     return null;
   }
   const { component, nodes, props } = prepared;
@@ -124,7 +124,7 @@ function mount(mark, byName, file, load) {
     // The view broke after the Markdown left the page: put the Markdown back.
     render(null, host);
     host.replaceWith(...nodes);
-    console.warn(`as: ${file}: ${component.name} falló al dibujarse (${error.message}). La página muestra el Markdown tal cual.`);
+    console.warn(`as: ${page}: ${component.name} falló al dibujarse (${error.message}). La página muestra el Markdown tal cual.`);
     return null;
   }
   return host;

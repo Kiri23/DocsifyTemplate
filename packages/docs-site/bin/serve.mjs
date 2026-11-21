@@ -7,6 +7,7 @@
 //
 //   node packages/docs-site/bin/serve.mjs ~/Code/MyClaudeSkills --home bin/SCRIPTS.md
 //   node packages/docs-site/bin/serve.mjs docs --components docs/propios/retro.js   (the repo's own)
+import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { basename, extname, relative, resolve, sep } from "node:path";
@@ -43,6 +44,10 @@ const components = values.components.map((path) => {
   const inside = relative(folder, resolve(path));
   if (inside.startsWith("..") || resolve(path) === folder) {
     console.error(`--components ${path} tiene que estar dentro de ${folder}\n${USAGE}`);
+    process.exit(2);
+  }
+  if (!existsSync(resolve(path))) {
+    console.error(`--components ${path} no existe\n${USAGE}`);
     process.exit(2);
   }
   return inside.split(sep).join("/");

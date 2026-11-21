@@ -54,7 +54,8 @@ unified().use(yamlComponents, { parseYaml: myCustomParser, transforms })
 
 A component is a Preact function that gets the fence's YAML as `data`. Declare yours in the config
 the adapter already reads, in a module that runs before the adapter (module scripts run in order).
-They are added to the default ones, and a name you use replaces the default of that name:
+They are added to the default ones, and a name you use replaces the default of that name. Needs
+the first release after 0.1.8:
 
 ```html
 <script type="module">

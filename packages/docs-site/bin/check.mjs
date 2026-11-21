@@ -11,16 +11,16 @@
 //   node packages/docs-site/bin/check.mjs packages/docs-site/docs ~/Code/MyClaudeSkills
 //   node packages/docs-site/bin/check.mjs docs --components docs/propios/retro.js
 import { execFileSync } from "node:child_process";
-import { readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
-import { registerHooks } from "node:module";
-import { basename, dirname, join, relative, resolve, sep } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
 import { marked } from "marked";
 import { parseHTML } from "linkedom";
 import { addComponents, findMarks, prepare, ShapeError } from "../as/core.js";
 import * as builtIn from "../components/mod.js";
+import { filesUnder } from "./lib/files.mjs";
 
 const SKIP = new Set(["node_modules", ".git"]);
 const COMPONENTS = new Map(Object.values(builtIn).map((c) => [c.name, c]));
@@ -75,25 +75,26 @@ export function problemsIn(source, { components = COMPONENTS, load } = {}) {
 }
 
 /**
- * How the pages of a file read the JSON they name: relative to the page, inside the folder being
- * checked, and kept by git when the folder is in a repo (a file git doesn't keep is a 404 once
- * the site is published).
- * @param {string} file the Markdown page
- * @param {string} folder the folder being checked
+ * How a page reads the JSON it names: relative to the page, looked up among the files the site
+ * serves from the folder (never a path built from the marker, so "../" or a link that leaves the
+ * folder fails here as it 404s there), and kept by git when the folder is in a repo (a file git
+ * doesn't keep is a 404 once the site is published).
+ * @param {{ page: string, folder: string, files: Map<string, string> }} where the Markdown page,
+ *   the folder being checked and its files as serve.mjs serves them (lib/files.mjs filesUnder)
  */
-export function jsonBeside(file, folder) {
+export function jsonBeside({ page, folder, files }) {
   return (src) => {
-    const path = resolve(dirname(file), src);
-    if (!path.startsWith(folder + sep)) throw new ShapeError(`${src} queda fuera de ${folder}`);
-    let text;
-    try {
-      text = readFileSync(path, "utf8");
-    } catch {
-      throw new ShapeError(`no existe ${src} al lado de la página`);
+    const inside = relative(folder, resolve(dirname(page), src));
+    if (inside.startsWith("..") || isAbsolute(inside)) throw new ShapeError(`${src} queda fuera de ${folder}`);
+    const path = files.get("/" + inside.split(sep).join("/"));
+    if (!path) {
+      throw new ShapeError(existsSync(resolve(folder, inside))
+        ? `${src} existe, pero el sitio no lo sirve: es oculto o un link que sale de la carpeta`
+        : `no existe ${src} al lado de la página`);
     }
     if (untracked(path)) throw new ShapeError(`${src} existe, pero git no lo versiona: publicado sería un 404`);
     try {
-      return JSON.parse(text);
+      return JSON.parse(readFileSync(path, "utf8"));
     } catch (error) {
       throw new ShapeError(`${src} no es JSON válido (${error.message})`);
     }
@@ -114,12 +115,12 @@ function untracked(path) {
 /**
  * The factory components plus a repo's own modules, imported the way the site imports them: a
  * module may import "preact", "htm/preact" and "docs-site/…" as the site's import map lets it,
- * without node_modules of its own.
+ * without node_modules of its own. The first call teaches this whole Node process the import map.
  * @param {string[]} paths the repo's component modules
  * @returns {Promise<{ components: Map<string, object>, problems: string[] }>}
  */
 export async function componentsWith(paths) {
-  mirrorImportMap();
+  if (paths.length) await mirrorImportMap();
   const modules = {};
   const problems = [];
   for (const path of paths) {
@@ -136,10 +137,13 @@ export async function componentsWith(paths) {
 let mirrored = false;
 
 /** Node's side of site.js's import map: "docs-site/" is this package, and the libraries the map
- *  names come from this package's node_modules. */
-function mirrorImportMap() {
+ *  names come from this package's node_modules. Loaded only for --components: registerHooks
+ *  needs Node 22.15, and a check without a repo's own components runs on any Node. */
+async function mirrorImportMap() {
   if (mirrored) return;
   mirrored = true;
+  const { registerHooks } = await import("node:module");
+  if (!registerHooks) throw new Error(`--components necesita Node 22.15 o más nuevo; este es ${process.version}`);
   registerHooks({
     resolve(specifier, context, nextResolve) {
       if (specifier.startsWith("docs-site/")) {
@@ -171,10 +175,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
   let markers = 0;
   let failed = problems.length;
   for (const folder of folders.map((f) => resolve(f))) {
+    const files = await filesUnder(folder, "/");
     for (const file of await markdownUnder(folder)) {
       const source = await readFile(file, "utf8");
       markers += markerLines(source).length;
-      for (const problem of problemsIn(source, { components, load: jsonBeside(file, folder) })) {
+      for (const problem of problemsIn(source, { components, load: jsonBeside({ page: file, folder, files }) })) {
         console.log(`${relative(process.cwd(), file)}:${problem}`);
         failed++;
       }

@@ -65,17 +65,25 @@
     addEventListener("hashchange", toHome);
   }
 
-  // The repo's component modules, imported by the page's module before Docsify starts: a module
-  // that doesn't load stops that script, and the console says which one.
+  // The repo's component modules, imported by the page's module before Docsify starts. A module
+  // that doesn't load stops that script (no theme plugins, no components): the console says so.
   var ownModules = (own.components || []).map(function (src, i) {
     return { name: "own" + i, src: src, url: new URL(src, document.baseURI).href };
   });
+
+  function escapeAttr(text) {
+    return text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  }
 
   document.write(
     '<link rel="stylesheet" href="' + docsify + 'themes/core.min.css">' +
       '<link rel="stylesheet" href="' + base + 'theme/themes/promptbench.css">' +
       '<script type="importmap">' + JSON.stringify({ imports: imports }) + "</script>" +
-      '<script type="module">' +
+      '<script type="module"' + (ownModules.length ? ' onerror="console.error(' + escapeAttr(JSON.stringify(
+        "as: uno de los módulos de window.$docsify.components no cargó (" +
+          ownModules.map(function (m) { return m.src; }).join(", ") +
+          "); el sitio sale sin los plugins del tema. Mirá el 404 de arriba.",
+      )) + ')"' : "") + ">" +
       'import { codeWindow, onThisPage, prevNext, sidebarSections, topNav } from "' + base + 'theme/mod.js";' +
       'import { asComponents } from "' + base + 'as/mod.js";' +
       'import { annotatedBlock, optionPicker, stepper } from "' + base + 'components/mod.js";' +

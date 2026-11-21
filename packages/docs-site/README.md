@@ -87,7 +87,7 @@ ejemplo que corre en estos docs: [`docs/traer-tu-ui.md`](docs/traer-tu-ui.md).
 
 ## Por qué convive con `docs-engine`
 
-`packages/docs-engine` no se toca. Los dos comparten la idea central: un componente es una función
+Este paquete no importa nada de `packages/docs-engine`, y al revés. Los dos comparten la idea central: un componente es una función
 Preact pura que recibe datos y no sabe quién la monta. Cambia de dónde salen los datos:
 
 | | `docs-engine` | `docs-site` |
