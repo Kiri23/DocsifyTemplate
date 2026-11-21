@@ -8,6 +8,8 @@ uncaught errors, responses of 400 or more and links to files that don't open. It
 
     python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs --shots /tmp/shots
     python3 packages/docs-site/test/en_el_navegador.py ~/Code/MyClaudeSkills --home bin/SCRIPTS.md --max 20
+    python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs \
+        --components packages/docs-site/docs/propios/retro-semanal.js --width 390
 
 Needs Python Playwright with its Chromium (`pip install playwright && playwright install chromium`).
 """
@@ -30,11 +32,14 @@ def main():
     args.add_argument("--port", default="3019")
     args.add_argument("--max", type=int, default=50, help="how many sidebar pages to visit at most")
     args.add_argument("--shots", help="a folder for one screenshot per page")
+    args.add_argument("--components", action="append", default=[], help="a component module of the repo, as serve.mjs takes it")
+    args.add_argument("--width", type=int, default=1280, help="the window's width: 390 is a phone")
     opts = args.parse_args()
 
     base = f"http://localhost:{opts.port}/"
     server = subprocess.Popen(
-        ["node", str(ROOT / "bin/serve.mjs"), opts.folder, "--home", opts.home, "--port", opts.port],
+        ["node", str(ROOT / "bin/serve.mjs"), opts.folder, "--home", opts.home, "--port", opts.port]
+        + [arg for path in opts.components for arg in ("--components", path)],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
     )
     try:
@@ -63,7 +68,7 @@ def visit_all(base, opts):
     failures = 0
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": 1280, "height": 900})
+        page = browser.new_page(viewport={"width": opts.width, "height": 900})
         said = []
         page.on("console", lambda m: m.type in ("error", "warning") and said.append(f"{m.type}: {m.text}"))
         page.on("pageerror", lambda e: said.append(f"pageerror: {e}"))

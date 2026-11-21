@@ -1,0 +1,12 @@
+{
+  "semana": "2026-W47",
+  "desde": "2026-11-16",
+  "hasta": "2026-11-22",
+  "metas": [
+    { "meta": "Cerrar un PR por día", "hecho": 5, "de": 5 },
+    { "meta": "Una sesión de aprender", "hecho": 2, "de": 2 },
+    { "meta": "Retro el domingo", "hecho": 0, "de": 1 }
+  ],
+  "aprendido": ["Una página entera puede ser una vista: el menú lateral elige qué JSON se dibuja."],
+  "siguiente": ["Fijar el sha nuevo en MyClaudeSkills", "Una página por configuración del motor de feedback"]
+}

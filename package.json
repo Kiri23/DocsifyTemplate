@@ -35,6 +35,7 @@
   },
   "homepage": "https://github.com/Kiri23/DocsifyTemplate#readme",
   "devDependencies": {
+    "@preact/signals": "^2.11.4",
     "htm": "^3.1.1",
     "js-yaml": "^4.1.1",
     "linkedom": "^0.18.15",

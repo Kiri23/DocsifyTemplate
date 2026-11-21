@@ -38,8 +38,9 @@ export function asComponents(components) {
       for (const host of hosts.splice(0)) render(null, host);
     };
 
-    // The JSON files of the page being drawn, by their address.
+    // The JSON files of the page being drawn, by their address, and which drawing is the latest.
     let fetched = new Map();
+    let drawing = 0;
 
     hook.beforeEach(() => {
       takeDown();
@@ -48,6 +49,7 @@ export function asComponents(components) {
     // Docsify waits for a hook that takes exactly two arguments until it calls `next`.
     hook.afterEach(function (html, next) {
       const file = vm.route.file;
+      const mine = ++drawing;
       const box = document.createElement("template");
       box.innerHTML = html;
       const wanted = jsonSources(box.content, byName).map((src) => address(src, file));
@@ -57,8 +59,9 @@ export function asComponents(components) {
         return;
       }
       Promise.all(wanted.map((url) => fetchJson(url).then((result) => [url, result]))).then((results) => {
-        // The reader went to another page meanwhile: that page is being drawn, not this one.
-        if (vm.route.file !== file) return;
+        // The reader went to another page meanwhile (Docsify changes the route before it fetches
+        // that page), or a later drawing started: that one is drawn, not this one.
+        if (vm.route.file !== file || mine !== drawing) return;
         fetched = new Map(results);
         next(html);
       });
