@@ -12,7 +12,7 @@ import { annotatedBlock, optionPicker, stepper } from "../components/mod.js";
 function read(component, md, attrs = {}) {
   const { document } = parseHTML(`<main>${marked.parse(md)}</main>`);
   const mark = findMarks(document.querySelector("main"))[0];
-  return component.read(component.takes.collect(mark), attrs);
+  return component.read({ nodes: component.takes.collect(mark), attrs });
 }
 
 const BLOCK = "<!-- as: annotated-block -->\n```\nVersion  score\nlabels   100±0\n```\n";

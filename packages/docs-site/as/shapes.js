@@ -2,6 +2,9 @@
 // is an object with `collect(mark)`, which returns the nodes that belong to the component or throws
 // a ShapeError that says what it expected and what it found. A new shape is a new function here;
 // the runtime (as/mod.js) and the checker (bin/check.mjs) never change for it.
+//
+// Any shape can also read a JSON file the marker names: `page().json("src")` takes the rest of the
+// page and the file in `src="datos.json"`, relative to the page. The site and the checker load it.
 
 /** What the reader sees when the Markdown under a marker doesn't have the shape. */
 export class ShapeError extends Error {}
@@ -12,7 +15,7 @@ export class ShapeError extends Error {}
  * @param {...string} tags the tag of each element, in order
  */
 export function sequence(...tags) {
-  return {
+  return shape({
     describe: tags.map((t) => `<${t}>`).join(" + "),
     collect(mark) {
       const nodes = [];
@@ -28,7 +31,7 @@ export function sequence(...tags) {
       }
       return nodes;
     },
-  };
+  });
 }
 
 /**
@@ -38,7 +41,7 @@ export function sequence(...tags) {
  */
 export function section(tag) {
   const level = Number(tag[1]);
-  return {
+  return shape({
     describe: `<${tag}> y lo que sigue`,
     collect(mark) {
       const first = nextElement(mark);
@@ -52,6 +55,36 @@ export function section(tag) {
         if (n.nodeType === 1) nodes.push(n);
       }
       return nodes;
+    },
+  });
+}
+
+/**
+ * The whole page from the marker down: a view that replaces the page's body. What is above the
+ * marker (a title, an intro) stays. It may take nothing, when the page is only the marker and the
+ * view draws from a JSON file: `page().json("src")`.
+ */
+export function page() {
+  return shape({
+    describe: "el resto de la página",
+    collect(mark) {
+      const nodes = [];
+      for (let n = mark.nextSibling; n; n = n.nextSibling) {
+        if (n.nodeType === 1) nodes.push(n);
+      }
+      return nodes;
+    },
+  });
+}
+
+/** A shape with the `.json(attr)` every shape has: the same Markdown, plus the JSON file that the
+ *  marker's attribute names. */
+function shape({ describe, collect }) {
+  return {
+    describe,
+    collect,
+    json(attr) {
+      return { describe: `${describe} + el JSON de ${attr}=""`, collect, jsonFrom: attr };
     },
   };
 }
