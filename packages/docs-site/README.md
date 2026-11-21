@@ -9,9 +9,11 @@ Markdown con una marca invisible, `<!-- as: componente -->`. Los docs de este pa
 npm run serve                                   # → http://localhost:3010/packages/docs-site/docs/
 npm run docs:serve -- ~/Code/MyClaudeSkills --home bin/SCRIPTS.md   # otro repo → http://localhost:3011/
 npm run check:docs -- ~/Code/MyClaudeSkills     # las marcas de una carpeta, sin navegador
+npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
 npm run docs:armar -- ~/Code/MyClaudeSkills/docs # copia a docs/_catalogo/ lo que nombra docs/incluir.txt (--check: solo revisa)
 npm test                                        # node --test: marcas, formas, componentes, colores
-python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs   # cada página en Chromium
+python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs \
+  --components packages/docs-site/docs/propios/retro-semanal.js --width 390      # cada página en Chromium, ancho de teléfono
 ```
 
 ## Archivos
@@ -22,8 +24,9 @@ python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs   # c
 | `theme/` | El tema de prompt-bench tal cual (su README dice de qué commit), más el CSS de los componentes. |
 | `as/mod.js` | El plugin de Docsify: cada `<!-- as: nombre -->` de la página se vuelve su componente. |
 | `as/core.js` | Lo mismo sin navegador: encontrar las marcas, leerlas y preparar las props. Lo usan el plugin y `check.mjs`. |
-| `as/shapes.js` | Las formas de Markdown que toma un componente: `sequence("pre", "ol")`, `section("h2")`. |
+| `as/shapes.js` | Las formas de Markdown que toma un componente: `sequence("pre", "ol")`, `section("h2")`, `page()`; cualquiera con `.json("src")` lee además un JSON. |
 | `components/` | Un archivo por componente: `annotated-block`, `option-picker`, `stepper`. |
+| `docs/propios/` | Un componente propio de estos docs (`retro-semanal`), con una página y un JSON por semana: el ejemplo de traer tu UI. |
 | `plugins/file-links.js` | Un link sin `.md` abre el archivo, como en GitHub. |
 | `bin/serve.mjs` | Sirve una carpeta de otro repo con este paquete, en un origen. |
 | `bin/check.mjs` | Revisa las marcas de una carpeta con marked y linkedom, sin navegador. |
@@ -55,7 +58,7 @@ export const optionPicker = {
   name: "option-picker",
   takes: sequence("table"),
   attrs: ["label", "default", "in", "out"],
-  read([table], attrs) { /* … */ return { options, rows }; },
+  read({ nodes: [table], attrs }) { /* … */ return { options, rows }; },
   view: OptionPicker,
 };
 ```
@@ -64,9 +67,27 @@ Si la forma no encaja, el nombre no existe, la marca trae un atributo que el com
 la vista falla, la página muestra el Markdown tal cual y la consola dice por qué. `check.mjs` corre
 el mismo `read` en Node, así que lo que pasa el chequeo es lo que el sitio dibuja.
 
+## Tus componentes, y una página entera como vista
+
+Un repo suma los suyos nombrando sus módulos en `window.$docsify.components`, sin tocar `site.js`.
+Uno puede ser la página entera: `takes: page().json("src")` toma lo que hay debajo de la marca y
+el JSON que ella nombra, y `read({ data })` lo recibe. Cada página es una configuración, y el menú
+lateral elige cuál se ve:
+
+```html
+<script>window.$docsify = { name: "MyClaudeSkills", components: ["propios/retro-semanal.js"] };</script>
+```
+
+```md
+<!-- as: retro-semanal src="semana-47.json" -->
+```
+
+`check.mjs` y `serve.mjs` toman los mismos módulos con `--components`. La guía entera, con el
+ejemplo que corre en estos docs: [`docs/traer-tu-ui.md`](docs/traer-tu-ui.md).
+
 ## Por qué convive con `docs-engine`
 
-`packages/docs-engine` no se toca. Los dos comparten la idea central: un componente es una función
+Este paquete no importa nada de `packages/docs-engine`, y al revés. Los dos comparten la idea central: un componente es una función
 Preact pura que recibe datos y no sabe quién la monta. Cambia de dónde salen los datos:
 
 | | `docs-engine` | `docs-site` |

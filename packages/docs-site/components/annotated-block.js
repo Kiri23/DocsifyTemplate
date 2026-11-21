@@ -15,7 +15,7 @@ export const annotatedBlock = {
   name: "annotated-block",
   takes: sequence("pre", "ol"),
   attrs: [],
-  read([pre, ol]) {
+  read({ nodes: [pre, ol] }) {
     const text = pre.textContent;
     const items = [...ol.children].filter((li) => li.localName === "li");
     if (!items.length) throw new ShapeError("la lista numerada está vacía");

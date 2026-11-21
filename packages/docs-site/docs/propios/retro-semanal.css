@@ -1,0 +1,91 @@
+/* retro-semanal: the week at a glance, from its JSON. Names the theme's tokens only. */
+
+.rs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: var(--margin-block, 1.2em) 0;
+}
+
+.rs-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--ink-raised);
+}
+
+.rs-head p {
+  margin: 0;
+}
+
+.rs-week {
+  font-family: var(--mono);
+  font-size: var(--fs-20);
+  color: var(--text);
+}
+
+.rs-range {
+  color: var(--text-dim);
+  font-size: var(--fs-15);
+}
+
+.rs-score {
+  color: var(--text-soft);
+  font-size: var(--fs-15);
+}
+
+.rs-score strong {
+  margin-right: 6px;
+  color: var(--amber);
+  font-size: var(--fs-h2);
+  line-height: 1;
+}
+
+.rs .rs-goals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rs .rs-goals li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--ink-code);
+}
+
+.rs-goal {
+  color: var(--text);
+}
+
+.rs-count {
+  font-family: var(--mono);
+  color: var(--text-soft);
+}
+
+.rs-bar {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, var(--amber) calc(var(--rs-done) * 100%), var(--line) 0);
+}
+
+.rs-title {
+  margin: 8px 0 0;
+}
+
+.rs-list {
+  margin: 0;
+}

@@ -10,7 +10,12 @@
     <div id="app">Cargando…</div>
     <!-- Los docs de este paquete, servidos como los serviría cualquier repo de afuera. -->
     <script>
-      window.$docsify = { name: "docs-site", repo: "https://github.com/Kiri23/DocsifyTemplate" };
+      window.$docsify = {
+        name: "docs-site",
+        repo: "https://github.com/Kiri23/DocsifyTemplate",
+        // Un componente propio de estos docs, además de los de fábrica: traer-tu-ui.md.
+        components: ["propios/retro-semanal.js"],
+      };
     </script>
     <script src="../site.js"></script>
   </body>

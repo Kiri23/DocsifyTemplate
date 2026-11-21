@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "npx http-server . -p 3010 -c-1 --cors",
-    "test": "node --test \"packages/docs-site/test/*.test.mjs\"",
+    "test": "node --test \"packages/docs-site/test/*.test.mjs\" \"packages/docs-engine/test/*.test.mjs\"",
     "check:docs": "node packages/docs-site/bin/check.mjs",
     "docs:serve": "node packages/docs-site/bin/serve.mjs",
     "docs:armar": "node packages/docs-site/bin/armar.mjs"
@@ -35,12 +35,16 @@
   },
   "homepage": "https://github.com/Kiri23/DocsifyTemplate#readme",
   "devDependencies": {
+    "@preact/signals": "^2.11.4",
     "htm": "^3.1.1",
     "js-yaml": "^4.1.1",
     "linkedom": "^0.18.15",
     "marked": "^18.2.1",
     "preact": "^10.29.1",
+    "preact-custom-element": "^4.6.0",
     "preact-render-to-string": "^6.6.7",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5",
     "unist-util-visit": "^5.1.0"
   }
 }

@@ -10,6 +10,13 @@
 // wins over the defaults below, and its plugins go after the theme's. To own the list of plugins
 // (drop one, reorder them), copy the page README.md shows instead of loading this file.
 //
+// A repo brings its own components by naming their modules, relative to its index.html:
+//
+//   window.$docsify = { name: "MyClaudeSkills", components: ["propios/retro.js"] };
+//
+// Every export of those modules is a component, added to the factory ones in the same plugin. A
+// module imports "preact", "htm/preact" and "docs-site/as/mod.js" through the import map below.
+//
 // A classic script, not a module: the import map has to be on the page before any module loads.
 (function () {
   var base = new URL(".", document.currentScript.src).href;
@@ -24,6 +31,7 @@
     "@preact/signals":
       "https://esm.sh/@preact/signals@2.11.4?external=preact&deps=@preact/signals-core@1.14.5",
     "htm/preact": "https://esm.sh/htm@3.1.1/preact?external=preact",
+    "docs-site/": base,
   };
 
   var own = window.$docsify || {};
@@ -57,22 +65,44 @@
     addEventListener("hashchange", toHome);
   }
 
+  // The repo's component modules, imported by the page's module before Docsify starts. A module
+  // that doesn't load stops that script (no theme plugins, no components): the console says so.
+  var ownModules = (own.components || []).map(function (src, i) {
+    return { name: "own" + i, src: src, url: new URL(src, document.baseURI).href };
+  });
+
+  function escapeAttr(text) {
+    return text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  }
+
   document.write(
     '<link rel="stylesheet" href="' + docsify + 'themes/core.min.css">' +
       '<link rel="stylesheet" href="' + base + 'theme/themes/promptbench.css">' +
       '<script type="importmap">' + JSON.stringify({ imports: imports }) + "</script>" +
-      '<script type="module">' +
+      '<script type="module"' + (ownModules.length ? ' onerror="console.error(' + escapeAttr(JSON.stringify(
+        "as: uno de los módulos de window.$docsify.components no cargó (" +
+          ownModules.map(function (m) { return m.src; }).join(", ") +
+          "); el sitio sale sin los plugins del tema. Mirá el 404 de arriba.",
+      )) + ')"' : "") + ">" +
       'import { codeWindow, onThisPage, prevNext, sidebarSections, topNav } from "' + base + 'theme/mod.js";' +
       'import { asComponents } from "' + base + 'as/mod.js";' +
       'import { annotatedBlock, optionPicker, stepper } from "' + base + 'components/mod.js";' +
       'import { fileLinks } from "' + base + 'plugins/file-links.js";' +
+      'import { addComponents } from "' + base + 'as/core.js";' +
+      ownModules.map(function (m) {
+        return "import * as " + m.name + " from " + JSON.stringify(m.url) + ";";
+      }).join("") +
       "const c = window.$docsify;" +
+      "const { components, problems } = addComponents([annotatedBlock, optionPicker, stepper], {" +
+      ownModules.map(function (m) { return JSON.stringify(m.src) + ": " + m.name; }).join(",") +
+      "});" +
+      "problems.forEach((p) => console.error(\"as: \" + p));" +
       "const links = c.repo ? [{ text: \"GitHub\", href: c.repo }] : [];" +
       "c.plugins = [" +
       "topNav({ home: \"#/\", links }), sidebarSections(), fileLinks()," +
       // Before onThisPage and codeWindow: a component moves the page's own headings and code
       // blocks, and those two read them after.
-      "asComponents([annotatedBlock, optionPicker, stepper])," +
+      "asComponents(components)," +
       "onThisPage(), prevNext(), codeWindow()," +
       "].concat(c.plugins || []);" +
       "</script>" +

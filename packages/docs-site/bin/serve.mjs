@@ -6,9 +6,11 @@
 // gets one listing its Markdown files.
 //
 //   node packages/docs-site/bin/serve.mjs ~/Code/MyClaudeSkills --home bin/SCRIPTS.md
+//   node packages/docs-site/bin/serve.mjs docs --components docs/propios/retro.js   (the repo's own)
+import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
-import { basename, extname, resolve } from "node:path";
+import { basename, extname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { filesUnder } from "./lib/files.mjs";
@@ -28,17 +30,33 @@ const { values, positionals } = parseArgs({
     name: { type: "string" },
     repo: { type: "string" },
     port: { type: "string", default: "3011" },
+    components: { type: "string", multiple: true, default: [] },
   },
 });
+const USAGE = "uso: serve.mjs <carpeta> [--home README.md] [--name X] [--repo URL] [--port 3011] [--components <módulo.js>]…";
 if (positionals.length !== 1) {
-  console.error("uso: serve.mjs <carpeta> [--home README.md] [--name X] [--repo URL] [--port 3011]");
+  console.error(USAGE);
   process.exit(2);
 }
 const folder = resolve(positionals[0]);
+// The same paths check.mjs takes, from here; the page names them from the folder.
+const components = values.components.map((path) => {
+  const inside = relative(folder, resolve(path));
+  if (inside.startsWith("..") || resolve(path) === folder) {
+    console.error(`--components ${path} tiene que estar dentro de ${folder}\n${USAGE}`);
+    process.exit(2);
+  }
+  if (!existsSync(resolve(path))) {
+    console.error(`--components ${path} no existe\n${USAGE}`);
+    process.exit(2);
+  }
+  return inside.split(sep).join("/");
+});
 const config = {
   name: values.name ?? basename(folder),
   homepage: values.home,
   ...(values.repo ? { repo: values.repo } : {}),
+  ...(components.length ? { components } : {}),
 };
 
 /** The page the browser opens: Docsify's config, then site.js. */

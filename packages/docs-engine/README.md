@@ -50,6 +50,37 @@ unified().use(yamlComponents, { parseYaml: myCustomParser, transforms })
 <script type="module" src="https://esm.sh/docs-engine/docsify/esm"></script>
 ```
 
+### Bring your own component
+
+A component is a Preact function that gets the fence's YAML as `data`. Declare yours in the config
+the adapter already reads, in a module that runs before the adapter (module scripts run in order).
+They are added to the default ones, and a name you use replaces the default of that name. Needs
+the first release after 0.1.8:
+
+```html
+<script type="module">
+  import { html } from "htm/preact";
+  window.__docsifyTemplateConfig = {
+    ...window.__docsifyTemplateConfig,
+    components: {
+      "feedback-semana": ({ data }) => html`<p>${data.semana}: ${data.puntaje}</p>`,
+    },
+  };
+</script>
+<script type="module" src="https://esm.sh/docs-engine/docsify/esm"></script>
+```
+
+Then a page writes a fence with that name:
+
+````md
+```feedback-semana
+semana: 2026-W47
+puntaje: 8
+```
+````
+
+Nothing changes for a site that declares nothing.
+
 ### Exports
 
 | Export | File | Description |

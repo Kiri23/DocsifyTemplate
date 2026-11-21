@@ -19,7 +19,7 @@ export const stepper = {
   name: "stepper",
   takes: section("h2"),
   attrs: [],
-  read(nodes) {
+  read({ nodes }) {
     const steps = [];
     for (const node of nodes) {
       if (node.localName === "h2") steps.push({ id: node.id, title: node.textContent.trim(), nodes: [] });

@@ -1,0 +1,15 @@
+{
+  "semana": "2026-W46",
+  "desde": "2026-11-09",
+  "hasta": "2026-11-15",
+  "metas": [
+    { "meta": "Cerrar un PR por día", "hecho": 4, "de": 5 },
+    { "meta": "Una sesión de aprender", "hecho": 1, "de": 2 },
+    { "meta": "Retro el domingo", "hecho": 1, "de": 1 }
+  ],
+  "aprendido": [
+    "Un catálogo que solo toma lo que git versiona no publica secretos por accidente.",
+    "codeload sirve el tarball de un sha; npm 10 no resuelve github: con espacios."
+  ],
+  "siguiente": ["Componentes del consumidor en docs-site", "Primer motor de feedback"]
+}

@@ -19,7 +19,7 @@ export const optionPicker = {
   name: "option-picker",
   takes: sequence("table"),
   attrs: ["label", "default", "in", "out"],
-  read([table], attrs) {
+  read({ nodes: [table], attrs }) {
     const head = [...table.querySelectorAll("thead th")];
     if (head.length < 3) {
       throw new ShapeError("la tabla necesita una columna de piezas y al menos dos valores");

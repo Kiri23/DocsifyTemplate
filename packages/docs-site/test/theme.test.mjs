@@ -38,6 +38,7 @@ test("no colour value outside theme/tokens.css", async () => {
     ...await filesIn(join(ROOT, "as")),
     ...await filesIn(join(ROOT, "components")),
     ...await filesIn(join(ROOT, "plugins")),
+    ...await filesIn(join(ROOT, "docs", "propios")),
     join(ROOT, "site.js"),
   ].filter((f) => !f.endsWith(join("theme", "tokens.css")));
   assert.ok(files.length >= 15, `only ${files.length} files checked: did the folders move?`);

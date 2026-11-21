@@ -26,6 +26,7 @@ agrupados por la primera carpeta.
 | `--name` | el nombre arriba a la izquierda | el nombre de la carpeta |
 | `--repo` | el link a GitHub de la barra | sin link |
 | `--port` | el puerto | 3011 |
+| `--components` | un módulo de componentes propios, dentro de la carpeta ([Traer tu propia UI](traer-tu-ui.md)); uno por flag | solo los de fábrica |
 
 Solo sirve archivos que existen dentro de la carpeta: una ruta se busca en la lista de archivos,
 nunca se arma un camino con ella, así que `/../` da 404.
@@ -81,22 +82,27 @@ import { asComponents } from "<base>/as/mod.js";
 import { annotatedBlock, optionPicker, stepper } from "<base>/components/mod.js";
 import { fileLinks } from "<base>/plugins/file-links.js";
 
+import { retroSemanal } from "./propios/retro-semanal.js"; // los tuyos, importados como cualquiera
+
 window.$docsify.plugins = [
   topNav(), sidebarSections(), fileLinks(),
-  asComponents([annotatedBlock, optionPicker, stepper]), // antes de onThisPage y codeWindow
+  asComponents([annotatedBlock, optionPicker, stepper, retroSemanal]), // antes de onThisPage y codeWindow
   onThisPage(), prevNext(), codeWindow(),
 ];
 ```
 
 `asComponents` va antes de `onThisPage` y `codeWindow` porque mueve títulos y bloques de código de
-la página, y esos dos los leen después.
+la página, y esos dos los leen después. Si tus componentes importan `docs-site/…`, sumá
+`"docs-site/": "<base>/"` al import map, como hace `site.js`.
 
 ## Revisar las marcas sin navegador
 
 ```sh
 npm run check:docs -- ~/Code/MyClaudeSkills
+npm run check:docs -- ~/Code/MyClaudeSkills/docs --components ~/Code/MyClaudeSkills/docs/propios/retro.js
 ```
 
 Recorre los `.md` de la carpeta y, por cada `<!-- as: … -->`, hace lo mismo que el sitio: busca el
 componente, junta el Markdown que toma y lo lee. Si algo no encaja, dice archivo, línea y por qué,
-y sale con 1.
+y sale con 1. Con `--components` suma los componentes del repo, y el JSON que nombra una marca lo
+lee del disco, al lado de la página.

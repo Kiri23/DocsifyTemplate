@@ -158,5 +158,7 @@ export function createPlugin(options = {}) {
   ]);
 }
 
-// Batteries-included default — Docsify consumers get this for free
-createPlugin({ components: defaultComponents });
+// Batteries-included default — Docsify consumers get this for free. A site adds its own
+// components in the same config it already writes, before this module loads; createPlugin mixes
+// them with the defaults, so Docsify's hooks are registered once.
+createPlugin({ components: (window.__docsifyTemplateConfig || {}).components });
