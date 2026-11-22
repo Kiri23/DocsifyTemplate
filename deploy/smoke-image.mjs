@@ -153,10 +153,14 @@ try {
     "--name",
     containerName,
     "--read-only",
+    "--tmpfs",
+    "/data:size=4m,noexec,nosuid,nodev,uid=10001,gid=10001",
     "--cap-drop",
     "ALL",
     "--security-opt",
     "no-new-privileges:true",
+    "--memory",
+    "64m",
     "-p",
     "127.0.0.1::8080",
     image,
@@ -169,9 +173,9 @@ try {
   const uid = docker(["exec", containerName, "id", "-u"]);
   assert(uid !== "0", `el contenedor corre como root (uid ${uid})`);
 
-  // Inventario exacto de /srv: ni un archivo de más (ej. .env) ni uno faltante.
+  // Inventario exacto de /srv: ni un archivo ni symlink de más (ej. .env) ni uno faltante.
   const allowlist = collectAllowlist();
-  const actualSrvFiles = docker(["exec", containerName, "find", "/srv", "-type", "f"])
+  const actualSrvFiles = docker(["exec", containerName, "find", "/srv", "!", "-type", "d"])
     .split("\n")
     .filter(Boolean)
     .map((p) => p.replace(/^\/srv/, ""))

@@ -19,6 +19,8 @@ services:
     container_name: docsify-template-docs
     restart: unless-stopped
     read_only: true
+    tmpfs:
+      - /data:size=4m,noexec,nosuid,nodev,uid=10001,gid=10001
     cap_drop:
       - ALL
     security_opt:
