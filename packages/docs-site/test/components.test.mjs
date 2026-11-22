@@ -4,9 +4,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { marked } from "marked";
 import { parseHTML } from "linkedom";
+import { html } from "htm/preact";
+import renderToString from "preact-render-to-string";
 import { findMarks } from "../as/core.js";
 import { problemsIn } from "../bin/check.mjs";
-import { annotatedBlock, optionPicker, stepper } from "../components/mod.js";
+import { annotatedBlock, optionPicker, stepper, terminal } from "../components/mod.js";
 
 /** What a component reads from the Markdown under the first marker of a page. */
 function read(component, md, attrs = {}) {
@@ -88,9 +90,159 @@ test("stepper: a single step is refused", () => {
   ]);
 });
 
+test("terminal: static by default, lifts leading $ command and copies the command", () => {
+  const md = "<!-- as: terminal -->\n```console\n$ kiri-pm status\nInbox: 3\nIn progress: 1\n```\n";
+  const props = read(terminal, md);
+  assert.equal(props.command, "kiri-pm status");
+  assert.equal(props.copyText, "kiri-pm status");
+  assert.equal(props.lineMs, 0);
+  assert.equal(props.exit, null);
+  assert.equal(props.nota, null);
+  assert.equal(props.estado, null);
+  assert.deepEqual(props.lines.map((l) => [l.text, l.kind, l.delayMs]), [
+    ["Inbox: 3", "plain", 0],
+    ["In progress: 1", "plain", 0],
+  ]);
+});
+
+test("terminal: explicit command keeps body intact; single-line, continuation and multi-command keep $ in body", () => {
+  const withExplicit = read(
+    terminal,
+    '<!-- as: terminal command="kiri-pm status" -->\n```console\n$ ignored\nInbox: 3\n```\n',
+    { command: "kiri-pm status" },
+  );
+  assert.equal(withExplicit.command, "kiri-pm status");
+  assert.deepEqual(withExplicit.lines.map((l) => l.text), ["$ ignored", "Inbox: 3"]);
+
+  const singleLine = read(terminal, "<!-- as: terminal -->\n```console\n$ echo ok\n```\n");
+  assert.equal(singleLine.command, null);
+  assert.equal(singleLine.copyText, "$ echo ok");
+  assert.deepEqual(singleLine.lines.map((l) => l.text), ["$ echo ok"]);
+
+  const continuation = read(terminal, "<!-- as: terminal -->\n```console\n$ curl \\\n  https://example.com\n```\n");
+  assert.equal(continuation.command, null);
+  assert.deepEqual(continuation.lines.map((l) => l.text), ["$ curl \\", "  https://example.com"]);
+
+  const session = read(terminal, "<!-- as: terminal -->\n```console\n$ ls\na.txt\n$ pwd\n/tmp\n```\n");
+  assert.equal(session.command, null);
+  assert.equal(session.lines.length, 4);
+});
+
+test("terminal: line-ms=0 stays static; positive line-ms uses generic classification and pacing without PromptBench leakage", () => {
+  const staticZero = read(
+    terminal,
+    '<!-- as: terminal line-ms="0" -->\n```console\n$ echo ok\nok\n```\n',
+    { "line-ms": "0" },
+  );
+  assert.equal(staticZero.lineMs, 0);
+  assert.equal(staticZero.lines[0].delayMs, 0);
+
+  const md = [
+    '<!-- as: terminal line-ms="100" -->',
+    "```console",
+    "$ bench run",
+    "│ Version  score",
+    "[run 1/3] ok",
+    "Run saved in: out/",
+    "…",
+    "next after ellipsis",
+    "",
+    "┌─ Box ───┐",
+    "│ a ██░██ │",
+    "```",
+  ].join("\n") + "\n";
+  const animated = read(terminal, md, { "line-ms": "100" });
+  assert.equal(animated.lineMs, 100);
+  assert.deepEqual(
+    animated.lines.map((l) => [l.text, l.kind, l.delayMs]),
+    [
+      ["│ Version  score", "plain", 0],
+      ["[run 1/3] ok", "plain", 100],
+      ["Run saved in: out/", "plain", 100],
+      ["…", "dim", 100],
+      ["next after ellipsis", "plain", 320],
+      ["", "plain", 140],
+      ["┌─ Box ───┐", "plain", 240],
+      ["│ a ██░██ │", "bars", 100],
+    ],
+  );
+  assert.deepEqual(animated.lines.at(-1).parts, [
+    { text: "│ a ", bar: false },
+    { text: "██", bar: true },
+    { text: "░", bar: false },
+    { text: "██", bar: true },
+    { text: " │", bar: false },
+  ]);
+});
+
+test("terminal: static view renders one <pre> with no ghost, playback buttons or inline styles; animated adds ghost and controls", () => {
+  const staticProps = read(
+    terminal,
+    '<!-- as: terminal exit="0" estado="prototipo" nota="Salida simulada." -->\n```console\n$ kiri-pm status\nInbox: 3\n```\n',
+    { exit: "0", estado: "prototipo", nota: "Salida simulada." },
+  );
+  const staticHtml = renderToString(html`<${terminal.view} ...${staticProps} />`);
+  assert.equal((staticHtml.match(/<pre\b/g) || []).length, 1);
+  assert.ok(!staticHtml.includes("terminal-ghost"));
+  assert.ok(!staticHtml.includes("Show all"));
+  assert.ok(!staticHtml.includes("Replay"));
+  assert.ok(!staticHtml.includes("style="));
+  assert.ok(!staticHtml.includes("data-lang"));
+  assert.ok(staticHtml.includes('data-estado="prototipo"'));
+  assert.ok(staticHtml.includes('data-exit="ok"'));
+  assert.ok(staticHtml.includes("Salida simulada."));
+
+  const animatedProps = read(
+    terminal,
+    '<!-- as: terminal line-ms="95" exit="1" -->\n```console\n$ test\nline 1\nline 2\n```\n',
+    { "line-ms": "95", exit: "1" },
+  );
+  const animatedHtml = renderToString(html`<${terminal.view} ...${animatedProps} />`);
+  assert.ok(animatedHtml.includes("terminal-ghost"));
+  assert.ok(animatedHtml.includes("terminal-live"));
+  assert.ok(animatedHtml.includes("Show all"));
+  assert.ok(animatedHtml.includes("Replay"));
+  assert.ok(animatedHtml.includes('data-exit="fail"'));
+  assert.ok(!animatedHtml.includes("style="));
+  assert.ok(!animatedHtml.includes("data-lang"));
+});
+
+test("terminal: invalid shape, unknown attributes and bad values fail in check.mjs", () => {
+  assert.deepEqual(problemsIn("<!-- as: terminal -->\n\nUn párrafo.\n"), [
+    "1: esperaba <pre> después de la marca, encontré <p>",
+  ]);
+  assert.deepEqual(problemsIn("<!-- as: terminal -->\n```console\n   \n```\n"), [
+    "1: el bloque de terminal está vacío",
+  ]);
+  assert.deepEqual(problemsIn('<!-- as: terminal lineMs="95" -->\n```console\nok\n```\n'), [
+    '1: marca mal escrita: <!-- as: terminal lineMs="95" -->; va <!-- as: nombre clave="valor" -->',
+  ]);
+  assert.deepEqual(problemsIn('<!-- as: terminal foo="bar" -->\n```console\nok\n```\n'), [
+    '1: terminal no conoce "foo"; conoce: command, line-ms, exit, nota, estado',
+  ]);
+  assert.deepEqual(problemsIn('<!-- as: terminal line-ms="-5" -->\n```console\nok\n```\n'), [
+    '1: line-ms tiene que ser 0 o un entero positivo (recibí "-5")',
+  ]);
+  assert.deepEqual(problemsIn('<!-- as: terminal line-ms="" -->\n```console\nok\n```\n'), [
+    '1: line-ms tiene que ser 0 o un entero positivo (recibí "")',
+  ]);
+  assert.deepEqual(problemsIn('<!-- as: terminal exit="256" -->\n```console\nok\n```\n'), [
+    '1: exit tiene que ser un entero entre 0 y 255 (recibí "256")',
+  ]);
+  assert.deepEqual(problemsIn('<!-- as: terminal estado="borrador" -->\n```console\nok\n```\n'), [
+    '1: estado="borrador" no es válido; los permitidos: prototipo',
+  ]);
+  assert.deepEqual(problemsIn('<!-- as: terminal command="   " -->\n```console\nok\n```\n'), [
+    "1: command no puede estar vacío",
+  ]);
+  assert.deepEqual(problemsIn('<!-- as: terminal nota="" -->\n```console\nok\n```\n'), [
+    "1: nota no puede estar vacío",
+  ]);
+});
+
 test("check reports the line of each marker that fails", () => {
   const md = "# Page\n\n<!-- as: stepper -->\n\n## A\n\n## B\n\n<!-- /as -->\n\ntext\n\n<!-- as: nope -->\n\ntext\n";
   assert.deepEqual(problemsIn(md), [
-    "13: no hay un componente \"nope\"; los que hay: annotated-block, option-picker, stepper",
+    "13: no hay un componente \"nope\"; los que hay: annotated-block, option-picker, stepper, terminal",
   ]);
 });

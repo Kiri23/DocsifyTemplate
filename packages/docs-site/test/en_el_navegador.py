@@ -34,6 +34,7 @@ def main():
     args.add_argument("--shots", help="a folder for one screenshot per page")
     args.add_argument("--components", action="append", default=[], help="a component module of the repo, as serve.mjs takes it")
     args.add_argument("--width", type=int, default=1280, help="the window's width: 390 is a phone")
+    args.add_argument("--expect", action="append", default=[], help="a component name that at least one visited page must draw")
     opts = args.parse_args()
 
     base = f"http://localhost:{opts.port}/"
@@ -66,9 +67,13 @@ def wait_for(url):
 def visit_all(base, opts):
     """Visits the home page and the sidebar's pages; returns how many problems it saw."""
     failures = 0
+    seen_components = set()
+    animated_routes = []
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": opts.width, "height": 900})
+        context = browser.new_context(viewport={"width": opts.width, "height": 900})
+        context.grant_permissions(["clipboard-read", "clipboard-write"], origin=base.rstrip("/"))
+        page = context.new_page()
         said = []
         page.on("console", lambda m: m.type in ("error", "warning") and said.append(f"{m.type}: {m.text}"))
         page.on("pageerror", lambda e: said.append(f"pageerror: {e}"))
@@ -92,6 +97,9 @@ def visit_all(base, opts):
             # The sidebar is the same on every page: a link that changes with the page is relative.
             if sidebar_links(page) != sidebar:
                 said.append("el sidebar cambia en esta página: sus links tienen que empezar en /")
+            # No code or terminal window may be wrapped twice by codeWindow().
+            if page.locator("#main .window .window").count() > 0:
+                said.append("ventana .window envuelta dos veces por codeWindow()")
             # Each link to a file of the site (not a page, not another site) has to open it.
             for href in page.eval_on_selector_all(
                 "#main a[href]", "as => as.map(a => a.href).filter(h => h.startsWith(location.origin) && !h.includes('#'))"
@@ -100,6 +108,18 @@ def visit_all(base, opts):
                 if code >= 400:
                     said.append(f"link a archivo roto: {href} → {code}")
             drawn = page.eval_on_selector_all("#main .as", "els => els.map(e => e.className)")
+            for cls in drawn:
+                for token in cls.split():
+                    if token.startswith("as-"):
+                        seen_components.add(token[3:])
+            if page.locator("#main .as-terminal").count() > 0:
+                terminal_issues, has_animated = check_terminals(page)
+                said.extend(terminal_issues)
+                if has_animated:
+                    animated_routes.append(route)
+                if opts.shots:
+                    page.evaluate("() => window.scrollTo(0, 0)")
+                    page.wait_for_timeout(100)
             h1 = page.query_selector("#main h1")
             title = h1.text_content() if h1 else "(sin título)"
             mark = "✗" if said else "✓"
@@ -111,8 +131,121 @@ def visit_all(base, opts):
                 folder = pathlib.Path(opts.shots)
                 folder.mkdir(parents=True, exist_ok=True)
                 page.screenshot(path=str(folder / f"{i:02d}.png"), full_page=True)
+
+        # Verify animated terminals fall back to static rendering under prefers-reduced-motion.
+        for route in animated_routes:
+            reduced_issues = check_reduced_motion(browser, base, route, opts.width)
+            if reduced_issues:
+                print(f"✗ #{route}  [prefers-reduced-motion: reduce]")
+                for line in reduced_issues:
+                    print(f"    {line}")
+                failures += len(reduced_issues)
+            else:
+                print(f"✓ #{route}  [prefers-reduced-motion: reduce]")
+
+        for expected in opts.expect:
+            if expected not in seen_components:
+                print(f"✗ --expect {expected}: ninguna página dibujó as-{expected}")
+                failures += 1
+
+        context.close()
         browser.close()
     return failures
+
+
+def check_terminals(page):
+    """Checks static, prototype, animated and Copy behaviour for every terminal on the page."""
+    issues = []
+    has_animated = False
+    windows = page.locator("#main .as-terminal .terminal-window")
+    count = windows.count()
+    if count == 0:
+        return ["as-terminal sin .terminal-window"], False
+
+    for idx in range(count):
+        win = windows.nth(idx)
+        tag = f"terminal[{idx}]"
+        if win.locator("[style]").count() > 0:
+            issues.append(f"{tag}: contiene estilos inline")
+        copy_buttons = win.locator(".copy-button")
+        if copy_buttons.count() != 1:
+            issues.append(f"{tag}: esperaba 1 .copy-button, encontré {copy_buttons.count()}")
+
+        is_animated = win.locator(".terminal-stage").count() > 0
+        if is_animated:
+            has_animated = True
+            if win.locator("pre.terminal-ghost").count() != 1 or win.locator("pre.terminal-live").count() != 1:
+                issues.append(f"{tag}: modo animado sin terminal-ghost + terminal-live")
+            replay = win.locator(".terminal-btn", has_text="Replay")
+            if replay.count() != 1:
+                issues.append(f"{tag}: modo animado sin botón Replay")
+            else:
+                # Restart to ensure Show all is visible, then click Show all and check full reveal.
+                replay.click()
+                show_all = win.locator(".terminal-btn", has_text="Show all")
+                if show_all.count() != 1:
+                    issues.append(f"{tag}: tras Replay no apareció botón Show all")
+                else:
+                    show_all.click()
+                    if win.locator(".terminal-btn", has_text="Show all").count() != 0:
+                        issues.append(f"{tag}: Show all no desapareció al completar")
+                    ghost_text = win.locator("pre.terminal-ghost").text_content() or ""
+                    live_text = win.locator("pre.terminal-live").text_content() or ""
+                    if live_text != ghost_text:
+                        issues.append(f"{tag}: Show all no mostró todo el contenido")
+        else:
+            if win.locator("pre").count() != 1:
+                issues.append(f"{tag}: modo estático esperaba 1 <pre>, encontré {win.locator('pre').count()}")
+            if win.locator("pre.terminal-ghost").count() != 0:
+                issues.append(f"{tag}: modo estático no debe tener terminal-ghost")
+            if win.locator(".terminal-btn").count() != 0:
+                issues.append(f"{tag}: modo estático no debe tener botones Show all/Replay")
+
+        estado = win.get_attribute("data-estado")
+        if estado == "prototipo":
+            badge = win.locator(".terminal-estado")
+            if badge.count() != 1 or (badge.text_content() or "").strip() != "prototipo":
+                issues.append(f"{tag}: data-estado=prototipo sin badge .terminal-estado")
+
+        # Verify Copy writes to the clipboard and updates the button label.
+        if copy_buttons.count() == 1:
+            copy_btn = copy_buttons.first
+            copy_btn.click()
+            try:
+                page.wait_for_function(
+                    "el => el.textContent.trim() === 'Copied'",
+                    arg=copy_btn.element_handle(),
+                    timeout=2000,
+                )
+            except Exception:
+                issues.append(f"{tag}: Copy no cambió a 'Copied' (quedó {(copy_btn.text_content() or '').strip()!r})")
+            copied = page.evaluate("() => navigator.clipboard.readText()")
+            cmd_title = win.locator(".terminal-cmd").get_attribute("title") or ""
+            if cmd_title.startswith("$ "):
+                expected_copy = cmd_title[2:]
+                if copied != expected_copy:
+                    issues.append(f"{tag}: Copy copió {copied!r}, esperaba {expected_copy!r}")
+            elif not copied:
+                issues.append(f"{tag}: el portapapeles quedó vacío tras Copy")
+
+    return issues, has_animated
+
+
+def check_reduced_motion(browser, base, route, width):
+    """Opens a route with prefers-reduced-motion: reduce and ensures terminals stay static."""
+    issues = []
+    context = browser.new_context(viewport={"width": width, "height": 900}, reduced_motion="reduce")
+    page = context.new_page()
+    try:
+        page.goto(f"{base}#{route}")
+        settle(page)
+        if page.locator("#main .as-terminal pre.terminal-ghost").count() > 0:
+            issues.append("con prefers-reduced-motion: reduce no debe dibujar terminal-ghost")
+        if page.locator("#main .as-terminal .terminal-btn").count() > 0:
+            issues.append("con prefers-reduced-motion: reduce no debe mostrar Show all/Replay")
+    finally:
+        context.close()
+    return issues
 
 
 def sidebar_links(page):
