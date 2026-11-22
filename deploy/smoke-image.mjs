@@ -1,19 +1,22 @@
 #!/usr/bin/env node
-// Prueba de humo de la imagen de docs-site: la arranca en un puerto local efímero, comprueba que
-// corre sin privilegios, que sirve el index, el runtime de docs-site, todas las páginas del
-// sidebar y /version.txt tal como están en el repo, y que nada fuera del allowlist entra en /srv.
+// Prueba de humo de la imagen de docs-site: la arranca en un puerto local efímero con el mismo
+// endurecimiento que producción (read-only, sin capabilities, no-new-privileges), comprueba que
+// corre sin privilegios, que el nombre coincide con deploy/compose.prod.yaml, que /srv contiene
+// exactamente el allowlist más version.txt (ni un archivo más ni uno menos), que cada archivo
+// servido coincide byte a byte con el repo y que rutas fuera del allowlist dan 404.
 //
 //   node deploy/smoke-image.mjs ghcr.io/kiri23/docsify-template-docs:ci "$(git rev-parse HEAD)"
 
 import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { dirname, posix, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DOCS_DIR = resolve(REPO_ROOT, "packages/docs-site/docs");
 const SITE_DIR = resolve(REPO_ROOT, "packages/docs-site");
+const COMPOSE_FILE = resolve(REPO_ROOT, "deploy/compose.prod.yaml");
 
 const [, , image, expectedCommit] = process.argv;
 if (!image) {
@@ -31,6 +34,51 @@ function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
   }
+}
+
+function walkFiles(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir)) {
+    const full = resolve(dir, entry);
+    if (statSync(full).isDirectory()) {
+      out.push(...walkFiles(full));
+    } else {
+      out.push(full);
+    }
+  }
+  return out;
+}
+
+function collectAllowlist() {
+  // Mapa urlPath ("/foo/bar.js") -> ruta absoluta en el repo.
+  const files = new Map();
+  for (const full of walkFiles(DOCS_DIR)) {
+    const rel = relative(DOCS_DIR, full).split("\\").join("/");
+    files.set(`/${rel}`, full);
+  }
+  files.set("/site.js", resolve(SITE_DIR, "site.js"));
+  for (const dirName of ["as", "components", "plugins", "theme"]) {
+    const base = resolve(SITE_DIR, dirName);
+    for (const full of walkFiles(base)) {
+      const rel = relative(base, full).split("\\").join("/");
+      files.set(`/${posix.join(dirName, rel)}`, full);
+    }
+  }
+  return files;
+}
+
+function checkComposeImageName(testedImage) {
+  const compose = readFileSync(COMPOSE_FILE, "utf8");
+  const match = compose.match(/^\s*image:\s*([^\s:$]+):/m);
+  assert(match, `${COMPOSE_FILE} no declara image: <repo>:<tag>`);
+  const composeRepo = match[1];
+  const testedRepo = testedImage.includes(":")
+    ? testedImage.slice(0, testedImage.lastIndexOf(":"))
+    : testedImage;
+  assert(
+    testedRepo === composeRepo,
+    `la imagen probada (${testedRepo}) no coincide con deploy/compose.prod.yaml (${composeRepo})`,
+  );
 }
 
 async function waitForReady(baseUrl) {
@@ -56,9 +104,9 @@ async function expectFile(baseUrl, urlPath, repoFile, expectedType) {
       `${urlPath}: Content-Type inesperado (${contentType}), esperaba ${expectedType}`,
     );
   }
-  const actual = await response.text();
-  const expected = readFileSync(repoFile, "utf8");
-  assert(actual === expected, `${urlPath}: el contenido servido no coincide con ${repoFile}`);
+  const actual = Buffer.from(await response.arrayBuffer());
+  const expected = readFileSync(repoFile);
+  assert(actual.equals(expected), `${urlPath}: el contenido servido no coincide con ${repoFile}`);
   return response;
 }
 
@@ -96,8 +144,23 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 }
 
 try {
-  // Puerto efímero asignado por Docker en loopback: evita colisiones con otros procesos.
-  docker(["run", "-d", "--name", containerName, "-p", "127.0.0.1::8080", image]);
+  checkComposeImageName(image);
+
+  // Puerto efímero en loopback y mismo endurecimiento que compose.prod.yaml.
+  docker([
+    "run",
+    "-d",
+    "--name",
+    containerName,
+    "--read-only",
+    "--cap-drop",
+    "ALL",
+    "--security-opt",
+    "no-new-privileges:true",
+    "-p",
+    "127.0.0.1::8080",
+    image,
+  ]);
   started = true;
 
   const portMapping = docker(["port", containerName, "8080/tcp"]).split("\n")[0];
@@ -105,6 +168,19 @@ try {
 
   const uid = docker(["exec", containerName, "id", "-u"]);
   assert(uid !== "0", `el contenedor corre como root (uid ${uid})`);
+
+  // Inventario exacto de /srv: ni un archivo de más (ej. .env) ni uno faltante.
+  const allowlist = collectAllowlist();
+  const actualSrvFiles = docker(["exec", containerName, "find", "/srv", "-type", "f"])
+    .split("\n")
+    .filter(Boolean)
+    .map((p) => p.replace(/^\/srv/, ""))
+    .sort();
+  const expectedSrvFiles = [...allowlist.keys(), "/version.txt"].sort();
+  const extra = actualSrvFiles.filter((p) => !expectedSrvFiles.includes(p));
+  const missing = expectedSrvFiles.filter((p) => !actualSrvFiles.includes(p));
+  assert(extra.length === 0, `archivos fuera del allowlist en /srv: ${extra.join(", ")}`);
+  assert(missing.length === 0, `archivos faltantes en /srv: ${missing.join(", ")}`);
 
   await waitForReady(baseUrl);
 
@@ -132,31 +208,23 @@ try {
     "index.html no configura window.$docsify",
   );
 
-  // Runtime del navegador y componente propio del sitio.
-  const runtimeChecks = [
-    ["/site.js", resolve(SITE_DIR, "site.js"), "javascript"],
-    ["/as/mod.js", resolve(SITE_DIR, "as/mod.js"), "javascript"],
-    ["/as/core.js", resolve(SITE_DIR, "as/core.js"), "javascript"],
-    ["/components/mod.js", resolve(SITE_DIR, "components/mod.js"), "javascript"],
-    ["/components/terminal.js", resolve(SITE_DIR, "components/terminal.js"), "javascript"],
-    ["/plugins/file-links.js", resolve(SITE_DIR, "plugins/file-links.js"), "javascript"],
-    ["/theme/mod.js", resolve(SITE_DIR, "theme/mod.js"), "javascript"],
-    ["/theme/themes/promptbench.css", resolve(SITE_DIR, "theme/themes/promptbench.css"), "text/css"],
-    ["/theme/tokens.css", resolve(SITE_DIR, "theme/tokens.css"), "text/css"],
-    ["/propios/retro-semanal.js", resolve(DOCS_DIR, "propios/retro-semanal.js"), "javascript"],
-    ["/propios/semana-46.json", resolve(DOCS_DIR, "propios/semana-46.json"), "application/json"],
-    ["/propios/semana-47.json", resolve(DOCS_DIR, "propios/semana-47.json"), "application/json"],
-  ];
-  for (const [urlPath, repoFile, contentType] of runtimeChecks) {
-    await expectFile(baseUrl, urlPath, repoFile, contentType);
+  // Todos los archivos del allowlist se sirven intactos y con el Content-Type esperado.
+  const expectedTypes = new Map([
+    [".js", "javascript"],
+    [".css", "text/css"],
+    [".json", "application/json"],
+    [".html", "text/html"],
+  ]);
+  for (const [urlPath, repoFile] of allowlist) {
+    const ext = urlPath.slice(urlPath.lastIndexOf("."));
+    await expectFile(baseUrl, urlPath, repoFile, expectedTypes.get(ext));
   }
 
-  // Sidebar y cada página que enlaza.
-  await expectFile(baseUrl, "/_sidebar.md", resolve(DOCS_DIR, "_sidebar.md"));
+  // Cada página enlazada en _sidebar.md existe en el allowlist y responde 200.
   const sidebarPages = parseSidebarPages(readFileSync(resolve(DOCS_DIR, "_sidebar.md"), "utf8"));
   assert(sidebarPages.length > 0, "_sidebar.md no enlaza ninguna página .md");
   for (const page of sidebarPages) {
-    await expectFile(baseUrl, `/${page}`, resolve(DOCS_DIR, page));
+    assert(allowlist.has(`/${page}`), `_sidebar.md enlaza /${page}, que no está en docs/`);
   }
 
   // Commit grabado por el Dockerfile en /version.txt.
@@ -172,7 +240,7 @@ try {
     assert(/^[A-Za-z0-9._-]+$/.test(version), `/version.txt tiene un valor inválido: "${version}"`);
   }
 
-  // Nada fuera del allowlist entra en /srv, y Caddy no hace fallback a index.html en 404.
+  // Nada fuera del allowlist se sirve, y Caddy no hace fallback a index.html en 404.
   for (const missingPath of [
     "/package.json",
     "/bin/serve.mjs",
@@ -184,7 +252,7 @@ try {
   }
 
   console.log(
-    `humo: OK (${image}, ${sidebarPages.length} páginas, ${runtimeChecks.length} activos, uid ${uid}, commit ${version})`,
+    `humo: OK (${image}, ${allowlist.size} archivos, ${sidebarPages.length} páginas, uid ${uid}, commit ${version})`,
   );
 } catch (error) {
   if (started) {

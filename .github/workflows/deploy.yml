@@ -16,11 +16,13 @@ name: deploy
 # El servidor no se nombra acá: todo lo suyo entra por secrets del repo. Son secrets y no variables
 # porque el repo es público y sus logs también: un secret sale tapado en el log, una variable no.
 #
-#   TS_OAUTH_CLIENT_ID, TS_AUDIENCE   la credencial federada de Tailscale del runner (tag:ci)
-#   VPS_HOST, VPS_USER                a dónde entra por ssh, dentro de la tailnet
-#   VPS_PUBLIC_IP                     la IP pública, para mirar el origen sin pasar por el CDN
-#   DEPLOY_DIR                        la carpeta del sitio en el servidor
-#   EDGE_NETWORK                      la red de docker que comparte el proxy del servidor
+#   TS_OIDC_CLIENT_ID, TS_OIDC_AUDIENCE  la credencial federada de Tailscale del runner (tag:ci);
+#                                        usa TS_OIDC_* para no pisar TS_OAUTH_CLIENT_ID, que usan
+#                                        claude-test.yml y docs-pipeline.yml con TS_OAUTH_SECRET
+#   VPS_HOST, VPS_USER                   a dónde entra por ssh, dentro de la tailnet
+#   VPS_PUBLIC_IP                        la IP pública, para mirar el origen sin pasar por el CDN
+#   DEPLOY_DIR                           la carpeta del sitio en el servidor
+#   EDGE_NETWORK                         la red de docker que comparte el proxy del servidor
 
 on:
   push:
@@ -74,7 +76,7 @@ jobs:
 
       - name: Install dependencies and run tests
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm test
           npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
 
@@ -97,7 +99,7 @@ jobs:
 
       - name: Install dependencies and run tests
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm test
           npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
 
@@ -144,13 +146,13 @@ jobs:
       # el nombre del que falta, y no a medio camino.
       - name: Check that the secrets exist
         env:
-          TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          TS_AUDIENCE: ${{ secrets.TS_AUDIENCE }}
+          TS_OIDC_CLIENT_ID: ${{ secrets.TS_OIDC_CLIENT_ID }}
+          TS_OIDC_AUDIENCE: ${{ secrets.TS_OIDC_AUDIENCE }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           missing=""
-          for name in TS_OAUTH_CLIENT_ID TS_AUDIENCE VPS_HOST VPS_USER VPS_PUBLIC_IP DEPLOY_DIR EDGE_NETWORK; do
+          for name in TS_OIDC_CLIENT_ID TS_OIDC_AUDIENCE VPS_HOST VPS_USER VPS_PUBLIC_IP DEPLOY_DIR EDGE_NETWORK; do
             [ -n "${!name}" ] || missing="$missing $name"
           done
           if [ -n "$missing" ]; then
@@ -164,8 +166,8 @@ jobs:
 
       - uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
         with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          audience: ${{ secrets.TS_AUDIENCE }}
+          oauth-client-id: ${{ secrets.TS_OIDC_CLIENT_ID }}
+          audience: ${{ secrets.TS_OIDC_AUDIENCE }}
           tags: tag:ci
           ping: ${{ secrets.VPS_HOST }}
 

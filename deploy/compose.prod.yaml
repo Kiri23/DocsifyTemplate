@@ -18,6 +18,11 @@ services:
     image: ghcr.io/kiri23/docsify-template-docs:${IMAGE_TAG:-latest}
     container_name: docsify-template-docs
     restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     mem_limit: 64m
     networks:
       - edge
