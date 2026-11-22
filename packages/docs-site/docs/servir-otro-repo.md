@@ -79,14 +79,14 @@ estas líneas en la lista:
 
 ```js
 import { asComponents } from "<base>/as/mod.js";
-import { annotatedBlock, optionPicker, stepper } from "<base>/components/mod.js";
+import { annotatedBlock, optionPicker, stepper, terminal } from "<base>/components/mod.js";
 import { fileLinks } from "<base>/plugins/file-links.js";
 
 import { retroSemanal } from "./propios/retro-semanal.js"; // los tuyos, importados como cualquiera
 
 window.$docsify.plugins = [
   topNav(), sidebarSections(), fileLinks(),
-  asComponents([annotatedBlock, optionPicker, stepper, retroSemanal]), // antes de onThisPage y codeWindow
+  asComponents([annotatedBlock, optionPicker, stepper, terminal, retroSemanal]), // antes de onThisPage y codeWindow
   onThisPage(), prevNext(), codeWindow(),
 ];
 ```
