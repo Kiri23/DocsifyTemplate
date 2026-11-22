@@ -86,14 +86,14 @@
       )) + ')"' : "") + ">" +
       'import { codeWindow, onThisPage, prevNext, sidebarSections, topNav } from "' + base + 'theme/mod.js";' +
       'import { asComponents } from "' + base + 'as/mod.js";' +
-      'import { annotatedBlock, optionPicker, stepper } from "' + base + 'components/mod.js";' +
+      'import { annotatedBlock, optionPicker, stepper, terminal } from "' + base + 'components/mod.js";' +
       'import { fileLinks } from "' + base + 'plugins/file-links.js";' +
       'import { addComponents } from "' + base + 'as/core.js";' +
       ownModules.map(function (m) {
         return "import * as " + m.name + " from " + JSON.stringify(m.url) + ";";
       }).join("") +
       "const c = window.$docsify;" +
-      "const { components, problems } = addComponents([annotatedBlock, optionPicker, stepper], {" +
+      "const { components, problems } = addComponents([annotatedBlock, optionPicker, stepper, terminal], {" +
       ownModules.map(function (m) { return JSON.stringify(m.src) + ": " + m.name; }).join(",") +
       "});" +
       "problems.forEach((p) => console.error(\"as: \" + p));" +

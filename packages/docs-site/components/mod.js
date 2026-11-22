@@ -3,3 +3,4 @@
 export { annotatedBlock } from "./annotated-block.js";
 export { optionPicker } from "./option-picker.js";
 export { stepper } from "./stepper.js";
+export { terminal } from "./terminal.js";
