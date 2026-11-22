@@ -1,0 +1,11 @@
+# El contexto de deploy/Dockerfile es la raíz del repo. BuildKit lee este archivo por estar al lado
+# del Dockerfile, con rutas relativas a la raíz: a la imagen entran solo el sitio de docs-site, su
+# runtime del navegador y el Caddyfile.
+*
+!deploy/Caddyfile
+!packages/docs-site/docs
+!packages/docs-site/site.js
+!packages/docs-site/as
+!packages/docs-site/components
+!packages/docs-site/plugins
+!packages/docs-site/theme

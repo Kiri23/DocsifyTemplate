@@ -1,0 +1,290 @@
+name: deploy
+
+# El sitio de docs-site en https://doctemplate.kiri231.com: la imagen de deploy/Dockerfile (un
+# servidor estático con packages/docs-site/docs/ y su runtime en /), publicada en GHCR y levantada
+# en el servidor con deploy/compose.prod.yaml, detrás del proxy que ya corre ahí.
+#
+# Tres jobs, cada uno con los permisos que usa y ninguno más:
+#   build     en un PR (o a mano desde otra rama): corre la suite y check:docs, construye la imagen
+#             y le pasa deploy/smoke-image.mjs. No publica nada y su token solo lee el repo.
+#   publish   solo en main: corre las mismas pruebas, construye la imagen, pasa el humo y la sube a
+#             GHCR. El único job que escribe paquetes.
+#   deploy    solo en main: levanta la imagen en el servidor y comprueba que el origen sirve ESTE
+#             commit (/version.txt) y el index de Docsify en /. Si el arranque o esa comprobación
+#             fallan, vuelve a levantar la versión que estaba y el job falla diciéndolo.
+#
+# El servidor no se nombra acá: todo lo suyo entra por secrets del repo. Son secrets y no variables
+# porque el repo es público y sus logs también: un secret sale tapado en el log, una variable no.
+#
+#   TS_OAUTH_CLIENT_ID, TS_AUDIENCE  la credencial federada de Tailscale del runner (tag:ci)
+#   VPS_HOST, VPS_USER               a dónde entra por ssh, dentro de la tailnet
+#   VPS_PUBLIC_IP                    la IP pública, para mirar el origen sin pasar por el CDN
+#   DEPLOY_DIR                       la carpeta del sitio en el servidor
+#   EDGE_NETWORK                     la red de docker que comparte el proxy del servidor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/docs-site/**"
+      - "package.json"
+      - "package-lock.json"
+      - "deploy/Dockerfile*"
+      - "deploy/Caddyfile"
+      - "deploy/compose.prod.yaml"
+      - "deploy/smoke-image.mjs"
+      - ".github/workflows/deploy.yml"
+  pull_request:
+    paths:
+      - "packages/docs-site/**"
+      - "package.json"
+      - "package-lock.json"
+      - "deploy/Dockerfile*"
+      - "deploy/Caddyfile"
+      - "deploy/compose.prod.yaml"
+      - "deploy/smoke-image.mjs"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+# Cubre la cadena entera (publish → deploy), no solo el último job: dos pushes seguidos a main corren
+# uno después del otro, en orden. En main un run en curso no se cancela nunca (sería un deploy a
+# medias); el que espera sí puede ceder su lugar a uno más nuevo. En un PR, el push nuevo cancela al
+# anterior.
+concurrency:
+  group: deploy-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+env:
+  IMAGE: ghcr.io/kiri23/docsify-template-docs
+
+jobs:
+  build:
+    if: github.event_name == 'pull_request' || github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # Las acciones van fijadas por commit: un tag se puede mover, un SHA no.
+      # Sin credenciales en .git: deploy/smoke-image.mjs y los tests son código del PR.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies and run tests
+        run: |
+          npm ci --ignore-scripts
+          npm test
+          npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
+
+      - name: Build the image
+        run: docker build -f deploy/Dockerfile --build-arg "COMMIT=$GITHUB_SHA" -t "$IMAGE:ci" .
+
+      - name: Smoke test the image
+        run: node deploy/smoke-image.mjs "$IMAGE:ci" "$GITHUB_SHA"
+
+  publish:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies and run tests
+        run: |
+          npm ci --ignore-scripts
+          npm test
+          npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
+
+      - name: Build the image
+        run: docker build -f deploy/Dockerfile --build-arg "COMMIT=$GITHUB_SHA" -t "$IMAGE:ci" .
+
+      # Antes del login: mientras corre el humo, el token no está en ningún lado.
+      - name: Smoke test the image
+        run: node deploy/smoke-image.mjs "$IMAGE:ci" "$GITHUB_SHA"
+
+      # La misma imagen que pasó el humo, con dos nombres: el commit (lo que se despliega) y latest.
+      - name: Push the image to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker tag "$IMAGE:ci" "$IMAGE:$GITHUB_SHA"
+          docker tag "$IMAGE:ci" "$IMAGE:latest"
+          docker push "$IMAGE:$GITHUB_SHA"
+          docker push "$IMAGE:latest"
+          docker logout ghcr.io
+
+  deploy:
+    needs: publish
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # packages: read es para que el servidor baje la imagen con el token del job; id-token, para
+    # canjear la credencial de Tailscale.
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+    env:
+      VPS: ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}
+      VPS_PUBLIC_IP: ${{ secrets.VPS_PUBLIC_IP }}
+      DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+      EDGE_NETWORK: ${{ secrets.EDGE_NETWORK }}
+      # Relativa al home del usuario del servidor; una por run. Ver el paso del login.
+      REMOTE_DOCKER_CONFIG: .docker-docsify-template-docs-${{ github.run_id }}
+      SITE: doctemplate.kiri231.com
+      CONTAINER: docsify-template-docs
+    steps:
+      # `secrets` no se puede usar en un `if:`; se mira por env. Sin alguno el deploy falla acá, con
+      # el nombre del que falta, y no a medio camino.
+      - name: Check that the secrets exist
+        env:
+          TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          TS_AUDIENCE: ${{ secrets.TS_AUDIENCE }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          missing=""
+          for name in TS_OAUTH_CLIENT_ID TS_AUDIENCE VPS_HOST VPS_USER VPS_PUBLIC_IP DEPLOY_DIR EDGE_NETWORK; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::missing repository secrets:$missing"
+            exit 1
+          fi
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:ci
+          ping: ${{ secrets.VPS_HOST }}
+
+      # Antes del login: si este paso falla, el servidor no queda con la credencial de GHCR.
+      - name: Prepare the deploy dir and the shared network
+        run: >
+          ssh -o StrictHostKeyChecking=accept-new "$VPS"
+          "mkdir -p '$DEPLOY_DIR'
+          && (docker network inspect '$EDGE_NETWORK' >/dev/null 2>&1
+          || docker network create '$EDGE_NETWORK' 2>/dev/null
+          || docker network inspect '$EDGE_NETWORK' >/dev/null)"
+
+      # A dónde volver si este deploy sale mal: el tag de la imagen que corre ahora. "none" es que
+      # todavía no hay contenedor (el primer deploy); vacío es que el ssh falló, y ahí se corta.
+      - name: Remember the version that is running
+        id: previous
+        run: |
+          running="$(ssh -o StrictHostKeyChecking=accept-new "$VPS" \
+            "docker inspect --format '{{.Config.Image}}' $CONTAINER 2>/dev/null || echo none")"
+          tag=""
+          case "$running" in
+            "") echo "::error::could not ask the server which version is running"; exit 1 ;;
+            "$IMAGE":*) tag="${running##*:}" ;;
+          esac
+          if ! grep -qxE '[A-Za-z0-9._-]+' <<<"$tag"; then tag=""; fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "running now: ${tag:-nothing to go back to}"
+
+      # El compose que corre hoy queda al lado, para el rollback: la versión anterior vuelve con su
+      # propio compose, no con el nuevo.
+      - name: Copy the compose file to the server
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "$VPS" \
+            "cd '$DEPLOY_DIR' && if [ -f compose.prod.yaml ]; then cp compose.prod.yaml compose.previous.yaml; fi"
+          scp -o StrictHostKeyChecking=accept-new deploy/compose.prod.yaml "$VPS:$DEPLOY_DIR/"
+
+      # Login con una config de Docker propia de este run, no con la del usuario: el mismo usuario
+      # despliega otros sitios, y un login o logout de un deploy no le pisa el del otro si se solapan.
+      # El token va por stdin, nunca como argumento.
+      - name: Log the server into GHCR with the job token
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          printf '%s' "$GHCR_TOKEN" |
+          ssh -o StrictHostKeyChecking=accept-new "$VPS"
+          "export DOCKER_CONFIG=\$HOME/$REMOTE_DOCKER_CONFIG
+          && mkdir -p -m 700 \$DOCKER_CONFIG
+          && docker login ghcr.io -u '$GITHUB_ACTOR' --password-stdin"
+
+      # El pull va primero y aparte: si falla, el contenedor que corre no se tocó.
+      # --remove-orphans mira solo el proyecto de compose de este sitio (docsify-template-docs).
+      - name: Pull and start the new image
+        id: up
+        run: >
+          ssh -o StrictHostKeyChecking=accept-new "$VPS"
+          "export DOCKER_CONFIG=\$HOME/$REMOTE_DOCKER_CONFIG
+          && cd '$DEPLOY_DIR'
+          && export IMAGE_TAG=$GITHUB_SHA EDGE_NETWORK='$EDGE_NETWORK'
+          && docker compose -f compose.prod.yaml pull $CONTAINER
+          && docker compose -f compose.prod.yaml up -d --no-build --remove-orphans;
+          s=\$?; rm -rf \$DOCKER_CONFIG; exit \$s"
+
+      # Si el paso de arriba no llegó a correr, la credencial no queda en el servidor.
+      - name: Remove the run's Docker config from the server
+        if: always()
+        run: ssh -o StrictHostKeyChecking=accept-new "$VPS" "rm -rf \$HOME/$REMOTE_DOCKER_CONFIG"
+
+      - name: Report the status through the CDN
+        continue-on-error: true
+        run: |
+          curl -s -o /dev/null -w "through the CDN: HTTP %{http_code}\n" "https://$SITE/"
+
+      # El origen, sin el CDN, por el proxy del servidor. No alcanza con que conteste un sitio: tiene
+      # que ser este commit (/version.txt lo escribe el build) y traer el index de Docsify en /.
+      # La primera vez el proxy pide el certificado; por eso espera.
+      - name: Check that the origin serves this commit
+        id: check
+        run: |
+          origin() { curl -sf --connect-timeout 5 --max-time 10 --resolve "$SITE:443:$VPS_PUBLIC_IP" "https://$SITE$1"; }
+          for _ in $(seq 1 24); do
+            version="$(origin /version.txt || true)"
+            index="$(origin / || true)"
+            if [ "$version" = "$GITHUB_SHA" ] && grep -q 'window.\$docsify' <<<"$index"; then
+              echo "the origin serves $GITHUB_SHA"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::the origin never served $GITHUB_SHA (last /version.txt: ${version:-no answer})"
+          exit 1
+
+      # Corre si el arranque llegó a empezar y la comprobación no terminó bien (falló, o no corrió
+      # porque falló algo antes): antes del arranque no se tocó el contenedor. La imagen anterior
+      # sigue en el servidor, así que vuelve sin bajar nada y sin credencial. El job queda rojo igual:
+      # este paso corre porque otro falló.
+      - name: Roll back to the version that was running
+        if: failure() && steps.up.outcome != 'skipped' && steps.check.outcome != 'success'
+        env:
+          PREVIOUS: ${{ steps.previous.outputs.tag }}
+        run: |
+          if [ -z "$PREVIOUS" ]; then
+            echo "::error::the deploy of $GITHUB_SHA failed and there was no version running before: nothing to roll back to"
+            exit 1
+          fi
+          origin() { curl -sf --connect-timeout 5 --max-time 10 --resolve "$SITE:443:$VPS_PUBLIC_IP" "https://$SITE$1"; }
+          if ! ssh -o StrictHostKeyChecking=accept-new "$VPS" \
+            "cd '$DEPLOY_DIR' \
+            && if [ -f compose.previous.yaml ]; then cp compose.previous.yaml compose.prod.yaml; fi \
+            && export IMAGE_TAG='$PREVIOUS' EDGE_NETWORK='$EDGE_NETWORK' \
+            && docker compose -f compose.prod.yaml up -d --no-build --pull never --remove-orphans"; then
+            echo "::error::the deploy of $GITHUB_SHA failed and the rollback to $PREVIOUS failed too: the site may be down"
+            exit 1
+          fi
+          for _ in $(seq 1 12); do
+            if grep -q 'window.\$docsify' <<<"$(origin / || true)"; then
+              echo "::error::the deploy of $GITHUB_SHA failed: rolled back to $PREVIOUS, which is serving again"
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "::error::the deploy of $GITHUB_SHA failed: rolled back to $PREVIOUS, but the origin does not answer"
+          exit 1

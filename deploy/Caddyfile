@@ -1,0 +1,24 @@
+# El servidor estático del sitio, dentro de su contenedor. El TLS es del proxy que tiene adelante:
+# acá no hay TLS, ni admin, ni config persistida.
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+:8080 {
+	root * /srv
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		# Las páginas no llevan hash en el nombre: sin esto, un deploy nuevo no se ve al recargar.
+		Cache-Control no-cache
+	}
+
+	# / sirve packages/docs-site/docs/ junto con el runtime de docs-site (site.js, as/, components/,
+	# plugins/, theme/). Sin `try_files`: una ruta que no existe da 404, que es lo que Docsify espera
+	# para resolver _sidebar.md y detectar páginas faltantes.
+	file_server
+}
