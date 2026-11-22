@@ -117,9 +117,6 @@ def visit_all(base, opts):
                 said.extend(terminal_issues)
                 if has_animated:
                     animated_routes.append(route)
-                if opts.shots:
-                    page.evaluate("() => window.scrollTo(0, 0)")
-                    page.wait_for_timeout(100)
             h1 = page.query_selector("#main h1")
             title = h1.text_content() if h1 else "(sin título)"
             mark = "✗" if said else "✓"
@@ -128,6 +125,8 @@ def visit_all(base, opts):
                 print(f"    {line}")
             failures += len(said)
             if opts.shots:
+                page.evaluate("() => window.scrollTo(0, 0)")
+                page.wait_for_timeout(100)
                 folder = pathlib.Path(opts.shots)
                 folder.mkdir(parents=True, exist_ok=True)
                 page.screenshot(path=str(folder / f"{i:02d}.png"), full_page=True)
@@ -162,6 +161,23 @@ def check_terminals(page):
     if count == 0:
         return ["as-terminal sin .terminal-window"], False
 
+    # Check below-the-fold animated terminals before any click scrolls the page.
+    for idx in range(count):
+        win = windows.nth(idx)
+        if win.locator(".terminal-stage").count() == 0:
+            continue
+        ghost = win.locator("pre.terminal-ghost")
+        live = win.locator("pre.terminal-live")
+        if ghost.count() != 1 or live.count() != 1:
+            continue
+        total_lines = len((ghost.text_content() or "").split("\n"))
+        below_fold = win.evaluate("el => el.getBoundingClientRect().top >= window.innerHeight")
+        if below_fold and total_lines > 1:
+            page.wait_for_timeout(300)
+            before_lines = len((live.text_content() or "").split("\n"))
+            if before_lines != 1:
+                issues.append(f"terminal[{idx}]: animó fuera de viewport (tenía {before_lines} líneas antes de scrollear)")
+
     for idx in range(count):
         win = windows.nth(idx)
         tag = f"terminal[{idx}]"
@@ -174,14 +190,49 @@ def check_terminals(page):
         is_animated = win.locator(".terminal-stage").count() > 0
         if is_animated:
             has_animated = True
-            if win.locator("pre.terminal-ghost").count() != 1 or win.locator("pre.terminal-live").count() != 1:
+            ghost = win.locator("pre.terminal-ghost")
+            live = win.locator("pre.terminal-live")
+            if ghost.count() != 1 or live.count() != 1:
                 issues.append(f"{tag}: modo animado sin terminal-ghost + terminal-live")
+            else:
+                ghost_hidden = ghost.evaluate("el => getComputedStyle(el).visibility === 'hidden'")
+                if not ghost_hidden:
+                    issues.append(f"{tag}: pre.terminal-ghost debe tener visibility: hidden")
+                stacked = win.evaluate(
+                    "el => {"
+                    "  const g = el.querySelector('pre.terminal-ghost').getBoundingClientRect();"
+                    "  const l = el.querySelector('pre.terminal-live').getBoundingClientRect();"
+                    "  return Math.abs(g.top - l.top) < 1 && Math.abs(g.left - l.left) < 1;"
+                    "}"
+                )
+                if not stacked:
+                    issues.append(f"{tag}: terminal-ghost y terminal-live no se superponen en la misma celda")
+
+                # Scrolling into view must trigger line-by-line playback until completion without clicking Show all.
+                ghost_text = ghost.text_content() or ""
+                total_lines = len(ghost_text.split("\n"))
+                win.scroll_into_view_if_needed()
+                if total_lines > 1:
+                    try:
+                        page.wait_for_function(
+                            "el => el.querySelectorAll('.terminal-btn').length === 1"
+                            " && el.querySelector('pre.terminal-live').textContent === el.querySelector('pre.terminal-ghost').textContent",
+                            arg=win.element_handle(),
+                            timeout=6000,
+                        )
+                    except Exception:
+                        shown_now = len((live.text_content() or "").split("\n"))
+                        issues.append(f"{tag}: no completó la animación al entrar en viewport ({shown_now}/{total_lines} líneas)")
+
             replay = win.locator(".terminal-btn", has_text="Replay")
             if replay.count() != 1:
                 issues.append(f"{tag}: modo animado sin botón Replay")
             else:
-                # Restart to ensure Show all is visible, then click Show all and check full reveal.
+                # Replay must reset back to 1 line and bring Show all back.
                 replay.click()
+                after_replay_lines = len((live.text_content() or "").split("\n"))
+                if after_replay_lines != 1:
+                    issues.append(f"{tag}: Replay no reinició a 1 línea (quedó en {after_replay_lines})")
                 show_all = win.locator(".terminal-btn", has_text="Show all")
                 if show_all.count() != 1:
                     issues.append(f"{tag}: tras Replay no apareció botón Show all")
@@ -189,10 +240,11 @@ def check_terminals(page):
                     show_all.click()
                     if win.locator(".terminal-btn", has_text="Show all").count() != 0:
                         issues.append(f"{tag}: Show all no desapareció al completar")
-                    ghost_text = win.locator("pre.terminal-ghost").text_content() or ""
-                    live_text = win.locator("pre.terminal-live").text_content() or ""
-                    if live_text != ghost_text:
+                    if (live.text_content() or "") != (ghost.text_content() or ""):
                         issues.append(f"{tag}: Show all no mostró todo el contenido")
+                    replay_focused = replay.evaluate("el => document.activeElement === el")
+                    if not replay_focused:
+                        issues.append(f"{tag}: Show all no movió el foco al botón Replay")
         else:
             if win.locator("pre").count() != 1:
                 issues.append(f"{tag}: modo estático esperaba 1 <pre>, encontré {win.locator('pre').count()}")

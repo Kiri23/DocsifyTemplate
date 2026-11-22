@@ -193,7 +193,7 @@ function TerminalAnimated({ command, label, copyText, lines, exit, nota, estado 
           setPlaying(true);
         }
       },
-      { threshold: 0.15 },
+      { threshold: 0 },
     );
     observer.observe(node);
     return () => observer.disconnect();
@@ -267,7 +267,7 @@ function TerminalBar({ command, label, copyText, exit, estado, controls = null }
       <span class="terminal-actions">
         ${estado ? html`<span class="terminal-badge terminal-estado">${estado}</span>` : null}
         ${exit !== null
-          ? html`<span class="terminal-badge terminal-exit" data-exit=${exit === 0 ? "ok" : "fail"}>exit ${exit}</span>`
+          ? html`<span class="terminal-badge terminal-exit" data-exit=${Number(exit) === 0 ? "ok" : "fail"}>exit ${exit}</span>`
           : null}
         ${controls}
         <${CopyButton} text=${copyText} />

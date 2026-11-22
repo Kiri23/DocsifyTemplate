@@ -178,7 +178,7 @@ test("terminal: line-ms=0 stays static; positive line-ms uses generic classifica
 test("terminal: static view renders one <pre> with no ghost, playback buttons or inline styles; animated adds ghost and controls", () => {
   const staticProps = read(
     terminal,
-    '<!-- as: terminal exit="0" estado="prototipo" nota="Salida simulada." -->\n```console\n$ kiri-pm status\nInbox: 3\n```\n',
+    '<!-- as: terminal exit="0" estado="prototipo" nota="Salida simulada." -->\n```console\n$ kiri-pm status\n…\nbar ██░ 66%\n```\n',
     { exit: "0", estado: "prototipo", nota: "Salida simulada." },
   );
   const staticHtml = renderToString(html`<${terminal.view} ...${staticProps} />`);
@@ -186,23 +186,29 @@ test("terminal: static view renders one <pre> with no ghost, playback buttons or
   assert.ok(!staticHtml.includes("terminal-ghost"));
   assert.ok(!staticHtml.includes("Show all"));
   assert.ok(!staticHtml.includes("Replay"));
+  assert.ok(!staticHtml.includes("terminal-cursor"));
   assert.ok(!staticHtml.includes("style="));
   assert.ok(!staticHtml.includes("data-lang"));
   assert.ok(staticHtml.includes('data-estado="prototipo"'));
   assert.ok(staticHtml.includes('data-exit="ok"'));
+  assert.ok(staticHtml.includes('class="terminal-dim"'));
+  assert.ok(staticHtml.includes('class="terminal-bar-fill"'));
   assert.ok(staticHtml.includes("Salida simulada."));
 
   const animatedProps = read(
     terminal,
-    '<!-- as: terminal line-ms="95" exit="1" -->\n```console\n$ test\nline 1\nline 2\n```\n',
-    { "line-ms": "95", exit: "1" },
+    '<!-- as: terminal line-ms="95" exit="1" nota="Corrida de muestra." -->\n```console\n$ test\n…\nline 2 ██\n```\n',
+    { "line-ms": "95", exit: "1", nota: "Corrida de muestra." },
   );
   const animatedHtml = renderToString(html`<${terminal.view} ...${animatedProps} />`);
   assert.ok(animatedHtml.includes("terminal-ghost"));
   assert.ok(animatedHtml.includes("terminal-live"));
+  assert.ok(animatedHtml.includes("terminal-cursor"));
+  assert.ok(animatedHtml.includes('class="terminal-dim"'));
   assert.ok(animatedHtml.includes("Show all"));
   assert.ok(animatedHtml.includes("Replay"));
   assert.ok(animatedHtml.includes('data-exit="fail"'));
+  assert.ok(animatedHtml.includes("Corrida de muestra."));
   assert.ok(!animatedHtml.includes("style="));
   assert.ok(!animatedHtml.includes("data-lang"));
 });
