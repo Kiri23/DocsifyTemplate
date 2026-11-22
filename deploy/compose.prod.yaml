@@ -1,0 +1,32 @@
+name: docsify-template-docs
+
+# El sitio de docs-site en producción (https://doctemplate.kiri231.com). Lo copia al servidor y lo
+# levanta .github/workflows/deploy.yml. Sin secretos y sin volúmenes: todo el sitio va dentro de la
+# imagen.
+#
+# SIN `ports:`: al contenedor llega solo el proxy del servidor, por una red compartida que ya existe
+# ahí. Ese proxy (caddy-docker-proxy) lee las dos labels y arma el sitio con su certificado. El
+# nombre de la red lo da el deploy en EDGE_NETWORK.
+
+services:
+  # El servicio se llama como su contenedor: en una red compartida, un nombre a secas lo podría
+  # resolver otra app.
+  docsify-template-docs:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: ghcr.io/kiri23/docsify-template-docs:${IMAGE_TAG:-latest}
+    container_name: docsify-template-docs
+    restart: unless-stopped
+    mem_limit: 64m
+    networks:
+      - edge
+    labels:
+      caddy: doctemplate.kiri231.com
+      caddy.reverse_proxy: "{{upstreams 8080}}"
+
+networks:
+  edge:
+    name: ${EDGE_NETWORK:?EDGE_NETWORK is the shared network of the server's proxy}
+    # La crea deploy.yml antes del up si falta; compose no la maneja.
+    external: true
