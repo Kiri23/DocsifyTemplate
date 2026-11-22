@@ -23,3 +23,16 @@ test("site.js loads sparql, after turtle, which it extends", async () => {
   assert.ok(languages.includes("sparql"), "falta sparql");
   assert.ok(languages.indexOf("turtle") < languages.indexOf("sparql"), "sparql tiene que ir después de turtle");
 });
+
+test("site.js imports and registers every built-in component from components/mod.js", async () => {
+  const builtIn = await import("../components/mod.js");
+  const text = await readFile(SITE, "utf8");
+  const imported = text.match(/import\s*\{([^}]*)\}\s*from\s*"'\s*\+\s*base\s*\+\s*'components\/mod\.js"/);
+  const registered = text.match(/addComponents\(\[([^\]]*)\]/);
+  assert.ok(imported, "site.js does not import built-in components");
+  assert.ok(registered, "site.js does not register built-in components");
+  const split = (s) => s.split(",").map((name) => name.trim()).filter(Boolean).sort();
+  const expected = Object.keys(builtIn).sort();
+  assert.deepEqual(split(imported[1]), expected);
+  assert.deepEqual(split(registered[1]), expected);
+});

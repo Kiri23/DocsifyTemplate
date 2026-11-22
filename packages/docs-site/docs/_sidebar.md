@@ -4,6 +4,7 @@
   * [annotated-block](/componentes/annotated-block.md)
   * [option-picker](/componentes/option-picker.md)
   * [stepper](/componentes/stepper.md)
+  * [terminal](/componentes/terminal.md)
 * Cómo
   * [Servir los docs de otro repo](/servir-otro-repo.md)
   * [Mostrar archivos del repo: el catálogo](/catalogo.md)

@@ -25,7 +25,7 @@ python3 packages/docs-site/test/en_el_navegador.py packages/docs-site/docs \
 | `as/mod.js` | El plugin de Docsify: cada `<!-- as: nombre -->` de la página se vuelve su componente. |
 | `as/core.js` | Lo mismo sin navegador: encontrar las marcas, leerlas y preparar las props. Lo usan el plugin y `check.mjs`. |
 | `as/shapes.js` | Las formas de Markdown que toma un componente: `sequence("pre", "ol")`, `section("h2")`, `page()`; cualquiera con `.json("src")` lee además un JSON. |
-| `components/` | Un archivo por componente: `annotated-block`, `option-picker`, `stepper`. |
+| `components/` | Un archivo por componente: `annotated-block`, `option-picker`, `stepper`, `terminal`. |
 | `docs/propios/` | Un componente propio de estos docs (`retro-semanal`), con una página y un JSON por semana: el ejemplo de traer tu UI. |
 | `plugins/file-links.js` | Un link sin `.md` abre el archivo, como en GitHub. |
 | `bin/serve.mjs` | Sirve una carpeta de otro repo con este paquete, en un origen. |

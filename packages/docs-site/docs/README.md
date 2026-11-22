@@ -25,8 +25,9 @@ Sin MDX ni YAML.
 | [annotated-block](componentes/annotated-block.md) | un bloque de código y una lista numerada | leaderboard v1 |
 | [option-picker](componentes/option-picker.md) | una tabla: una columna por valor, celdas sí/no | harness-vs-endpoint v4 |
 | [stepper](componentes/stepper.md) | un `##` por paso | tutorial-stepper v1 + v3 |
+| [terminal](componentes/terminal.md) | un bloque de código (`console`) | terminal-typewriter |
 
-Los tres vienen de los prototipos que gustaron en prompt-bench#25.
+Los cuatro salieron de los prototipos y del tema de prompt-bench.
 
 ## Servirlo
 
