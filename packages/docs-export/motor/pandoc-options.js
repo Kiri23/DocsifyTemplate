@@ -36,7 +36,9 @@ export function buildPandocRequest(config = {}) {
     options.variables = { ...config.templateVariables };
   }
 
-  if (config.mermaidFilterSource !== undefined) {
+  // Without captured diagrams the filter would only erase the Mermaid code, so it stays out
+  // and the blocks are exported as code.
+  if (config.mermaidFilterSource !== undefined && config.mermaidSvgs?.length > 0) {
     files[MERMAID_FILTER_FILE] = config.mermaidFilterSource;
     options.filters = [MERMAID_FILTER_FILE];
   }

@@ -17,6 +17,7 @@ test("buildPandocRequest places template and Lua filter text in virtual files", 
     toc: true,
     templateSource: "$body$",
     mermaidFilterSource: "return {}",
+    mermaidSvgs: ["<svg/>"],
     templateVariables: { "color-accent": "#0891b2" },
   });
 

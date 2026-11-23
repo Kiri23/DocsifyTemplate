@@ -4,13 +4,18 @@ import { escapeTypstString } from "../../docs-site/as/typst.js";
 
 const PLACEHOLDER = /%%MERMAID_SVG_(\d+)%%/g;
 
-/** Replaces each Mermaid placeholder with its matching diagram, or removes it when absent. */
-export function inlineMermaidSvgs(typstSource, svgs = []) {
+// What the document shows where a diagram was expected but none was captured.
+export const MISSING_DIAGRAM_NOTE = "#emph[(diagrama Mermaid no capturado)]";
+
+/** Replaces each Mermaid placeholder with its matching diagram, or a visible note when absent. */
+export function inlineMermaidSvgs(typstSource, svgs = [], { onWarning } = {}) {
   return typstSource.replace(PLACEHOLDER, (_match, indexText) => {
     const index = Number(indexText);
-    if (!Number.isInteger(index) || index < 0 || index >= svgs.length) return "";
-    const svg = svgs[index];
-    if (!svg) return "";
+    const svg = Number.isInteger(index) && index >= 0 ? svgs[index] : undefined;
+    if (!svg) {
+      onWarning?.(`el diagrama Mermaid ${index + 1} no se capturó; queda una nota en su lugar`);
+      return MISSING_DIAGRAM_NOTE;
+    }
     return `#image(bytes("${escapeTypstString(svg)}"), format: "svg", width: 80%)`;
   });
 }
