@@ -17,6 +17,20 @@
 // Every export of those modules is a component, added to the factory ones in the same plugin. A
 // module imports "preact", "htm/preact" and "docs-site/as/mod.js" through the import map below.
 //
+// Custom top-nav links can be passed in `window.$docsify.navLinks` as `[{ text, href }, ...]`:
+//
+//   window.$docsify = {
+//     name: "prompt-bench",
+//     navLinks: [
+//       { text: "Home", href: "/" },
+//       { text: "Docs", href: "./" },
+//       { text: "GitHub", href: "https://github.com/Kiri23/prompt-bench" },
+//     ],
+//   };
+//
+// When `navLinks` is omitted, the bar links to `repo` as "GitHub" (or shows no links without it).
+// Passing `navLinks: []` hides the links even if `repo` is set.
+//
 // A classic script, not a module: the import map has to be on the page before any module loads.
 (function () {
   var base = new URL(".", document.currentScript.src).href;
@@ -97,7 +111,17 @@
       ownModules.map(function (m) { return JSON.stringify(m.src) + ": " + m.name; }).join(",") +
       "});" +
       "problems.forEach((p) => console.error(\"as: \" + p));" +
-      "const links = c.repo ? [{ text: \"GitHub\", href: c.repo }] : [];" +
+      "let links;" +
+      "if (Array.isArray(c.navLinks)) {" +
+      "links = c.navLinks.filter((item) => {" +
+      "const ok = item && typeof item.text === \"string\" && typeof item.href === \"string\";" +
+      "if (!ok) console.error(\"site: cada item de window.$docsify.navLinks debe ser { text, href } de texto\");" +
+      "return ok;" +
+      "});" +
+      "} else {" +
+      "if (c.navLinks != null) console.error(\"site: window.$docsify.navLinks debe ser un arreglo de { text, href }\");" +
+      "links = c.repo ? [{ text: \"GitHub\", href: c.repo }] : [];" +
+      "}" +
       "c.plugins = [" +
       "topNav({ home: \"#/\", links }), sidebarSections(), fileLinks()," +
       // Before onThisPage and codeWindow: a component moves the page's own headings and code

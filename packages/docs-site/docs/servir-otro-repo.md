@@ -63,7 +63,25 @@ Y un `_sidebar.md` al lado, con links que empiezan en `/` (el sidebar se ve en t
 ```
 
 Lo que el repo pone en `window.$docsify` es la config de Docsify de siempre y gana sobre la de
-`site.js`. Sus `plugins` van después de los del tema.
+`site.js`. Sus `plugins` van después de los del tema. Para reemplazar el link automático de `repo`
+en la barra superior (por ejemplo, si el repo tiene una landing en `/` y los docs en `./`), pasá
+`navLinks`:
+
+```html
+<script>
+  window.$docsify = {
+    name: "prompt-bench",
+    navLinks: [
+      { text: "Home", href: "/" },
+      { text: "Docs", href: "./" },
+      { text: "GitHub", href: "https://github.com/Kiri23/prompt-bench" },
+    ],
+  };
+</script>
+```
+
+Si `navLinks` se omite, la barra enlaza a `repo` como `"GitHub"` (o no muestra links sin `repo`);
+con `navLinks: []` oculta los links aunque `repo` esté definido.
 
 ## Los links a archivos
 
