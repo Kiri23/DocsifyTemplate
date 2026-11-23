@@ -69,7 +69,39 @@ export const terminal = {
     };
   },
   view: Terminal,
+  typst: terminalToTypst,
 };
+
+/** Escapes a string so it can be embedded inside a Typst double-quoted literal. */
+function escapeTypstString(value) {
+  return String(value)
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\r/g, "\\r")
+    .replace(/\n/g, "\\n");
+}
+
+/** Formats the terminal props as a `#terminal-window(...)` Typst call defined by branded.typ. */
+function terminalToTypst({ command, label, lines, exit, nota, estado }) {
+  const args = [];
+  if (command !== null && command !== undefined) {
+    args.push(`  command: "${escapeTypstString(command)}",`);
+  } else if (label && label !== "terminal") {
+    args.push(`  label: "${escapeTypstString(label)}",`);
+  }
+  if (exit !== null && exit !== undefined) {
+    args.push(`  exit: ${exit},`);
+  }
+  if (estado !== null && estado !== undefined) {
+    args.push(`  estado: "${escapeTypstString(estado)}",`);
+  }
+  if (nota !== null && nota !== undefined) {
+    args.push(`  nota: "${escapeTypstString(nota)}",`);
+  }
+  const lineEntries = lines.map((line) => `    "${escapeTypstString(line.text)}",`);
+  args.push(`  lines: (\n${lineEntries.join("\n")}\n  ),`);
+  return `#terminal-window(\n${args.join("\n")}\n)`;
+}
 
 /** Parses `line-ms`: absent or "0" is static; a positive integer enables typewriter mode. */
 function readLineMs(value) {

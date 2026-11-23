@@ -246,6 +246,29 @@ test("terminal: invalid shape, unknown attributes and bad values fail in check.m
   ]);
 });
 
+test("terminal: typst view emits #terminal-window with escaped strings and single-element tuple comma", () => {
+  const props = read(
+    terminal,
+    '<!-- as: terminal exit="0" estado="prototipo" nota="Ruta C:\\tmp." -->\n```console\n$ echo "hi"\nok \\done\n```\n',
+    { exit: "0", estado: "prototipo", nota: "Ruta C:\\tmp." },
+  );
+  const typst = terminal.typst(props);
+  assert.equal(
+    typst,
+    [
+      "#terminal-window(",
+      '  command: "echo \\"hi\\"",',
+      "  exit: 0,",
+      '  estado: "prototipo",',
+      '  nota: "Ruta C:\\\\tmp.",',
+      "  lines: (",
+      '    "ok \\\\done",',
+      "  ),",
+      ")",
+    ].join("\n"),
+  );
+});
+
 test("check reports the line of each marker that fails", () => {
   const md = "# Page\n\n<!-- as: stepper -->\n\n## A\n\n## B\n\n<!-- /as -->\n\ntext\n\n<!-- as: nope -->\n\ntext\n";
   assert.deepEqual(problemsIn(md), [
