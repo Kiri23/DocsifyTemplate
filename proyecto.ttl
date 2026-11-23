@@ -1,7 +1,7 @@
 # El proyecto.ttl de DocsifyTemplate (formato y reglas: ontologyLearning domain/proyecto.ttl y
 # domain/proyecto-reglas.ttl). Dice lo que usa hoy y lo que debería usar; la diferencia es la brecha
 # (ontologyLearning consultas/proyectos-que-usan.rq la muestra por concepto).
-# Los términos preact:, docsify:, remark: y pandoc: salen de Secondbrain/Vocabularios/<nombre>/vocabulary.ttl.
+# Los términos de vocabulario (docsify:, preact:, etc.) salen de Secondbrain/Vocabularios/<nombre>/vocabulary.ttl.
 # Las schema:softwareRequirements hacia un vocabulario no van a mano: las escribe el bloque generado del final, desde
 # el código (ontologyLearning `python3 main.py cli proyectos --aristas --escribir`). Acá arriba, solo el juicio.
 @prefix ontologia: <https://kiri231.com/ontologia#> .
@@ -10,13 +10,13 @@
 @prefix schema: <https://schema.org/> .
 
 proyecto:docsifytemplate a ontologia:Proyecto ;
-    doap:shortdesc "Documentación interactiva sin build sobre Docsify: bloques YAML en el markdown que se vuelven componentes, export a PDF, LaTeX o Typst con pandoc en WASM, y un chat con Gemma 4 que corre en el navegador (WebGPU)." ;
+    doap:shortdesc "Documentación interactiva sin build: packages/docs-site sobre Docsify 5 con componentes Preact que leen el propio Markdown (<!-- as: ... -->), y packages/chat con Gemma 4 corriendo en el navegador (WebGPU)." ;
     schema:codeRepository <https://github.com/Kiri23/DocsifyTemplate> ;
-    # issue Kiri23/DocsifyTemplate#23 (el plugin @docs-engine/chat). Hoy el chat corre el modelo en el navegador:
-    # packages/chat/core/worker.js:155-157 carga Gemma con transformers.js en `device: 'webgpu'` y generate()
-    # (el mismo worker.js:235) contesta ahí mismo. Sin WebGPU no hay chat, y no hay Claude, OpenAI ni xAI. llm-endpoint es
-    # un solo lugar para pedirle a cualquiera de esos (o a Gemma en Modal) con la API de OpenAI, y dice en cada
-    # respuesta cuántos créditos quedan: sería el proveedor del worker cuando el navegador no puede, o el de siempre.
+    # issue Kiri23/DocsifyTemplate#38 (chat con memoria en packages/chat: endpoint primero y WebGPU cuando cargue).
+    # Hoy el chat corre solo en el navegador: packages/chat/core/worker.js:155-157 carga el modelo con transformers.js
+    # en `device: 'webgpu'` y generate() (el mismo worker.js:235) contesta ahí mismo. Sin WebGPU no hay chat, y mientras
+    # baja Gemma local tampoco responde; llm-endpoint daría respuesta inmediata por HTTP (y acceso a otros modelos con
+    # control de créditos) mientras carga el worker o cuando el navegador no tiene WebGPU.
     ontologia:deberiaUsar ontologia:EndpointDeIAConCreditos .
 
 # --- generado por `python3 main.py cli proyectos --aristas --escribir`: no editar a mano ---
@@ -25,127 +25,55 @@ proyecto:docsifytemplate a ontologia:Proyecto ;
 @prefix schema: <https://schema.org/> .
 @prefix ancla.docsifytemplate: <https://kiri231.com/proyecto/docsifytemplate/ancla/> .
 @prefix vocabulario.docsify: <https://kiri231.com/vocabulario/docsify#> .
-@prefix vocabulario.pandoc: <https://kiri231.com/vocabulario/pandoc#> .
 @prefix vocabulario.preact: <https://kiri231.com/vocabulario/preact#> .
-@prefix vocabulario.remark: <https://kiri231.com/vocabulario/remark#> .
 
-# from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:56 window.$docsify = window.$docsify || {};
+# from: packages/docs-site/site.js:52 window.$docsify = Object.assign({
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:configuracion .
 proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:docsify.configuracion .
-ancla.docsifytemplate:docsify.configuracion ontologia:termino vocabulario.docsify:configuracion ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 56 .
+ancla.docsifytemplate:docsify.configuracion ontologia:termino vocabulario.docsify:configuracion ; ontologia:archivoDeCodigo "packages/docs-site/site.js" ; ontologia:linea 52 .
 
-# from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:59 hook.afterEach(function (html, next) {
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:hook .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:docsify.hook .
-ancla.docsifytemplate:docsify.hook ontologia:termino vocabulario.docsify:hook ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 59 .
+# from: packages/docs-site/site.js:61 alias: {
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:ruta .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:docsify.ruta .
+ancla.docsifytemplate:docsify.ruta ontologia:termino vocabulario.docsify:ruta ; ontologia:archivoDeCodigo "packages/docs-site/site.js" ; ontologia:linea 61 .
 
-# from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:57 window.$docsify.plugins = (window.$docsify.plugins || []).concat([
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:plugin .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:docsify.plugin .
-ancla.docsifytemplate:docsify.plugin ontologia:termino vocabulario.docsify:plugin ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 57 .
+# from: packages/docs-site/site.js:53 loadSidebar: true,
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:sidebar .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:docsify.sidebar .
+ancla.docsifytemplate:docsify.sidebar ontologia:termino vocabulario.docsify:sidebar ; ontologia:archivoDeCodigo "packages/docs-site/site.js" ; ontologia:linea 53 .
 
-# from: packages/docs-engine/src/adapters/docsify/features/tutorial-header.js:7 var path = vm.route.path || '';
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:vm .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:docsify.vm .
-ancla.docsifytemplate:docsify.vm ontologia:termino vocabulario.docsify:vm ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/features/tutorial-header.js" ; ontologia:linea 7 .
-
-# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:89 var result = await convert(options, md, files);
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:conversion .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.conversion .
-ancla.docsifytemplate:pandoc.conversion ontologia:termino vocabulario.pandoc:conversion ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 89 .
-
-# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:68 options.filters = ['filter.lua'];
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:filtro .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.filtro .
-ancla.docsifytemplate:pandoc.filtro ontologia:termino vocabulario.pandoc:filtro ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 68 .
-
-# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:59 var options = { from: 'markdown', to: fmt.to, standalone: true };
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:formato-de-entrada .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.formato-de-entrada .
-ancla.docsifytemplate:pandoc.formato-de-entrada ontologia:termino vocabulario.pandoc:formato-de-entrada ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 59 .
-
-# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:59 var options = { from: 'markdown', to: fmt.to, standalone: true };
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:formato-de-salida .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.formato-de-salida .
-ancla.docsifytemplate:pandoc.formato-de-salida ontologia:termino vocabulario.pandoc:formato-de-salida ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 59 .
-
-# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:85 if (h1) options.metadata = { title: h1.textContent.trim() };
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:metadatos .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.metadatos .
-ancla.docsifytemplate:pandoc.metadatos ontologia:termino vocabulario.pandoc:metadatos ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 85 .
-
-# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:77 options.template = templateName;
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:plantilla .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.plantilla .
-ancla.docsifytemplate:pandoc.plantilla ontologia:termino vocabulario.pandoc:plantilla ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 77 .
-
-# from: packages/docs-engine/src/adapters/docsify/export/pipeline.js:59 var options = { from: 'markdown', to: fmt.to, standalone: true };
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.pandoc:standalone .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pandoc.standalone .
-ancla.docsifytemplate:pandoc.standalone ontologia:termino vocabulario.pandoc:standalone ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/docsify/export/pipeline.js" ; ontologia:linea 59 .
-
-# from: packages/docs-engine/src/adapters/astro/rehype-components.js:51 const htmlString = renderToString(h(Component, { data }));
+# from: packages/docs-site/components/terminal.js:147 if (props.lineMs === 0 || reduced) return html`<${TerminalStatic} ...${props} />`;
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:componente .
 proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.componente .
-ancla.docsifytemplate:preact.componente ontologia:termino vocabulario.preact:componente ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/astro/rehype-components.js" ; ontologia:linea 51 .
+ancla.docsifytemplate:preact.componente ontologia:termino vocabulario.preact:componente ; ontologia:archivoDeCodigo "packages/docs-site/components/terminal.js" ; ontologia:linea 147 .
 
-# from: packages/docs-engine/src/core/custom-elements.js:19 register(withJsonProps(Component), tag, ['data-props'], { shadow: false });
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:custom-element .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.custom-element .
-ancla.docsifytemplate:preact.custom-element ontologia:termino vocabulario.preact:custom-element ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/custom-elements.js" ; ontologia:linea 19 .
-
-# from: packages/docs-engine/src/adapters/astro/rehype-components.js:51 const htmlString = renderToString(h(Component, { data }));
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:elemento-virtual .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.elemento-virtual .
-ancla.docsifytemplate:preact.elemento-virtual ontologia:termino vocabulario.preact:elemento-virtual ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/astro/rehype-components.js" ; ontologia:linea 51 .
-
-# from: packages/docs-engine/src/components/api-endpoint.js:15 const [open, setOpen] = useState(false);
+# from: packages/docs-site/components/annotated-block.js:52 const slot = useRef(null);
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:hook .
 proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.hook .
-ancla.docsifytemplate:preact.hook ontologia:termino vocabulario.preact:hook ; ontologia:archivoDeCodigo "packages/docs-engine/src/components/api-endpoint.js" ; ontologia:linea 15 .
+ancla.docsifytemplate:preact.hook ontologia:termino vocabulario.preact:hook ; ontologia:archivoDeCodigo "packages/docs-site/components/annotated-block.js" ; ontologia:linea 52 .
 
-# from: packages/docs-engine/src/components/api-endpoint.js:23 return html`
+# from: packages/docs-site/as/mod.js:122 render(html`<${component.view} ...${props} />`, host);
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:htm .
 proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.htm .
-ancla.docsifytemplate:preact.htm ontologia:termino vocabulario.preact:htm ; ontologia:archivoDeCodigo "packages/docs-engine/src/components/api-endpoint.js" ; ontologia:linea 23 .
+ancla.docsifytemplate:preact.htm ontologia:termino vocabulario.preact:htm ; ontologia:archivoDeCodigo "packages/docs-site/as/mod.js" ; ontologia:linea 122 .
 
-# from: packages/docs-engine/src/adapters/astro/rehype-components.js:51 const htmlString = renderToString(h(Component, { data }));
+# from: packages/docs-site/components/annotated-block.js:52 const slot = useRef(null);
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:ref .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.ref .
+ancla.docsifytemplate:preact.ref ontologia:termino vocabulario.preact:ref ; ontologia:archivoDeCodigo "packages/docs-site/components/annotated-block.js" ; ontologia:linea 52 .
+
+# from: packages/docs-site/as/mod.js:38 for (const host of hosts.splice(0)) render(null, host);
+proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:render .
+proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.render .
+ancla.docsifytemplate:preact.render ontologia:termino vocabulario.preact:render ; ontologia:archivoDeCodigo "packages/docs-site/as/mod.js" ; ontologia:linea 38 .
+
+# from: packages/docs-site/test/components.test.mjs:184 const staticHtml = renderToString(html`<${terminal.view} ...${staticProps} />`);
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:render-a-string .
 proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.render-a-string .
-ancla.docsifytemplate:preact.render-a-string ontologia:termino vocabulario.preact:render-a-string ; ontologia:archivoDeCodigo "packages/docs-engine/src/adapters/astro/rehype-components.js" ; ontologia:linea 51 .
+ancla.docsifytemplate:preact.render-a-string ontologia:termino vocabulario.preact:render-a-string ; ontologia:archivoDeCodigo "packages/docs-site/test/components.test.mjs" ; ontologia:linea 184 .
 
-# from: packages/docs-engine/src/state/demo-store.js:20 export const selectedId = signal(null);
+# from: packages/docs-site/theme/store.js:6 export const route = signal("");
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:signal .
 proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.signal .
-ancla.docsifytemplate:preact.signal ontologia:termino vocabulario.preact:signal ; ontologia:archivoDeCodigo "packages/docs-engine/src/state/demo-store.js" ; ontologia:linea 20 .
-
-# from: packages/docs-engine/src/core/markdown-transform.js:51 parent.children.splice(index, 1, { type: 'html', value: result, position });
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:mdast .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.mdast .
-ancla.docsifytemplate:remark.mdast ontologia:termino vocabulario.remark:mdast ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 51 .
-
-# from: packages/docs-engine/src/core/markdown-transform.js:11 import remarkParse from 'remark-parse';
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:parser .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.parser .
-ancla.docsifytemplate:remark.parser ontologia:termino vocabulario.remark:parser ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 11 .
-
-# from: packages/docs-engine/src/core/markdown-transform.js:70 const processor = unified().use(remarkParse).use(yamlComponents, { parseYaml, transforms: resolvedTransforms });
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:plugin .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.plugin .
-ancla.docsifytemplate:remark.plugin ontologia:termino vocabulario.remark:plugin ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 70 .
-
-# from: packages/docs-engine/src/core/markdown-transform.js:70 const processor = unified().use(remarkParse).use(yamlComponents, { parseYaml, transforms: resolvedTransforms });
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:procesador .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.procesador .
-ancla.docsifytemplate:remark.procesador ontologia:termino vocabulario.remark:procesador ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 70 .
-
-# from: packages/docs-engine/src/core/markdown-transform.js:32 return function transformer(tree) {
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:transformador .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.transformador .
-ancla.docsifytemplate:remark.transformador ontologia:termino vocabulario.remark:transformador ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 32 .
-
-# from: packages/docs-engine/src/core/markdown-transform.js:35 visit(tree, 'code', (node, index, parent) => {
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.remark:visitar .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:remark.visitar .
-ancla.docsifytemplate:remark.visitar ontologia:termino vocabulario.remark:visitar ; ontologia:archivoDeCodigo "packages/docs-engine/src/core/markdown-transform.js" ; ontologia:linea 35 .
+ancla.docsifytemplate:preact.signal ontologia:termino vocabulario.preact:signal ; ontologia:archivoDeCodigo "packages/docs-site/theme/store.js" ; ontologia:linea 6 .
 # --- fin generado ---
