@@ -192,11 +192,14 @@ test("the plugin downloads template and filter from their addresses once", { tim
 test("a page without drawn diagrams exports its Mermaid blocks as code, without the filter", { timeout: 5000 }, async () => {
   const page = docsifyPage({ withDiagram: false });
   const engines = recordingEngines();
-  page.install(exportButton({ engines, document: page.document, ...SOURCES }));
+  const asked = [];
+  const fetchText = async (url) => { asked.push(url); return SOURCES.fetchText(url); };
+  page.install(exportButton({ engines, document: page.document, fetchText }));
   page.render(PAGE_MD);
   await clickAndCatchDownload(page.document, page.document.querySelector('[data-format="typ"]'));
   await settled(page.document);
   assert.equal(engines.calls.pandoc[0].options.filters, undefined);
+  assert.ok(!asked.some((url) => url.endsWith(".lua")), "sin diagramas el botón ni pide el filtro");
 });
 
 test("with browserEngines, components read the page with Docsify's window.marked", { timeout: 5000 }, async () => {
