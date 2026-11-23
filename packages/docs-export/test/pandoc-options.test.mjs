@@ -17,6 +17,7 @@ test("buildPandocRequest places template and Lua filter text in virtual files", 
     toc: true,
     templateSource: "$body$",
     mermaidFilterSource: "return {}",
+    mermaidSvgs: ["<svg/>"],
     templateVariables: { "color-accent": "#0891b2" },
   });
 
@@ -34,4 +35,13 @@ test("buildPandocRequest places template and Lua filter text in virtual files", 
     [TEMPLATE_FILE]: "$body$",
     [MERMAID_FILTER_FILE]: "return {}",
   });
+});
+
+test("the Mermaid filter only goes to Pandoc when there are captured diagrams", () => {
+  assert.equal(buildPandocRequest({ mermaidFilterSource: "return {}" }).options.filters, undefined);
+  assert.equal(buildPandocRequest({ mermaidFilterSource: "return {}", mermaidSvgs: [] }).options.filters, undefined);
+  assert.deepEqual(
+    Object.keys(buildPandocRequest({ mermaidFilterSource: "return {}", mermaidSvgs: ["<svg/>"] }).files),
+    ["mermaid-placeholder.lua"],
+  );
 });

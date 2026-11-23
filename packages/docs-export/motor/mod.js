@@ -2,7 +2,7 @@
 // Contains no Node imports and no browser globals; both transports import from here.
 export { Export } from "./export.js";
 export { expandComponentsToTypst, wrapRawTypst } from "./components.js";
-export { inlineMermaidSvgs } from "./mermaid.js";
+export { inlineMermaidSvgs, MISSING_DIAGRAM_NOTE } from "./mermaid.js";
 export {
   buildPandocRequest,
   DEFAULT_INPUT_FORMAT,

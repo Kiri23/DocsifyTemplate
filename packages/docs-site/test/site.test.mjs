@@ -21,7 +21,7 @@ async function prismLanguages() {
 }
 
 /** Runs site.js and its emitted module script with a given window.$docsify config. */
-async function runSite(config, { pageUrl = "https://example.com/docs/#/" } = {}) {
+async function runSite(config, { pageUrl = "https://example.com/docs/#/", pluginModuleExports = [] } = {}) {
   const source = await readFile(SITE, "utf8");
   let written = "";
   const windowObj = { $docsify: structuredClone(config) };
@@ -53,6 +53,7 @@ async function runSite(config, { pageUrl = "https://example.com/docs/#/" } = {})
     "window", "console", "topNav", "sidebarSections", "fileLinks",
     "asComponents", "onThisPage", "prevNext", "codeWindow",
     "addComponents", "annotatedBlock", "optionPicker", "stepper", "terminal",
+    ...pluginModuleExports.map((_, i) => `plugins${i}`),
     body,
   );
   runWiring(
@@ -65,8 +66,9 @@ async function runSite(config, { pageUrl = "https://example.com/docs/#/" } = {})
     noop, noop, noop, noop, noop, noop,
     (builtIn) => ({ components: builtIn, problems: [] }),
     {}, {}, {}, {},
+    ...pluginModuleExports,
   );
-  return { config: windowObj.$docsify, topNavOpts, errors };
+  return { config: windowObj.$docsify, topNavOpts, errors, written };
 }
 
 /** Mounts a Docsify topNav plugin into a linkedom document at `pageUrl`. */
@@ -233,4 +235,26 @@ test("topNav does not mark hash/query links as current and tolerates invalid URL
   const currents = [...doc.querySelectorAll("header.top-nav ul.top-nav-links a")]
     .map((a) => a.getAttribute("aria-current"));
   assert.deepEqual(currents, [null, null, null, null]);
+});
+
+test("site.js without pluginModules imports no extra module and keeps the theme's plugins first", async () => {
+  // The config is cloned like JSON, so the page's own plugin is a stand-in string.
+  const sitePlugin = "plugin del sitio";
+  const { config, written } = await runSite({ name: "docs", plugins: [sitePlugin] });
+  assert.doesNotMatch(written, /plugins0/);
+  assert.equal(config.plugins.length, 8);
+  assert.equal(config.plugins.at(-1), sitePlugin);
+});
+
+test("site.js imports pluginModules in its module and puts their exports after the theme's plugins", async () => {
+  const exportar = () => {};
+  const otro = () => {};
+  const sitePlugin = "plugin del sitio";
+  const { config, written } = await runSite(
+    { name: "docs", pluginModules: ["propios/exportar.js"], plugins: [sitePlugin] },
+    { pageUrl: "https://example.com/docs/#/", pluginModuleExports: [{ exportar, otro }] },
+  );
+  assert.match(written, /import \* as plugins0 from "https:\/\/example\.com\/docs\/propios\/exportar\.js";/);
+  assert.match(written, /pluginModules no cargó \(propios\/exportar\.js\)/);
+  assert.deepEqual(config.plugins.slice(-3), [exportar, otro, sitePlugin]);
 });

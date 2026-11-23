@@ -144,8 +144,8 @@ export class Export {
       throw new Error("engines.pandoc() tiene que devolver el código Typst como string");
     }
 
-    if (this.#state.mermaidSvgs) {
-      return inlineMermaidSvgs(rawTypst, this.#state.mermaidSvgs);
+    if (this.#state.mermaidSvgs?.length > 0) {
+      return inlineMermaidSvgs(rawTypst, this.#state.mermaidSvgs, { onWarning: this.#state.onWarning });
     }
     return rawTypst;
   }
