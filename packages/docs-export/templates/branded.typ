@@ -117,6 +117,7 @@
         fill: terminal-bar,
         inset: (x: 10pt, y: 6pt),
         stroke: (bottom: 0.5pt + border-subtle),
+        below: 0pt,
       )[
         #set text(size: 9pt)
         #heading-bar
@@ -130,7 +131,7 @@
           terminal-badge("exit " + str(exit), exit-tone)
         }
       ]
-      #block(width: 100%, inset: 10pt)[
+      #block(width: 100%, inset: 10pt, above: 0pt)[
         #show regex("█+"): it => text(fill: terminal-accent, it)
         #set text(font: "DejaVu Sans Mono", size: 9pt, fill: text-primary)
         #set par(justify: false, leading: 0.45em)

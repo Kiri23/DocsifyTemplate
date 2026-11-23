@@ -1,7 +1,11 @@
 // Integration tests for the Node transport against local Pandoc (and Typst when installed or in CI).
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import * as builtIn from "../../docs-site/components/mod.js";
 import { expandComponentsToTypst, Export } from "../motor/mod.js";
 import {
@@ -172,5 +176,37 @@ test(
     assert.ok(pdf instanceof Uint8Array);
     assert.ok(pdf.byteLength > 500);
     assert.equal(Buffer.from(pdf.slice(0, 5)).toString("ascii"), "%PDF-");
+  },
+);
+
+test(
+  "terminal-window draws the first output line right under the bar, with no blank line between them",
+  { skip: !hasCommand("typst") && process.env.CI !== "true" ? "typst binary not installed locally" : false },
+  async () => {
+    const template = await readDefaultTemplate();
+    const typst = await Export.ofMarkdown("<!-- as: terminal -->\n```console\n$ c\nx\n```\n")
+      .templateSource(template)
+      .components(BUILT_IN_MAP)
+      .toTypst(systemEngines());
+
+    const dir = mkdtempSync(join(tmpdir(), "docs-export-terminal-"));
+    try {
+      const file = join(dir, "page.typ");
+      writeFileSync(file, typst);
+      const output = execFileSync(
+        "typst",
+        ["eval", "query(raw).map(r => r.location().position().y.pt())", "--in", file],
+        { encoding: "utf8" },
+      );
+      const [commandY, firstLineY] = JSON.parse(output);
+      // The bar's bottom inset (6pt) plus the body's top inset (10pt) put the first line about 16pt
+      // below the command; a default block gap between bar and body pushes it to about 29pt.
+      assert.ok(
+        firstLineY - commandY < 20,
+        `first output line is ${(firstLineY - commandY).toFixed(1)}pt below the command`,
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   },
 );
