@@ -26,7 +26,6 @@ proyecto:docsifytemplate a ontologia:Proyecto ;
 @prefix ancla.docsifytemplate: <https://kiri231.com/proyecto/docsifytemplate/ancla/> .
 @prefix vocabulario.docsify: <https://kiri231.com/vocabulario/docsify#> .
 @prefix vocabulario.preact: <https://kiri231.com/vocabulario/preact#> .
-@prefix vocabulario.pyyaml: <https://kiri231.com/vocabulario/pyyaml#> .
 
 # from: packages/docs-site/site.js:52 window.$docsify = Object.assign({
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.docsify:configuracion .
@@ -77,9 +76,4 @@ ancla.docsifytemplate:preact.render-a-string ontologia:termino vocabulario.preac
 proyecto:docsifytemplate schema:softwareRequirements vocabulario.preact:signal .
 proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:preact.signal .
 ancla.docsifytemplate:preact.signal ontologia:termino vocabulario.preact:signal ; ontologia:archivoDeCodigo "packages/docs-site/theme/store.js" ; ontologia:linea 6 .
-
-# from: .claude/skills/paper2code/scaffolds/train_template.py:28 return yaml.safe_load(f)
-proyecto:docsifytemplate schema:softwareRequirements vocabulario.pyyaml:safe-load .
-proyecto:docsifytemplate ontologia:ancla ancla.docsifytemplate:pyyaml.safe-load .
-ancla.docsifytemplate:pyyaml.safe-load ontologia:termino vocabulario.pyyaml:safe-load ; ontologia:archivoDeCodigo ".claude/skills/paper2code/scaffolds/train_template.py" ; ontologia:linea 28 .
 # --- fin generado ---
