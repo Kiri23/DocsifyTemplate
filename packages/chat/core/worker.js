@@ -11,120 +11,7 @@ import {
   TextStreamer,
   InterruptableStoppingCriteria,
 } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4";
-
-// ── Tool Definitions (sent to model in system prompt) ────────
-
-const TOOLS = [
-  {
-    type: "function",
-    function: {
-      name: "export_page",
-      description: "Export the current documentation page to a file. Use when the user asks to export, download, or save the page as PDF, LaTeX, or Markdown.",
-      parameters: {
-        type: "object",
-        properties: {
-          format: {
-            type: "string",
-            enum: ["pdf", "latex-branded", "markdown"],
-            description: "The export format",
-          },
-        },
-        required: ["format"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "navigate_to_page",
-      description: "Navigate to a different documentation page. Use when the user asks to go to, open, or show a specific page or section.",
-      parameters: {
-        type: "object",
-        properties: {
-          path: {
-            type: "string",
-            description: "The page path from the sidebar, e.g. /content/guide/getting-started",
-          },
-        },
-        required: ["path"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "switch_tab",
-      description: "Switch between Quick Start and Technical Reference tabs on the current page. Use when the user asks to see the technical view, quick start, or switch tabs.",
-      parameters: {
-        type: "object",
-        properties: {
-          tab: {
-            type: "string",
-            enum: ["quick-start", "technical"],
-            description: "Which tab to switch to",
-          },
-        },
-        required: ["tab"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "search_docs",
-      description: "Search across all documentation pages. Use when the user asks to find, search, or look up something across the docs.",
-      parameters: {
-        type: "object",
-        properties: {
-          query: {
-            type: "string",
-            description: "The search query",
-          },
-        },
-        required: ["query"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "generate_component",
-      description: "Generate a YAML code fence component for the documentation. Use when the user asks to create, add, or build a card grid, API endpoint, status flow, entity schema, config example, step guide, side-by-side comparison, file tree, or directive table.",
-      parameters: {
-        type: "object",
-        properties: {
-          component: {
-            type: "string",
-            enum: ["card-grid", "api-endpoint", "status-flow", "entity-schema", "config-example", "step-type", "side-by-side", "file-tree", "directive-table"],
-            description: "The component type to generate",
-          },
-          description: {
-            type: "string",
-            description: "What the user wants the component to contain",
-          },
-        },
-        required: ["component", "description"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "scroll_to_section",
-      description: "Scroll to a specific heading or section on the current page. Use when the user asks to go to a section, jump to a heading, or show a specific part.",
-      parameters: {
-        type: "object",
-        properties: {
-          heading: {
-            type: "string",
-            description: "The heading text to scroll to",
-          },
-        },
-        required: ["heading"],
-      },
-    },
-  },
-];
+import { WORKER_TOOL_SCHEMAS } from "./tools.js";
 
 // ── Model Pipeline (dynamic) ─────────────────────────────────
 
@@ -244,7 +131,7 @@ async function generate(messages, config) {
     add_generation_prompt: true,
   };
   if (isMultimodal) templateOpts.enable_thinking = false;
-  if (config && config.nativeToolCalling) templateOpts.tools = TOOLS;
+  if (config && config.nativeToolCalling) templateOpts.tools = WORKER_TOOL_SCHEMAS;
 
   let inputs;
   if (isMultimodal) {

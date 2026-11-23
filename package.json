@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "npx http-server . -p 3010 -c-1 --cors",
-    "test": "node --test \"packages/docs-site/test/*.test.mjs\"",
+    "test": "node --test \"packages/*/test/*.test.mjs\"",
     "check:docs": "node packages/docs-site/bin/check.mjs",
     "docs:serve": "node packages/docs-site/bin/serve.mjs",
     "docs:armar": "node packages/docs-site/bin/armar.mjs"

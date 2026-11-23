@@ -2,22 +2,20 @@
 // Pure functions + one stateful class. No DOM, no Worker, no framework.
 // Accepts config as constructor argument — no external config imports.
 
+import { CHAT_TOOLS } from './tools.js';
+
 const CHARS_PER_TOKEN = 4;
 const MAX_CONTEXT_TOKENS = 120000;
 
 // --- System prompt (built from tool config) ---
 
 export function buildSystemPrompt(toolConfig = {}) {
-  const toolLines = [];
-  if (toolConfig.export !== false)           toolLines.push('- export_page: Export current page to PDF, LaTeX, or Markdown');
-  if (toolConfig.navigate !== false)         toolLines.push('- navigate_to_page: Go to a different doc page (use paths from context)');
-  if (toolConfig.switchTab !== false)        toolLines.push('- switch_tab: Switch between tabs on the current page');
-  if (toolConfig.search !== false)           toolLines.push('- search_docs: Search across all documentation');
-  if (toolConfig.generateComponent !== false) toolLines.push('- generate_component: Create a YAML code fence component (card-grid, api-endpoint, status-flow, entity-schema, config-example, step-type, side-by-side, file-tree, directive-table)');
-  if (toolConfig.scrollToSection !== false)  toolLines.push('- scroll_to_section: Scroll to a heading on the current page');
+  const enabledTools = CHAT_TOOLS.filter(tool => toolConfig[tool.configKey] !== false);
+  const toolLines = enabledTools.map(tool => `- ${tool.name}: ${tool.promptDescription}`);
+  const actionVerbs = enabledTools.map(tool => tool.actionVerb).join(', ');
 
   const toolSection = toolLines.length > 0
-    ? `\n\nAVAILABLE ACTIONS (use tool calls for these):\n${toolLines.join('\n')}\n\nWhen the user asks you to DO something (export, navigate, create, scroll), use a tool call.`
+    ? `\n\nAVAILABLE ACTIONS (use tool calls for these):\n${toolLines.join('\n')}\n\nWhen the user asks you to DO something (${actionVerbs}), use a tool call.`
     : '';
 
   return `You are a helpful documentation assistant with tool-calling capabilities. You can answer questions AND take actions.${toolSection} When they ask a QUESTION, answer from the documentation context. Be concise and direct.`;
@@ -205,22 +203,9 @@ export function createChatEngine(options = {}) {
     },
 
     getToolCompletions(query) {
-      const tools = [
-        { label: 'export_page', description: 'Export page to PDF/LaTeX/Markdown' },
-        { label: 'navigate_to_page', description: 'Go to a doc page' },
-        { label: 'switch_tab', description: 'Switch Quick Start / Technical tab' },
-        { label: 'search_docs', description: 'Search all documentation' },
-        { label: 'generate_component', description: 'Create a YAML component' },
-        { label: 'scroll_to_section', description: 'Scroll to a heading' },
-      ].filter(t => {
-        // Only show completions for enabled tools
-        const configKey = {
-          export_page: 'export', navigate_to_page: 'navigate',
-          switch_tab: 'switchTab', search_docs: 'search',
-          generate_component: 'generateComponent', scroll_to_section: 'scrollToSection',
-        }[t.label];
-        return toolConfig[configKey] !== false;
-      });
+      const tools = CHAT_TOOLS
+        .filter(tool => toolConfig[tool.configKey] !== false)
+        .map(tool => ({ label: tool.name, description: tool.completionDescription }));
 
       const q = (query || '').toLowerCase();
       return tools.filter(t => !q || t.label.includes(q) || t.description.toLowerCase().includes(q));
