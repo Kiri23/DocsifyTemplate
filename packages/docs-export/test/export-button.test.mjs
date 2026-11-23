@@ -5,14 +5,9 @@ import { resolveObjectURL } from "node:buffer";
 import { readFile } from "node:fs/promises";
 import { marked } from "marked";
 import { parseHTML } from "linkedom";
-import {
-  DEFAULT_MARKED_URL,
-  exportButton,
-  exportPage,
-  fileNameFor,
-} from "../transportes/docsify/mod.js";
+import { downloadFilename, exportButton } from "../transportes/docsify/mod.js";
 import { MERMAID_FILTER_FILE } from "../motor/mod.js";
-import { captureMermaidSvgs } from "../transportes/browser/mod.js";
+import { browserEngines } from "../transportes/browser/mod.js";
 import {
   hasCommand,
   readDefaultMermaidFilter,
@@ -86,12 +81,14 @@ async function settled(document) {
   throw new Error("el plugin no terminó");
 }
 
-const SOURCES = { templateSource: "#let x = 1\n$body$\n", mermaidFilterSource: "return {}" };
+// Template and filter as the plugin would download them from the site.
+const SOURCES = {
+  fetchText: async (url) => (url.endsWith(".typ") ? "#let x = 1\n$body$\n" : "return {}"),
+};
 
-test("exportButton needs pandocWasmUrl unless the site brings its own engines", () => {
-  assert.throws(() => exportButton({}), /pandocWasmUrl/);
+test("exportButton needs engines and known formats", () => {
+  assert.throws(() => exportButton({}), /browserEngines\(\{ pandocWasmUrl \}\)/);
   assert.doesNotThrow(() => exportButton({ engines: recordingEngines() }));
-  assert.doesNotThrow(() => exportButton({ pandocWasmUrl: "https://x.test/pandoc.wasm" }));
   assert.throws(() => exportButton({ engines: recordingEngines(), formats: ["docx"] }), /docx/);
 });
 
@@ -169,7 +166,7 @@ test("a failed export says why in the bar and frees the buttons", async () => {
   assert.match(page.document.querySelector('.docs-export-bar [role="status"]').textContent, /No se pudo exportar: pandoc\.wasm falló: boom/);
 });
 
-test("without pandocWasmUrl engines, the plugin loads template and filter by address, once", async () => {
+test("the plugin downloads template and filter from their addresses once", async () => {
   const page = docsifyPage();
   const asked = [];
   const engines = recordingEngines();
@@ -190,83 +187,56 @@ test("without pandocWasmUrl engines, the plugin loads template and filter by add
   assert.equal(engines.calls.pandoc[0].files["template.typ"], "TEMPLATE");
 });
 
-test("exportButton builds browser engines from pandocWasmUrl and loads marked only for components", async () => {
+test("a page without drawn diagrams exports its Mermaid blocks as code, without the filter", async () => {
   const page = docsifyPage({ withDiagram: false });
-  const asked = [];
-  const importModule = async (url) => {
-    asked.push(url);
-    if (url === DEFAULT_MARKED_URL) return { marked };
-    return {};
-  };
-  page.install(exportButton({
-    pandocWasmUrl: "https://assets.test/pandoc.wasm",
-    components: BUILT_IN_MAP,
-    document: page.document,
-    importModule,
-    ...SOURCES,
-  }));
+  const engines = recordingEngines();
+  page.install(exportButton({ engines, document: page.document, ...SOURCES }));
   page.render(PAGE_MD);
-  const original = console.error;
-  console.error = () => {};
+  await clickAndCatchDownload(page.document, page.document.querySelector('[data-format="typ"]'));
+  await settled(page.document);
+  assert.equal(engines.calls.pandoc[0].options.filters, undefined);
+});
+
+test("with browserEngines, components read the page with Docsify's window.marked", async () => {
+  const markdown = await readFile(TERMINAL_DOC, "utf8");
+  const page = docsifyPage({ withDiagram: false });
+  const engines = browserEngines({ pandocWasmUrl: "https://assets.test/pandoc.wasm", document: page.document });
+  let stdin;
+  engines.pandoc = async (request) => { stdin = request.stdin; return "= ok\n"; };
+
+  const previous = globalThis.marked;
+  globalThis.marked = marked;
   try {
-    page.document.querySelector('[data-format="typ"]').click();
-    await new Promise((r) => setTimeout(r, 10));
+    page.install(exportButton({ engines, components: BUILT_IN_MAP, document: page.document, ...SOURCES }));
+    page.render(markdown);
+    await clickAndCatchDownload(page.document, page.document.querySelector('[data-format="typ"]'));
     await settled(page.document);
   } finally {
-    console.error = original;
+    globalThis.marked = previous;
   }
-  // marked was loaded for the components; pandoc.wasm then fails to download in Node, which is fine.
-  assert.equal(asked[0], DEFAULT_MARKED_URL);
-  assert.match(page.document.querySelector('[role="status"]').textContent, /No se pudo exportar/);
+  assert.match(stdin, /\{=typst\}/, "terminal se expandió con su vista typstPDF");
 });
 
-test("exportPage passes the Mermaid filter only when every block has its drawn diagram", async () => {
-  const markdown = "# T\n\n```mermaid\ngraph LR\n```\n\n```mermaid\ngraph TD\n```\n";
-  const warnings = [];
-  const engines = recordingEngines();
-  const file = await exportPage({
-    markdown,
-    format: "typ",
-    engines,
-    title: "T",
-    mermaidFilterSource: "return {}",
-    mermaidSvgs: ["<svg/>"],
-    onWarning: (m) => warnings.push(m),
-  });
-  assert.equal(engines.calls.pandoc[0].options.filters, undefined);
-  assert.doesNotMatch(file.content, /%%MERMAID_SVG_/);
-  assert.match(warnings[0], /2 diagrama\(s\) Mermaid y se capturaron 1/);
-});
-
-test("exportPage expands components through their typstPDF view", async () => {
-  const markdown = await readFile(TERMINAL_DOC, "utf8");
-  const engines = { ...recordingEngines(), parseMarkdown: { lexer: (s) => marked.lexer(s), parser: (t) => marked.parser(t) } };
-  engines.parseHtml = (html) => parseHTML(`<html><body><main>${html}</main></body></html>`).document.querySelector("main");
-  await exportPage({ markdown, format: "typ", engines, components: BUILT_IN_MAP });
-  assert.match(engines.calls.pandoc[0].stdin, /\{=typst\}/);
-});
-
-test("exportPage rejects unknown formats and names files from the title", async () => {
-  await assert.rejects(exportPage({ markdown: "x", format: "docx", engines: recordingEngines() }), /docx/);
-  assert.equal(fileNameFor("Configuración  Rápida!", ".pdf"), "configuracion-rapida.pdf");
-  assert.equal(fileNameFor(undefined, ".typ"), "documento.typ");
-});
-
-test("exportPage with real Pandoc and the real Lua filter puts the drawn diagram where the block was", {
+test("with real Pandoc and the real Lua filter, the drawn diagram replaces its Mermaid block", {
   skip: !hasCommand("pandoc") && "pandoc no está instalado",
 }, async () => {
-  const [templateSource, mermaidFilterSource] = await Promise.all([readDefaultTemplate(), readDefaultMermaidFilter()]);
+  const [template, filter] = await Promise.all([readDefaultTemplate(), readDefaultMermaidFilter()]);
   const page = docsifyPage();
-  const file = await exportPage({
-    markdown: PAGE_MD,
-    format: "typ",
+  page.install(exportButton({
     engines: systemEngines(),
-    title: "Guía",
-    templateSource,
-    mermaidFilterSource,
-    mermaidSvgs: captureMermaidSvgs(page.document.querySelector(".markdown-section")),
-  });
-  assert.doesNotMatch(file.content, /%%MERMAID_SVG_/);
-  assert.doesNotMatch(file.content, /graph LR/);
-  assert.match(file.content, /#image\(bytes\(".*viewBox.*format: "svg"/s);
+    document: page.document,
+    fetchText: async (url) => (url.endsWith(".typ") ? template : filter),
+  }));
+  page.render(PAGE_MD);
+  const { blob } = await clickAndCatchDownload(page.document, page.document.querySelector('[data-format="typ"]'));
+  await settled(page.document);
+  const typst = await blob.text();
+  assert.doesNotMatch(typst, /%%MERMAID_SVG_/);
+  assert.doesNotMatch(typst, /graph LR/);
+  assert.match(typst, /#image\(bytes\(".*viewBox.*format: "svg"/s);
+});
+
+test("downloadFilename names files from the page title", () => {
+  assert.equal(downloadFilename("Configuración  Rápida!", ".pdf"), "configuracion-rapida.pdf");
+  assert.equal(downloadFilename(undefined, ".typ"), "documento.typ");
 });

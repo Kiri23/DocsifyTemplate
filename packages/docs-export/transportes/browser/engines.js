@@ -22,6 +22,16 @@ function loadOnce(load) {
   };
 }
 
+/** Runs one job at a time: pandoc.wasm keeps a single virtual folder that each run empties. */
+function oneAtATime() {
+  let last = Promise.resolve();
+  return (job) => {
+    const run = last.then(job, job);
+    last = run.catch(() => {});
+    return run;
+  };
+}
+
 /** Creates the WebAssembly Pandoc, Typst, and parser adapters consumed by Export. */
 export function browserEngines({
   pandocWasmUrl,
@@ -42,13 +52,25 @@ export function browserEngines({
   const pandocWasm = loadOnce(async () =>
     startPandocWasm({ wasmUrl: pandocWasmUrl, wasiShim: await importModule(wasiShimUrl), fetchWasm }),
   );
+  const inPandocQueue = oneAtATime();
   const typstCompiler = loadOnce(async () => typstCompilerFrom(await importModule(typstUrl)));
 
+  /** Finds the Markdown parser: the one given, or the one Docsify left on the page. */
+  function markedParser() {
+    const found = marked ?? globalThis.marked;
+    if (!found?.lexer || !found?.parser) {
+      throw new Error("no hay parser de Markdown: pasá marked a browserEngines o cargá Docsify 5 antes de exportar");
+    }
+    return found;
+  }
+
   return {
-    // Without marked the components step cannot run; the motor says so if a page needs it.
-    parseMarkdown: marked
-      ? { lexer: (source) => marked.lexer(source), parser: (tokens) => marked.parser(tokens) }
-      : undefined,
+    // Docsify 5 puts its own parser on window.marked, so the components read the page with
+    // the same parser that drew it. It is looked up when a page is exported, after Docsify loaded.
+    parseMarkdown: {
+      lexer: (source) => markedParser().lexer(source),
+      parser: (tokens) => markedParser().parser(tokens),
+    },
 
     parseHtml(html) {
       const main = document.createElement("main");
@@ -58,7 +80,7 @@ export function browserEngines({
 
     async pandoc({ options, stdin, files = {} }) {
       const { convert } = await pandocWasm();
-      const { stdout, stderr } = await convert(options, stdin, files);
+      const { stdout, stderr } = await inPandocQueue(() => convert(options, stdin, files));
       if (!stdout && stderr) throw new Error(`pandoc.wasm falló: ${stderr.trim()}`);
       if (stderr) console.warn(`pandoc.wasm: ${stderr.trim()}`);
       return stdout;

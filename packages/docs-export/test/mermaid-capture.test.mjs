@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseHTML } from "linkedom";
-import { captureMermaidSvgs, countMermaidFences, inlineMermaidSvgs } from "../transportes/browser/mod.js";
+import { captureMermaidSvgs, inlineMermaidSvgs } from "../transportes/browser/mod.js";
 
 const PAGE = `<!DOCTYPE html><html><body><article class="markdown-section">
   <h1>Flujo</h1>
@@ -40,28 +40,6 @@ test("captureMermaidSvgs leaves the page untouched", () => {
   const before = section.innerHTML;
   captureMermaidSvgs(section);
   assert.equal(section.innerHTML, before);
-});
-
-test("countMermaidFences counts mermaid blocks and ignores ones quoted inside other code", () => {
-  const markdown = [
-    "# Doc",
-    "```mermaid",
-    "graph LR; A-->B",
-    "```",
-    "````markdown",
-    "```mermaid",
-    "graph LR; C-->D",
-    "```",
-    "````",
-    "~~~ mermaid",
-    "sequenceDiagram",
-    "~~~",
-    "```js",
-    "const mermaid = 1;",
-    "```",
-  ].join("\n");
-  assert.equal(countMermaidFences(markdown), 2);
-  assert.equal(countMermaidFences("sin diagramas"), 0);
 });
 
 test("captured diagrams splice into Pandoc's placeholders through inlineMermaidSvgs", () => {

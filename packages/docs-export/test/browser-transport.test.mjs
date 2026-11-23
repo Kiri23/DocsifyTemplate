@@ -128,13 +128,50 @@ test("browser engines parse HTML in the page and expand components with an injec
   assert.match(stdin, /\{=typst\}/, "el componente terminal se expandió con su vista typstPDF");
 });
 
-test("without marked, a page with components fails with the motor's message", async () => {
+test("without marked and before Docsify loads, components fail saying which parser is missing", async () => {
   const { document } = parseHTML("<!DOCTYPE html><html><body></body></html>");
   const engines = browserEngines({ pandocWasmUrl: PANDOC_URL, document });
-  assert.equal(engines.parseMarkdown, undefined);
+  assert.equal(globalThis.marked, undefined);
   const markdown = await readFile(TERMINAL_DOC, "utf8");
   await assert.rejects(
     Export.ofMarkdown(markdown).components(BUILT_IN_MAP).toTypst({ ...engines, pandoc: async () => "" }),
-    /parseMarkdown/,
+    /no hay parser de Markdown/,
   );
+});
+
+test("pandoc runs one conversion at a time, because pandoc.wasm shares one virtual folder", async () => {
+  // A WebAssembly stand-in: each conversion records which page it found in the shared folder.
+  const seenStdin = [];
+  let folder;
+  const exports = {
+    memory: { buffer: new ArrayBuffer(4096) },
+    malloc: (() => { let next = 8; return (n) => { const at = next; next += n + 8; return at; }; })(),
+    __wasm_call_ctors() {},
+    hs_init_with_rtsopts() {},
+    convert() {
+      seenStdin.push(new TextDecoder().decode(folder.get("stdin").data));
+    },
+  };
+  const shim = {
+    WASI: class { constructor() { this.wasiImport = {}; } initialize() {} },
+    OpenFile: class {},
+    File: class { constructor(data) { this.data = data; } },
+    ConsoleStdout: { lineBuffered: () => ({}) },
+    PreopenDirectory: class { constructor(_name, map) { folder = map; } },
+  };
+  const realInstantiate = WebAssembly.instantiate;
+  WebAssembly.instantiate = async () => ({ instance: { exports } });
+  try {
+    const engines = browserEngines({
+      pandocWasmUrl: PANDOC_URL,
+      importModule: async () => shim,
+      fetchWasm: async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(0) }),
+    });
+    // A Blob companion file makes each conversion wait while it copies, which is when two could mix.
+    const files = { "template.typ": new Blob(["$body$"]) };
+    await Promise.all([1, 2, 3].map((n) => engines.pandoc({ options: {}, stdin: `# ${n}`, files }).catch(() => {})));
+  } finally {
+    WebAssembly.instantiate = realInstantiate;
+  }
+  assert.deepEqual(seenStdin, ["# 1", "# 2", "# 3"]);
 });

@@ -1,8 +1,7 @@
 // Takes the Mermaid diagrams the page already drew and turns them into SVG text Typst can read.
-// Used by transportes/docsify/export-page.js; the motor splices them in with inlineMermaidSvgs.
+// Used by transportes/docsify/export-button.js; the motor splices them in with inlineMermaidSvgs.
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-const MERMAID_FENCE = /^ {0,3}(`{3,}|~{3,})\s*mermaid\b/;
 
 /** Collects every drawn Mermaid diagram under the page, in page order, as SVG text. */
 export function captureMermaidSvgs(root) {
@@ -17,28 +16,6 @@ export function captureMermaidSvgs(root) {
     svgs.push(clone.outerHTML);
   }
   return svgs;
-}
-
-/** Counts the Mermaid code blocks in a Markdown page, so captured diagrams can be matched to them. */
-export function countMermaidFences(markdown) {
-  let count = 0;
-  let openFence = null;
-  for (const line of markdown.split(/\r?\n/)) {
-    if (openFence) {
-      const close = /^ {0,3}(`{3,}|~{3,})\s*$/.exec(line);
-      if (close && close[1][0] === openFence[0] && close[1].length >= openFence.length) openFence = null;
-      continue;
-    }
-    const mermaid = MERMAID_FENCE.exec(line);
-    if (mermaid) {
-      count++;
-      openFence = mermaid[1];
-      continue;
-    }
-    const other = /^ {0,3}(`{3,}|~{3,})/.exec(line);
-    if (other) openFence = other[1];
-  }
-  return count;
 }
 
 /** Replaces an HTML label inside the diagram with plain SVG text, which Typst can draw. */

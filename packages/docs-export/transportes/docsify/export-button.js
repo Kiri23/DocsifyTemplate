@@ -1,15 +1,31 @@
 // Docsify 5 plugin that adds "download as .typ / .pdf" buttons at the top of every page.
-// A site turns it on by adding it to window.$docsify.plugins; site.js does not load it.
-// On click it calls export-page.js with the browser engines (transportes/browser/engines.js)
-// and saves the result. The .typ is for agents (plain text they can read and edit), the .pdf
-// for people.
+// A site turns it on through window.$docsify.pluginModules in site.js; it is off by default.
+// On click it runs the motor (motor/export.js) with the engines the site gives, usually
+// browserEngines from transportes/browser/, and saves the result. The .typ is for agents (plain
+// text they can read and edit), the .pdf for people.
+import { Export } from "../../motor/mod.js";
 import { captureMermaidSvgs } from "../browser/mermaid-capture.js";
-import { browserEngines } from "../browser/engines.js";
-import { EXPORT_FORMATS, exportPage } from "./export-page.js";
 
-export const DEFAULT_MARKED_URL = "https://cdn.jsdelivr.net/npm/marked@18.2.1/lib/marked.esm.js";
 const DEFAULT_TEMPLATE_URL = new URL("../../templates/branded.typ", import.meta.url).href;
 const DEFAULT_MERMAID_FILTER_URL = new URL("../../filters/mermaid-placeholder.lua", import.meta.url).href;
+
+// What each button produces: how the motor makes it and how the browser saves it.
+const FORMATS = Object.freeze({
+  typ: Object.freeze({
+    label: "Descargar .typ",
+    busy: "Armando el .typ (la primera vez descarga pandoc.wasm, unos 56 MB)…",
+    extension: ".typ",
+    mime: "text/plain;charset=utf-8",
+    build: (job, engines) => job.toTypst(engines),
+  }),
+  pdf: Object.freeze({
+    label: "Descargar .pdf",
+    busy: "Armando el PDF (la primera vez descarga pandoc.wasm y typst)…",
+    extension: ".pdf",
+    mime: "application/pdf",
+    build: (job, engines) => job.toPdf(engines),
+  }),
+});
 
 const BAR_CLASS = "docs-export-bar";
 const STYLE_ID = "docs-export-style";
@@ -23,51 +39,38 @@ const BAR_STYLE = `
 .${BAR_CLASS} [role="status"] { font-size: 0.85em; color: var(--text-dim, inherit); }
 `;
 
-const BUTTON_LABELS = Object.freeze({ typ: "Descargar .typ", pdf: "Descargar .pdf" });
+/** Makes a download name from the page title: lower case, no accents, words joined by dashes. */
+export function downloadFilename(title, extension) {
+  const slug = (title ?? "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `${slug || "documento"}${extension}`;
+}
 
-/** Creates the Docsify plugin; pandocWasmUrl says where the site serves pandoc.wasm. */
+/** Creates the Docsify plugin that exports each page with the given engines. */
 export function exportButton({
-  pandocWasmUrl,
-  typstUrl,
-  wasiShimUrl,
-  markedUrl = DEFAULT_MARKED_URL,
-  components,
-  templateUrl = DEFAULT_TEMPLATE_URL,
-  templateSource,
-  mermaidFilterUrl = DEFAULT_MERMAID_FILTER_URL,
-  mermaidFilterSource,
-  formats = ["typ", "pdf"],
   engines,
+  components,
+  formats = ["typ", "pdf"],
+  templateUrl = DEFAULT_TEMPLATE_URL,
+  mermaidFilterUrl = DEFAULT_MERMAID_FILTER_URL,
   document = globalThis.document,
-  importModule = (url) => import(url),
   fetchText = defaultFetchText,
 } = {}) {
-  if (!engines && (typeof pandocWasmUrl !== "string" || pandocWasmUrl === "")) {
+  if (typeof engines?.pandoc !== "function") {
     throw new Error(
-      "exportButton necesita pandocWasmUrl: la dirección donde tu sitio sirve pandoc.wasm " +
-        "(el archivo no vive en este repo)",
+      "exportButton necesita engines, por ejemplo browserEngines({ pandocWasmUrl }) " +
+        "de docs-export/transportes/browser/mod.js",
     );
   }
   for (const format of formats) {
-    if (!EXPORT_FORMATS[format]) throw new Error(`exportButton: formato desconocido "${format}" (usá "typ" o "pdf")`);
+    if (!FORMATS[format]) throw new Error(`exportButton: formato desconocido "${format}" (usá "typ" o "pdf")`);
   }
 
-  const hasComponents = components && (components.size ?? components.length) > 0;
-  let enginesReady = null;
   const textCache = new Map();
-
-  /** Builds the browser engines once, with the Markdown parser only when components need it. */
-  function enginesForSite() {
-    if (engines) return Promise.resolve(engines);
-    enginesReady ??= (async () => {
-      const marked = hasComponents ? (await importModule(markedUrl)).marked : undefined;
-      return browserEngines({ pandocWasmUrl, typstUrl, wasiShimUrl, marked, document, importModule });
-    })().catch((error) => {
-      enginesReady = null;
-      throw error;
-    });
-    return enginesReady;
-  }
 
   /** Reads a text file the export needs (template, filter) once per page load. */
   function textAt(url) {
@@ -101,35 +104,34 @@ export function exportButton({
         const button = document.createElement("button");
         button.type = "button";
         button.dataset.format = format;
-        button.textContent = BUTTON_LABELS[format];
+        button.textContent = FORMATS[format].label;
         return button;
       });
 
       const markdown = pageMarkdown;
       for (const button of buttons) {
         button.addEventListener("click", async () => {
-          const format = button.dataset.format;
+          const format = FORMATS[button.dataset.format];
           for (const b of buttons) b.disabled = true;
-          status.textContent = format === "pdf" ? "Armando el PDF…" : "Armando el .typ…";
+          status.textContent = format.busy;
           const warnings = [];
           try {
-            const [activeEngines, template, filter] = await Promise.all([
-              enginesForSite(),
-              templateSource ?? textAt(templateUrl),
-              mermaidFilterSource ?? textAt(mermaidFilterUrl),
-            ]);
-            const file = await exportPage({
-              markdown,
-              format,
-              engines: activeEngines,
-              title: section.querySelector("h1")?.textContent.trim(),
-              templateSource: template,
-              mermaidFilterSource: filter,
-              mermaidSvgs: captureMermaidSvgs(section),
-              components,
-              onWarning: (message) => warnings.push(message),
+            const [template, mermaidFilter] = await Promise.all([textAt(templateUrl), textAt(mermaidFilterUrl)]);
+            const title = section.querySelector("h1")?.textContent.trim();
+            let job = Export.ofMarkdown(markdown)
+              .templateSource(template)
+              .mermaidFilterSource(mermaidFilter)
+              .mermaidSvgs(captureMermaidSvgs(section))
+              .onWarning((message) => warnings.push(message));
+            if (title) job = job.title(title);
+            if (components) job = job.components(components);
+
+            const content = await format.build(job, engines);
+            saveDownload(document, {
+              filename: downloadFilename(title, format.extension),
+              mime: format.mime,
+              content,
             });
-            saveFile(document, file);
             for (const message of warnings) console.warn(`docs-export: ${message}`);
             status.textContent = warnings.length > 0 ? `Listo, con ${warnings.length} aviso(s) en la consola.` : "";
           } catch (error) {
@@ -164,7 +166,7 @@ function addStyleOnce(document) {
 }
 
 /** Hands the finished file to the browser as a download. */
-function saveFile(document, { filename, mime, content }) {
+function saveDownload(document, { filename, mime, content }) {
   const url = URL.createObjectURL(new Blob([content], { type: mime }));
   const link = document.createElement("a");
   link.href = url;
