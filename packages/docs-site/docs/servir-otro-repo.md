@@ -45,13 +45,13 @@ DocsifyTemplate por un CDN de GitHub, fijado a un tag o a un commit:
 <meta charset="UTF-8">
 <div id="app"></div>
 <script>window.$docsify = { name: "MyClaudeSkills", homepage: "bin/SCRIPTS.md" };</script>
-<script src="https://cdn.jsdelivr.net/gh/Kiri23/DocsifyTemplate@<tag>/packages/docs-site/site.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/Kiri23/DocsifyTemplate@<sha-o-tag>/packages/docs-site/site.js"></script>
 ```
 
-jsDelivr funciona para cualquier commit desde `#46` en adelante (cuando salió `pandoc.wasm.bak`, de
-58 MB, y el repo bajó del tope de 50 MB de jsDelivr). Para commits anteriores, o como alternativa,
-`https://rawcdn.githack.com/Kiri23/DocsifyTemplate/<tag>/packages/docs-site/site.js` también sirve:
-`site.js` toma la base de su propia URL, así que nada más cambia.
+jsDelivr sirve el repo directamente (el `pandoc.wasm.bak` de 58 MB que antes hacía chocar con su
+tope de 50 MB ya salió del repo en `307cf98`). Como alternativa,
+`https://rawcdn.githack.com/Kiri23/DocsifyTemplate/<sha-o-tag>/packages/docs-site/site.js`
+también sirve: `site.js` toma la base de su propia URL, así que nada más cambia.
 
 Y un `_sidebar.md` al lado, con links que empiezan en `/` (el sidebar se ve en todas las páginas).
 `serve.mjs` lo inventa cuando falta; un hosting estático no, y Docsify lo pide igual. Sin sidebar,
