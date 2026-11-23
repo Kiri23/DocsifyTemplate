@@ -111,8 +111,17 @@
       ownModules.map(function (m) { return JSON.stringify(m.src) + ": " + m.name; }).join(",") +
       "});" +
       "problems.forEach((p) => console.error(\"as: \" + p));" +
-      "if (c.navLinks != null && !Array.isArray(c.navLinks)) console.error(\"site: window.$docsify.navLinks debe ser un arreglo de { text, href }\");" +
-      "const links = Array.isArray(c.navLinks) ? c.navLinks : (c.repo ? [{ text: \"GitHub\", href: c.repo }] : []);" +
+      "let links;" +
+      "if (Array.isArray(c.navLinks)) {" +
+      "links = c.navLinks.filter((item) => {" +
+      "const ok = item && typeof item.text === \"string\" && typeof item.href === \"string\";" +
+      "if (!ok) console.error(\"site: cada item de window.$docsify.navLinks debe ser { text, href } de texto\");" +
+      "return ok;" +
+      "});" +
+      "} else {" +
+      "if (c.navLinks != null) console.error(\"site: window.$docsify.navLinks debe ser un arreglo de { text, href }\");" +
+      "links = c.repo ? [{ text: \"GitHub\", href: c.repo }] : [];" +
+      "}" +
       "c.plugins = [" +
       "topNav({ home: \"#/\", links }), sidebarSections(), fileLinks()," +
       // Before onThisPage and codeWindow: a component moves the page's own headings and code

@@ -207,3 +207,30 @@ test("topNav does not mark an external link as current when pathnames coincide",
   const link = doc.querySelector("header.top-nav ul.top-nav-links a");
   assert.equal(link.getAttribute("aria-current"), null);
 });
+
+test("site.js skips malformed navLinks entries and logs an error instead of crashing topNav", async () => {
+  const { topNavOpts, errors } = await runSite({
+    name: "mixed",
+    navLinks: [null, { text: "Home", href: "/" }, { text: "Broken" }, "str"],
+  });
+  assert.equal(errors.length, 3);
+  assert.deepEqual(topNavOpts, { home: "#/", links: [{ text: "Home", href: "/" }] });
+});
+
+test("topNav does not mark hash/query links as current and tolerates invalid URLs", () => {
+  const doc = mountTopNav(
+    topNav({
+      home: "#/",
+      links: [
+        { text: "Guide", href: "#/guide" },
+        { text: "API", href: "#/api" },
+        { text: "Query", href: "?id=1" },
+        { text: "Bad", href: "http://" },
+      ],
+    }),
+    { name: "docs", pageUrl: "https://example.com/docs/#/guide" },
+  );
+  const currents = [...doc.querySelectorAll("header.top-nav ul.top-nav-links a")]
+    .map((a) => a.getAttribute("aria-current"));
+  assert.deepEqual(currents, [null, null, null, null]);
+});

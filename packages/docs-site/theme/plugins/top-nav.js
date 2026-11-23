@@ -50,12 +50,19 @@ function linkList(links) {
   return ul;
 }
 
+/** Whether `href` points to the current site path (ignoring hash/query routes, since topNav draws once). */
 function isCurrentPage(href) {
-  const target = new URL(href, location.href);
-  return target.origin === location.origin &&
-    dirPath(target.pathname) === dirPath(location.pathname);
+  if (!href || href.startsWith("#") || href.startsWith("?")) return false;
+  try {
+    const target = new URL(href, location.href);
+    return target.origin === location.origin &&
+      dirPath(target.pathname) === dirPath(location.pathname);
+  } catch {
+    return false;
+  }
 }
 
+/** Normalizes a trailing `/index.html` to its folder path so `./` matches `/docs/index.html`. */
 function dirPath(pathname) {
   return pathname.replace(/\/index\.html$/, "/");
 }

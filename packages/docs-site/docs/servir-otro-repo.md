@@ -80,6 +80,9 @@ en la barra superior (por ejemplo, si el repo tiene una landing en `/` y los doc
 </script>
 ```
 
+Si `navLinks` se omite, la barra enlaza a `repo` como `"GitHub"` (o no muestra links sin `repo`);
+con `navLinks: []` oculta los links aunque `repo` esté definido.
+
 ## Los links a archivos
 
 En GitHub, un link a `kiri-pm` o a `../scripts.ttl` abre el archivo. En el sitio también: un link
