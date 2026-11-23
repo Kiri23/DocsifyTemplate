@@ -78,7 +78,7 @@ test("mermaid-placeholder.lua + inlineMermaidSvgs splices SVGs into Pandoc Typst
   );
 });
 
-test("every built-in component with .typst produces well-formed Typst (and compiles if typst is available)", async () => {
+test("every built-in component with .typstPDF produces well-formed Typst (and compiles if typst is available)", async () => {
   const samples = {
     terminal: [
       '<!-- as: terminal exit="0" estado="prototipo" nota="Ruta C:\\tmp\\out con barra." -->',
@@ -90,8 +90,8 @@ test("every built-in component with .typst produces well-formed Typst (and compi
     ].join("\n"),
   };
 
-  const withTypst = Object.values(builtIn).filter((c) => typeof c.typst === "function");
-  assert.ok(withTypst.length >= 1, "expected at least terminal to define .typst");
+  const withTypst = Object.values(builtIn).filter((c) => typeof c.typstPDF === "function");
+  assert.ok(withTypst.length >= 1, "expected at least terminal to define .typstPDF");
 
   const engines = systemEngines();
   const template = await readDefaultTemplate();

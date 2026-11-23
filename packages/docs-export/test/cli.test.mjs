@@ -128,7 +128,7 @@ test("CLI loads custom JSON components, warns on malformed markers, and runs ful
       '  takes: page().json("src"),',
       "  read({ data }) { return { total: data.total }; },",
       "  view: () => null,",
-      '  typst({ total }) { return `#strong[Total: ${total}]`; },',
+      '  typstPDF({ total }) { return `#strong[Total: ${total}]`; },',
       "};",
       "",
     ].join("\n"),

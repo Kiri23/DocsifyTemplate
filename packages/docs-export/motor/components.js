@@ -98,7 +98,7 @@ export function expandComponentsToTypst(
     }
 
     const { component, nodes, props } = prepared;
-    if (typeof component.typst !== "function") continue;
+    if (typeof component.typstPDF !== "function") continue;
 
     let lastNode = nodes.length > 0 ? nodes[nodes.length - 1] : mark;
     const closing = closingMarkerAfter(lastNode);
@@ -112,9 +112,9 @@ export function expandComponentsToTypst(
       continue;
     }
 
-    const typstSnippet = component.typst(props);
+    const typstSnippet = component.typstPDF(props);
     if (typeof typstSnippet !== "string") {
-      throw new Error(`componente "${component.name}".typst() tiene que devolver un string`);
+      throw new Error(`componente "${component.name}".typstPDF() tiene que devolver un string`);
     }
 
     replacements.push({ start: startToken, end: endToken, replacement: wrapRawTypst(typstSnippet) });

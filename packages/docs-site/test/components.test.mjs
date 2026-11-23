@@ -246,13 +246,13 @@ test("terminal: invalid shape, unknown attributes and bad values fail in check.m
   ]);
 });
 
-test("terminal: typst view emits #terminal-window with escaped strings and single-element tuple comma", () => {
+test("terminal: typstPDF view emits #terminal-window with escaped strings and single-element tuple comma", () => {
   const props = read(
     terminal,
     '<!-- as: terminal exit="0" estado="prototipo" nota="Ruta C:\\tmp." -->\n```console\n$ echo "hi"\nok \\done\n```\n',
     { exit: "0", estado: "prototipo", nota: "Ruta C:\\tmp." },
   );
-  const typst = terminal.typst(props);
+  const typst = terminal.typstPDF(props);
   assert.equal(
     typst,
     [
@@ -270,11 +270,11 @@ test("terminal: typst view emits #terminal-window with escaped strings and singl
 
   const noCommand = read(terminal, "<!-- as: terminal -->\n```console\n$ echo ok\n```\n");
   assert.equal(
-    terminal.typst(noCommand),
+    terminal.typstPDF(noCommand),
     '#terminal-window(\n  lines: (\n    "$ echo ok",\n  ),\n)',
   );
   assert.equal(
-    terminal.typst({ ...noCommand, label: "shell" }),
+    terminal.typstPDF({ ...noCommand, label: "shell" }),
     '#terminal-window(\n  label: "shell",\n  lines: (\n    "$ echo ok",\n  ),\n)',
   );
 });

@@ -70,11 +70,11 @@ export const terminal = {
     };
   },
   view: Terminal,
-  typst: terminalToTypst,
+  typstPDF: terminalTypstPDF,
 };
 
 /** Formats a terminal block for Typst export, using the template's window helper. */
-function terminalToTypst({ command, label, lines, exit, nota, estado }) {
+function terminalTypstPDF({ command, label, lines, exit, nota, estado }) {
   const args = [];
   if (command !== null && command !== undefined) {
     args.push(`  command: "${escapeTypstString(command)}",`);

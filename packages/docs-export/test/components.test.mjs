@@ -58,7 +58,7 @@ test("CRLF documents normalize cleanly, <details> wrappers stay intact, and <!--
       return { heading: nodes[0].textContent.trim(), count: nodes.length };
     },
     view: () => null,
-    typst({ heading, count }) {
+    typstPDF({ heading, count }) {
       return `#callout(heading: "${heading}", count: ${count})`;
     },
   };
