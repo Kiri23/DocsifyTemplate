@@ -4,6 +4,7 @@
 // Config is injected via injectGemmaChat(config) — no global config import.
 
 import { createChatEngine, getModelCatalog } from '../core/chat-engine.js';
+import { TOOL_CONFIG_MAP } from '../core/tools.js';
 import {
   createWidget, $, show, hide, toggle, setDot,
   appendBubble, updateLastBubble, clearMessages, scrollToBottom,
@@ -125,39 +126,10 @@ function refreshContextList() {
 // --- Tool executors (Docsify-specific actions) ---
 
 const toolExecutors = {
-  export_page: async ({ format }) => {
-    const fmtMap = { pdf: 'pdf', 'latex-branded': 'latex-branded', latex: 'latex-branded', markdown: 'markdown' };
-    const fmtValue = fmtMap[format] || 'pdf';
-
-    // Trigger export via the DOM export bar (adapter doesn't own the pipeline)
-    const select = document.querySelector('.latex-export-select');
-    const btn = document.querySelector('.latex-export-btn');
-    if (!select || !btn) return { success: false, message: 'Export UI not found — is export enabled?' };
-
-    select.value = fmtValue;
-    select.dispatchEvent(new Event('change'));
-    btn.click();
-    return { success: true, message: `Exporting page as ${format}...` };
-  },
-
   navigate_to_page: async ({ path }) => {
     const cleanPath = path.startsWith('/') ? path : '/' + path;
     location.hash = '#' + cleanPath;
     return { success: true, message: `Navigated to ${cleanPath}` };
-  },
-
-  switch_tab: async ({ tab }) => {
-    const tabEl = document.querySelector(`[hx-get="/api/switch/${tab}"]`);
-    if (tabEl) {
-      tabEl.click();
-      return { success: true, message: `Switched to ${tab} tab` };
-    }
-    const target = document.getElementById('tab-content');
-    if (target && window.__pageSections && window.__pageSections[tab]) {
-      target.innerHTML = window.__pageSections[tab];
-      return { success: true, message: `Switched to ${tab} tab` };
-    }
-    return { success: false, message: 'Tab not found on this page' };
   },
 
   search_docs: async ({ query }) => {
@@ -177,26 +149,6 @@ const toolExecutors = {
     return { success: true, message: `Found ${results.length} results:\n${found.join('\n')}` };
   },
 
-  generate_component: async ({ component, description }) => {
-    const yamlExamples = {
-      'card-grid': (desc) => `\`\`\`card-grid\n- title: Item 1\n  icon: "1"\n  description: ${desc}\n  href: "#"\n- title: Item 2\n  icon: "2"\n  description: ${desc}\n  href: "#"\n- title: Item 3\n  icon: "3"\n  description: ${desc}\n  href: "#"\n\`\`\``,
-      'api-endpoint': (desc) => `\`\`\`api-endpoint\nmethod: GET\npath: /api/example\ndescription: ${desc}\nresponse:\n  type: object\n  properties:\n    id: { type: string }\n    name: { type: string }\n\`\`\``,
-      'status-flow': (desc) => `\`\`\`status-flow\ntitle: ${desc}\nstates:\n  - name: Start\n    color: blue\n  - name: Processing\n    color: yellow\n  - name: Complete\n    color: green\n\`\`\``,
-      'file-tree': (desc) => `\`\`\`file-tree\nroot: project/\nitems:\n  - name: src/\n    children:\n      - name: index.js\n      - name: utils.js\n  - name: package.json\n  - name: README.md\n\`\`\``,
-    };
-    const generator = yamlExamples[component];
-    if (generator) {
-      const yaml = generator(description);
-      try {
-        await navigator.clipboard.writeText(yaml);
-        return { success: true, message: `Generated ${component} and copied to clipboard:\n\n${yaml}` };
-      } catch {
-        return { success: true, message: `Generated ${component}:\n\n${yaml}\n\n(Copy manually — clipboard not available)` };
-      }
-    }
-    return { success: true, message: `To create a ${component}, use this markdown code fence:\n\n\`\`\`${component}\n# Add YAML content here\n# Description: ${description}\n\`\`\`` };
-  },
-
   scroll_to_section: async ({ heading }) => {
     const headings = document.querySelectorAll('.markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4');
     const target = Array.from(headings).find(h =>
@@ -211,16 +163,6 @@ const toolExecutors = {
     }
     return { success: false, message: `Heading "${heading}" not found` };
   },
-};
-
-// Map tool names to config keys for gating
-const TOOL_CONFIG_MAP = {
-  export_page: 'export',
-  navigate_to_page: 'navigate',
-  switch_tab: 'switchTab',
-  search_docs: 'search',
-  generate_component: 'generateComponent',
-  scroll_to_section: 'scrollToSection',
 };
 
 function isToolEnabled(toolName) {
