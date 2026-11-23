@@ -40,7 +40,7 @@ function linkList(links) {
     const a = document.createElement("a");
     a.href = href;
     a.textContent = text;
-    if (new URL(href, location.href).pathname === location.pathname) {
+    if (isCurrentPage(href)) {
       a.setAttribute("aria-current", "page");
     }
     const li = document.createElement("li");
@@ -48,6 +48,16 @@ function linkList(links) {
     ul.append(li);
   }
   return ul;
+}
+
+function isCurrentPage(href) {
+  const target = new URL(href, location.href);
+  return target.origin === location.origin &&
+    dirPath(target.pathname) === dirPath(location.pathname);
+}
+
+function dirPath(pathname) {
+  return pathname.replace(/\/index\.html$/, "/");
 }
 
 /** The menu button. It presses Docsify's own sidebar toggle, so Docsify keeps doing the opening,
