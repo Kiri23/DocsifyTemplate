@@ -25,14 +25,14 @@ El plugin no viene prendido. Un sitio lo prende con un módulo suyo que nombra e
 ```html
 <div id="app"></div>
 <script>window.$docsify = { name: "Mi sitio", pluginModules: ["propios/exportar.js"] };</script>
-<script src="https://cdn.jsdelivr.net/gh/Kiri23/DocsifyTemplate@<tag>/packages/docs-site/site.js"></script>
+<script src="https://rawcdn.githack.com/Kiri23/DocsifyTemplate/<tag>/packages/docs-site/site.js"></script>
 ```
 
 ```js
 // propios/exportar.js: cada export de este módulo es un plugin de Docsify.
 import * as componentes from "docs-site/components/mod.js";
-import { browserEngines } from "https://cdn.jsdelivr.net/gh/Kiri23/DocsifyTemplate@<tag>/packages/docs-export/transportes/browser/mod.js";
-import { exportButton } from "https://cdn.jsdelivr.net/gh/Kiri23/DocsifyTemplate@<tag>/packages/docs-export/transportes/docsify/mod.js";
+import { browserEngines } from "https://rawcdn.githack.com/Kiri23/DocsifyTemplate/<tag>/packages/docs-export/transportes/browser/mod.js";
+import { exportButton } from "https://rawcdn.githack.com/Kiri23/DocsifyTemplate/<tag>/packages/docs-export/transportes/docsify/mod.js";
 
 export const exportar = exportButton({
   engines: browserEngines({ pandocWasmUrl: "https://<tu-host>/pandoc.wasm" }),

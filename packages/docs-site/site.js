@@ -90,7 +90,7 @@
 
   // The repo's component modules, imported by the page's module before Docsify starts. A module
   // that doesn't load stops that script (no theme plugins, no components): the console says so.
-  var ownModules = (own.components || []).map(function (src, i) {
+  var componentModules = (own.components || []).map(function (src, i) {
     return { name: "own" + i, src: src, url: new URL(src, document.baseURI).href };
   });
 
@@ -98,7 +98,7 @@
   var pluginModules = (own.pluginModules || []).map(function (src, i) {
     return { name: "plugins" + i, src: src, url: new URL(src, document.baseURI).href };
   });
-  var repoModules = ownModules.concat(pluginModules);
+  var repoModules = componentModules.concat(pluginModules);
 
   function escapeAttr(text) {
     return text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -123,7 +123,7 @@
       }).join("") +
       "const c = window.$docsify;" +
       "const { components, problems } = addComponents([annotatedBlock, optionPicker, stepper, terminal], {" +
-      ownModules.map(function (m) { return JSON.stringify(m.src) + ": " + m.name; }).join(",") +
+      componentModules.map(function (m) { return JSON.stringify(m.src) + ": " + m.name; }).join(",") +
       "});" +
       "problems.forEach((p) => console.error(\"as: \" + p));" +
       "let links;" +
