@@ -2,6 +2,7 @@
 
 Sitios de documentación interactivos sin paso de build:
 - **`packages/docs-site/`**: Docsify 5 + tema `prompt-bench` + Preact/signals por import map + componentes que leen el propio Markdown marcado con `<!-- as: nombre -->`. Fuente única de verdad del sitio publicado en <https://doctemplate.kiri231.com/>.
+- **`packages/docs-export/`**: Exportación de páginas Markdown a Typst (`.typ`) y PDF (`.pdf`), separada en `motor/` (sin Node ni browser) y `transportes/node/` (`npm run docs:exportar`).
 - **`packages/chat/`**: `@docsify-template/chat`, widget de chat IA en el navegador con inferencia WebGPU (`@huggingface/transformers`), Web Worker dedicado y adaptador para Docsify. Independiente de `docs-site`.
 
 ## Comandos
@@ -13,6 +14,7 @@ npm run check:docs -- packages/docs-site/docs --components packages/docs-site/do
 npm run serve                                        # → http://localhost:3010/packages/docs-site/docs/
 npm run docs:serve -- <carpeta> [--home README.md]   # → http://localhost:3011/
 npm run docs:armar -- <carpeta-docs> [--check]
+npm run docs:exportar -- <archivo.md> [--out <ruta.typ|ruta.pdf>]
 ```
 
 ## Estructura
@@ -22,13 +24,19 @@ DocsifyTemplate/
 ├── packages/
 │   ├── docs-site/
 │   │   ├── site.js          # Entrada en una línea (import map, tema, plugins, componentes)
-│   │   ├── as/              # Parser de marcas <!-- as: ... -->, shapes y montaje Preact
+│   │   ├── as/              # Parser de marcas <!-- as: ... -->, shapes, helpers Typst y montaje Preact
 │   │   ├── components/      # Componentes integrados (annotated-block, option-picker, stepper, terminal)
 │   │   ├── plugins/         # file-links.js
 │   │   ├── theme/           # Tema prompt-bench (tokens.css, plugins, store)
 │   │   ├── bin/             # CLIs: serve.mjs, check.mjs, armar.mjs (+ lib/)
 │   │   ├── docs/            # Docs y showcase del paquete (incl. propios/retro-semanal.js)
 │   │   └── test/            # Suite Node (`node --test`) + recorrido opcional en Chromium
+│   ├── docs-export/
+│   │   ├── motor/           # Núcleo agnóstico (Export, expansión de componentes, mermaid, Pandoc)
+│   │   ├── templates/       # Plantilla Typst branded.typ
+│   │   ├── filters/         # Filtro Lua mermaid-placeholder.lua
+│   │   ├── transportes/     # Transporte Node (engines.js, bin/exportar.mjs)
+│   │   └── test/            # Suite Node (`node --test`)
 │   └── chat/
 │       ├── index.js
 │       ├── core/            # chat-engine.js, worker.js (WebGPU)

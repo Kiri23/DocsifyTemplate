@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "serve": "npx http-server . -p 3010 -c-1 --cors",
-    "test": "node --test \"packages/docs-site/test/*.test.mjs\"",
+    "test": "node --test \"packages/*/test/*.test.mjs\"",
     "check:docs": "node packages/docs-site/bin/check.mjs",
     "docs:serve": "node packages/docs-site/bin/serve.mjs",
-    "docs:armar": "node packages/docs-site/bin/armar.mjs"
+    "docs:armar": "node packages/docs-site/bin/armar.mjs",
+    "docs:exportar": "node packages/docs-export/transportes/node/bin/exportar.mjs"
   },
   "description": "A zero-build-step interactive documentation framework powered by Docsify 5 with Markdown-driven components and browser-native AI chat.",
   "directories": {
