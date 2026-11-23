@@ -2,7 +2,7 @@
 
 Sitios de documentación interactivos sin paso de build:
 - **`packages/docs-site/`**: Docsify 5 + tema `prompt-bench` + Preact/signals por import map + componentes que leen el propio Markdown marcado con `<!-- as: nombre -->`. Fuente única de verdad del sitio publicado en <https://doctemplate.kiri231.com/>.
-- **`packages/docs-export/`**: Exportación de páginas Markdown a Typst (`.typ`) y PDF (`.pdf`), separada en `motor/` (sin Node ni browser) y `transportes/node/` (`npm run docs:exportar`).
+- **`packages/docs-export/`**: Exportación de páginas Markdown a Typst (`.typ`) y PDF (`.pdf`), separada en `motor/` (sin Node ni browser), `transportes/node/` (`npm run docs:exportar`), `transportes/browser/` (pandoc.wasm y typst.ts, con URLs que pone el sitio) y `transportes/docsify/` (plugin opcional `exportButton` para Docsify 5).
 - **`packages/chat/`**: `@docsify-template/chat`, widget de chat IA en el navegador con inferencia WebGPU (`@huggingface/transformers`), Web Worker dedicado y adaptador para Docsify. Independiente de `docs-site`.
 
 ## Comandos
@@ -35,7 +35,7 @@ DocsifyTemplate/
 │   │   ├── motor/           # Núcleo agnóstico (Export, expansión de componentes, mermaid, Pandoc)
 │   │   ├── templates/       # Plantilla Typst branded.typ
 │   │   ├── filters/         # Filtro Lua mermaid-placeholder.lua
-│   │   ├── transportes/     # Transporte Node (engines.js, bin/exportar.mjs)
+│   │   ├── transportes/     # node/ (engines.js, bin/exportar.mjs), browser/ (wasm), docsify/ (exportButton)
 │   │   └── test/            # Suite Node (`node --test`)
 │   └── chat/
 │       ├── index.js
