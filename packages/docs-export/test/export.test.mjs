@@ -112,3 +112,13 @@ test("Export validates builder arguments and engine outputs", async () => {
     /PDF vacío/,
   );
 });
+
+test("toTypst with the filter set and no diagrams keeps the Mermaid code instead of a placeholder", async () => {
+  let request;
+  const typst = await Export.ofMarkdown("```mermaid\ngraph LR\n```\n")
+    .mermaidFilterSource("return {}")
+    .toTypst({ pandoc: async (r) => { request = r; return "```mermaid\ngraph LR\n```\n"; } });
+  assert.equal(request.options.filters, undefined);
+  assert.match(typst, /graph LR/);
+  assert.doesNotMatch(typst, /%%MERMAID_SVG_/);
+});

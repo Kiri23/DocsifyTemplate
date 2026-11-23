@@ -25,8 +25,8 @@ function loadOnce(load) {
 /** Runs one job at a time: pandoc.wasm keeps a single virtual folder that each run empties. */
 function oneAtATime() {
   let last = Promise.resolve();
-  return (job) => {
-    const run = last.then(job, job);
+  return (task) => {
+    const run = last.then(task, task);
     last = run.catch(() => {});
     return run;
   };
@@ -65,8 +65,8 @@ export function browserEngines({
   }
 
   return {
-    // Docsify 5 puts its own parser on window.marked, so the components read the page with
-    // the same parser that drew it. It is looked up when a page is exported, after Docsify loaded.
+    // Components read the page with the same parser Docsify used to draw it, found when a page
+    // is exported, once Docsify has loaded.
     parseMarkdown: {
       lexer: (source) => markedParser().lexer(source),
       parser: (tokens) => markedParser().parser(tokens),
@@ -80,7 +80,7 @@ export function browserEngines({
 
     async pandoc({ options, stdin, files = {} }) {
       const { convert } = await pandocWasm();
-      const { stdout, stderr } = await inPandocQueue(() => convert(options, stdin, files));
+      const { stdout, stderr } = await inPandocQueue(() => convert({ options, stdin, files }));
       if (!stdout && stderr) throw new Error(`pandoc.wasm falló: ${stderr.trim()}`);
       if (stderr) console.warn(`pandoc.wasm: ${stderr.trim()}`);
       return stdout;

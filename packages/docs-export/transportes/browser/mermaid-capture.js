@@ -2,6 +2,11 @@
 // Used by transportes/docsify/export-button.js; the motor splices them in with inlineMermaidSvgs.
 
 const SVG_NS = "http://www.w3.org/2000/svg";
+// Size of a label box when the diagram doesn't say, and how the plain label is drawn.
+const DEFAULT_LABEL_WIDTH = "100";
+const DEFAULT_LABEL_HEIGHT = "20";
+const LABEL_BASELINE_NUDGE = 5;
+const LABEL_FONT_SIZE = "14";
 
 /** Collects every drawn Mermaid diagram under the page, in page order, as SVG text. */
 export function captureMermaidSvgs(root) {
@@ -22,14 +27,14 @@ export function captureMermaidSvgs(root) {
 function plainLabelFor(box, doc) {
   const x = parseFloat(box.getAttribute("x") || "0");
   const y = parseFloat(box.getAttribute("y") || "0");
-  const width = parseFloat(box.getAttribute("width") || "100");
-  const height = parseFloat(box.getAttribute("height") || "20");
+  const width = parseFloat(box.getAttribute("width") || DEFAULT_LABEL_WIDTH);
+  const height = parseFloat(box.getAttribute("height") || DEFAULT_LABEL_HEIGHT);
   const text = doc.createElementNS(SVG_NS, "text");
   text.setAttribute("x", String(x + width / 2));
-  text.setAttribute("y", String(y + height / 2 + 5));
+  text.setAttribute("y", String(y + height / 2 + LABEL_BASELINE_NUDGE));
   text.setAttribute("text-anchor", "middle");
   text.setAttribute("dominant-baseline", "middle");
-  text.setAttribute("font-size", "14");
+  text.setAttribute("font-size", LABEL_FONT_SIZE);
   text.setAttribute("font-family", "sans-serif");
   text.textContent = box.textContent.trim();
   return text;

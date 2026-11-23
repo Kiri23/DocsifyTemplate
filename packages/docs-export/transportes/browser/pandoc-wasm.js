@@ -5,8 +5,10 @@
 // Adapted from pandoc.js, the JavaScript interface shipped with pandoc.wasm:
 //   Copyright (c) 2025 Tweag I/O Limited and John MacFarlane. MIT License.
 // Changes: it starts from a URL it is given instead of a file next to it, it receives the WASI
-// helper library instead of importing it, and companion files may be plain text.
+// helper library instead of importing it, companion files may be plain text, and convert takes
+// one object with named parts.
 
+// The command line pandoc.wasm starts with, as if typed in a terminal (with 64 MB of memory).
 const ARGS = ["pandoc.wasm", "+RTS", "-H64m", "-RTS"];
 
 /** Downloads pandoc.wasm from the given address and returns a converter that reuses it. */
@@ -41,8 +43,8 @@ export async function startPandocWasm({ wasmUrl, wasiShim, fetchWasm = fetch }) 
   const encoder = new TextEncoder();
   const decoder = new TextDecoder("utf-8", { fatal: true });
 
-  /** Converts a document with Pandoc defaults-file options and returns what Pandoc printed. */
-  async function convert(options, stdin, files = {}) {
+  /** Converts one document with the given settings and returns what Pandoc printed. */
+  async function convert({ options, stdin, files = {} }) {
     const optionBytes = encoder.encode(JSON.stringify(options));
     const optionPtr = instance.exports.malloc(optionBytes.length);
     new Uint8Array(instance.exports.memory.buffer, optionPtr, optionBytes.length).set(optionBytes);
@@ -80,7 +82,7 @@ export async function startPandocWasm({ wasmUrl, wasiShim, fetchWasm = fetch }) 
   }
 }
 
-/** Starts the Haskell runtime inside pandoc.wasm with the same arguments as the pandoc command. */
+/** Starts pandoc.wasm with its command line. Copied as is from upstream: a black box, not reviewed line by line. */
 function startHaskellRuntime(instance) {
   const { malloc, memory } = instance.exports;
   const view = () => new DataView(memory.buffer);

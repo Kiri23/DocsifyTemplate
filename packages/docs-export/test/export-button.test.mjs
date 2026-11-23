@@ -5,7 +5,7 @@ import { resolveObjectURL } from "node:buffer";
 import { readFile } from "node:fs/promises";
 import { marked } from "marked";
 import { parseHTML } from "linkedom";
-import { downloadFilename, exportButton } from "../transportes/docsify/mod.js";
+import { exportButton, filenameFromTitle } from "../transportes/docsify/mod.js";
 import { MERMAID_FILTER_FILE } from "../motor/mod.js";
 import { browserEngines } from "../transportes/browser/mod.js";
 import {
@@ -59,12 +59,14 @@ function docsifyPage({ withDiagram = true } = {}) {
   };
 }
 
-/** Clicks a button and waits for the download link the plugin creates. */
+/** Clicks a button and waits for the download link the plugin creates; no download in 2 s is a failure. */
 function clickAndCatchDownload(document, button) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("el click no terminó en una descarga")), 2000);
     document.addEventListener("click", (event) => {
       const link = event.target;
       if (link.tagName !== "A" || !link.download) return;
+      clearTimeout(timer);
       resolve({ filename: link.download, blob: resolveObjectURL(link.href) });
     });
     button.click();
@@ -86,13 +88,13 @@ const SOURCES = {
   fetchText: async (url) => (url.endsWith(".typ") ? "#let x = 1\n$body$\n" : "return {}"),
 };
 
-test("exportButton needs engines and known formats", () => {
+test("exportButton needs engines and known formats", { timeout: 5000 }, () => {
   assert.throws(() => exportButton({}), /browserEngines\(\{ pandocWasmUrl \}\)/);
   assert.doesNotThrow(() => exportButton({ engines: recordingEngines() }));
   assert.throws(() => exportButton({ engines: recordingEngines(), formats: ["docx"] }), /docx/);
 });
 
-test("exportButton draws one bar with .typ and .pdf buttons at the top of the page", () => {
+test("exportButton draws one bar with .typ and .pdf buttons at the top of the page", { timeout: 5000 }, () => {
   const page = docsifyPage();
   page.install(exportButton({ engines: recordingEngines(), document: page.document, ...SOURCES }));
   assert.equal(page.render(PAGE_MD), PAGE_MD, "the plugin hands Docsify the Markdown unchanged");
@@ -106,7 +108,7 @@ test("exportButton draws one bar with .typ and .pdf buttons at the top of the pa
   assert.equal(page.document.querySelectorAll("#docs-export-style").length, 1);
 });
 
-test("exportButton draws only the formats the site asks for", () => {
+test("exportButton draws only the formats the site asks for", { timeout: 5000 }, () => {
   const page = docsifyPage();
   page.install(exportButton({ engines: recordingEngines(), document: page.document, formats: ["typ"], ...SOURCES }));
   page.render(PAGE_MD);
@@ -114,7 +116,7 @@ test("exportButton draws only the formats the site asks for", () => {
   assert.deepEqual(formats, ["typ"]);
 });
 
-test(".typ button downloads the page's Typst with its drawn Mermaid diagram", async () => {
+test(".typ button downloads the page's Typst with its drawn Mermaid diagram", { timeout: 5000 }, async () => {
   const page = docsifyPage();
   const engines = recordingEngines();
   page.install(exportButton({ engines, document: page.document, ...SOURCES }));
@@ -134,7 +136,7 @@ test(".typ button downloads the page's Typst with its drawn Mermaid diagram", as
   assert.equal(engines.calls.compilePdf.length, 0, ".typ never loads Typst");
 });
 
-test(".pdf button compiles with the engines and downloads a PDF", async () => {
+test(".pdf button compiles with the engines and downloads a PDF", { timeout: 5000 }, async () => {
   const page = docsifyPage();
   const engines = recordingEngines();
   page.install(exportButton({ engines, document: page.document, ...SOURCES }));
@@ -148,7 +150,7 @@ test(".pdf button compiles with the engines and downloads a PDF", async () => {
   assert.equal(engines.calls.compilePdf.length, 1);
 });
 
-test("a failed export says why in the bar and frees the buttons", async () => {
+test("a failed export says why in the bar and frees the buttons", { timeout: 5000 }, async () => {
   const page = docsifyPage();
   const engines = { ...recordingEngines(), pandoc: async () => { throw new Error("pandoc.wasm falló: boom"); } };
   page.install(exportButton({ engines, document: page.document, ...SOURCES }));
@@ -166,7 +168,7 @@ test("a failed export says why in the bar and frees the buttons", async () => {
   assert.match(page.document.querySelector('.docs-export-bar [role="status"]').textContent, /No se pudo exportar: pandoc\.wasm falló: boom/);
 });
 
-test("the plugin downloads template and filter from their addresses once", async () => {
+test("the plugin downloads template and filter from their addresses once", { timeout: 5000 }, async () => {
   const page = docsifyPage();
   const asked = [];
   const engines = recordingEngines();
@@ -187,7 +189,7 @@ test("the plugin downloads template and filter from their addresses once", async
   assert.equal(engines.calls.pandoc[0].files["template.typ"], "TEMPLATE");
 });
 
-test("a page without drawn diagrams exports its Mermaid blocks as code, without the filter", async () => {
+test("a page without drawn diagrams exports its Mermaid blocks as code, without the filter", { timeout: 5000 }, async () => {
   const page = docsifyPage({ withDiagram: false });
   const engines = recordingEngines();
   page.install(exportButton({ engines, document: page.document, ...SOURCES }));
@@ -197,7 +199,7 @@ test("a page without drawn diagrams exports its Mermaid blocks as code, without 
   assert.equal(engines.calls.pandoc[0].options.filters, undefined);
 });
 
-test("with browserEngines, components read the page with Docsify's window.marked", async () => {
+test("with browserEngines, components read the page with Docsify's window.marked", { timeout: 5000 }, async () => {
   const markdown = await readFile(TERMINAL_DOC, "utf8");
   const page = docsifyPage({ withDiagram: false });
   const engines = browserEngines({ pandocWasmUrl: "https://assets.test/pandoc.wasm", document: page.document });
@@ -218,6 +220,7 @@ test("with browserEngines, components read the page with Docsify's window.marked
 });
 
 test("with real Pandoc and the real Lua filter, the drawn diagram replaces its Mermaid block", {
+  timeout: 5000,
   skip: !hasCommand("pandoc") && "pandoc no está instalado",
 }, async () => {
   const [template, filter] = await Promise.all([readDefaultTemplate(), readDefaultMermaidFilter()]);
@@ -236,7 +239,70 @@ test("with real Pandoc and the real Lua filter, the drawn diagram replaces its M
   assert.match(typst, /#image\(bytes\(".*viewBox.*format: "svg"/s);
 });
 
-test("downloadFilename names files from the page title", () => {
-  assert.equal(downloadFilename("Configuración  Rápida!", ".pdf"), "configuracion-rapida.pdf");
-  assert.equal(downloadFilename(undefined, ".typ"), "documento.typ");
+test("filenameFromTitle names files from the page title", { timeout: 5000 }, () => {
+  assert.equal(filenameFromTitle("Configuración  Rápida!", ".pdf"), "configuracion-rapida.pdf");
+  assert.equal(filenameFromTitle(undefined, ".typ"), "documento.typ");
+});
+
+test("after moving to another page, the button exports that page", { timeout: 5000 }, async () => {
+  const page = docsifyPage({ withDiagram: false });
+  const engines = recordingEngines();
+  page.install(exportButton({ engines, document: page.document, ...SOURCES }));
+  page.render("# Primera\n");
+  // Docsify draws the next page into a fresh section, without the old bar.
+  page.document.querySelector(".docs-export-bar").remove();
+  page.render("# Segunda\n");
+  await clickAndCatchDownload(page.document, page.document.querySelector('[data-format="typ"]'));
+  await settled(page.document);
+  assert.equal(engines.calls.pandoc[0].stdin, "# Segunda\n");
+});
+
+test("the motor's warnings reach the bar and the console", { timeout: 5000 }, async () => {
+  const page = docsifyPage({ withDiagram: false });
+  const engines = { ...recordingEngines(), pandoc: async () => "= Doc\n%%MERMAID_SVG_1%%\n" };
+  // One drawn diagram for a page whose Pandoc output asks for two: the second is missing.
+  page.document.querySelector(".markdown-section").insertAdjacentHTML("beforeend", '<div class="mermaid"><svg/></div>');
+  page.install(exportButton({ engines, document: page.document, ...SOURCES }));
+  page.render(PAGE_MD);
+  const original = console.warn;
+  const warned = [];
+  console.warn = (m) => warned.push(m);
+  try {
+    await clickAndCatchDownload(page.document, page.document.querySelector('[data-format="typ"]'));
+    await settled(page.document);
+  } finally {
+    console.warn = original;
+  }
+  assert.match(page.document.querySelector('[role="status"]').textContent, /Listo, con 1 aviso\(s\)/);
+  assert.match(warned[0], /^docs-export: el diagrama Mermaid 2 no se capturó/);
+});
+
+test("a template that failed to download is asked for again on the next click", { timeout: 5000 }, async () => {
+  const page = docsifyPage({ withDiagram: false });
+  let attempts = 0;
+  page.install(exportButton({
+    engines: recordingEngines(),
+    document: page.document,
+    fetchText: async () => {
+      attempts++;
+      if (attempts === 1) throw new Error("HTTP 503");
+      return "$body$";
+    },
+  }));
+  page.render(PAGE_MD);
+  const button = page.document.querySelector('[data-format="typ"]');
+  const original = console.error;
+  console.error = () => {};
+  try {
+    button.click();
+    await new Promise((r) => setTimeout(r, 10));
+    await settled(page.document);
+  } finally {
+    console.error = original;
+  }
+  assert.match(page.document.querySelector('[role="status"]').textContent, /HTTP 503/);
+  const { filename } = await clickAndCatchDownload(page.document, button);
+  await settled(page.document);
+  assert.equal(filename, "guia-de-exportacion.typ");
+  assert.equal(attempts, 2);
 });

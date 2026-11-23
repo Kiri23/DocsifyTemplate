@@ -16,14 +16,14 @@ const FORMATS = Object.freeze({
     busy: "Armando el .typ (la primera vez descarga pandoc.wasm, unos 56 MB)…",
     extension: ".typ",
     mime: "text/plain;charset=utf-8",
-    build: (job, engines) => job.toTypst(engines),
+    build: (pageExport, engines) => pageExport.toTypst(engines),
   }),
   pdf: Object.freeze({
     label: "Descargar .pdf",
     busy: "Armando el PDF (la primera vez descarga pandoc.wasm y typst)…",
     extension: ".pdf",
     mime: "application/pdf",
-    build: (job, engines) => job.toPdf(engines),
+    build: (pageExport, engines) => pageExport.toPdf(engines),
   }),
 });
 
@@ -39,11 +39,11 @@ const BAR_STYLE = `
 .${BAR_CLASS} [role="status"] { font-size: 0.85em; color: var(--text-dim, inherit); }
 `;
 
-/** Makes a download name from the page title: lower case, no accents, words joined by dashes. */
-export function downloadFilename(title, extension) {
+/** Makes a file name from the page title: lower case, no accents, words joined by dashes. */
+export function filenameFromTitle(title, extension) {
   const slug = (title ?? "")
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
@@ -70,18 +70,8 @@ export function exportButton({
     if (!FORMATS[format]) throw new Error(`exportButton: formato desconocido "${format}" (usá "typ" o "pdf")`);
   }
 
-  const textCache = new Map();
-
-  /** Reads a text file the export needs (template, filter) once per page load. */
-  function textAt(url) {
-    if (!textCache.has(url)) {
-      textCache.set(url, fetchText(url).catch((error) => {
-        textCache.delete(url);
-        throw error;
-      }));
-    }
-    return textCache.get(url);
-  }
+  const fetchTextOnce = rememberedFetch(fetchText);
+  const settings = { engines, components, templateUrl, mermaidFilterUrl, fetchTextOnce };
 
   return (hook) => {
     let pageMarkdown = "";
@@ -108,35 +98,12 @@ export function exportButton({
         return button;
       });
 
-      const markdown = pageMarkdown;
+      const page = { markdown: pageMarkdown, section, document };
       for (const button of buttons) {
         button.addEventListener("click", async () => {
-          const format = FORMATS[button.dataset.format];
           for (const b of buttons) b.disabled = true;
-          status.textContent = format.busy;
-          const warnings = [];
           try {
-            const [template, mermaidFilter] = await Promise.all([textAt(templateUrl), textAt(mermaidFilterUrl)]);
-            const title = section.querySelector("h1")?.textContent.trim();
-            let job = Export.ofMarkdown(markdown)
-              .templateSource(template)
-              .mermaidFilterSource(mermaidFilter)
-              .mermaidSvgs(captureMermaidSvgs(section))
-              .onWarning((message) => warnings.push(message));
-            if (title) job = job.title(title);
-            if (components) job = job.components(components);
-
-            const content = await format.build(job, engines);
-            saveDownload(document, {
-              filename: downloadFilename(title, format.extension),
-              mime: format.mime,
-              content,
-            });
-            for (const message of warnings) console.warn(`docs-export: ${message}`);
-            status.textContent = warnings.length > 0 ? `Listo, con ${warnings.length} aviso(s) en la consola.` : "";
-          } catch (error) {
-            console.error("docs-export:", error);
-            status.textContent = `No se pudo exportar: ${error.message}`;
+            await exportAndSave(page, FORMATS[button.dataset.format], status, settings);
           } finally {
             for (const b of buttons) b.disabled = false;
           }
@@ -146,6 +113,49 @@ export function exportButton({
       bar.append(...buttons, status);
       section.prepend(bar);
     });
+  };
+}
+
+/** Runs the motor on one page, saves the file, and tells how it went in the bar. */
+async function exportAndSave({ markdown, section, document }, format, status, settings) {
+  const { engines, components, templateUrl, mermaidFilterUrl, fetchTextOnce } = settings;
+  status.textContent = format.busy;
+  const warnings = [];
+  try {
+    const title = section.querySelector("h1")?.textContent.trim();
+    let pageExport = Export.ofMarkdown(markdown)
+      .templateSource(await fetchTextOnce(templateUrl))
+      .onWarning((message) => warnings.push(message));
+    if (title) pageExport = pageExport.title(title);
+    if (components) pageExport = pageExport.components(components);
+
+    // Only drawn diagrams go in; without them the Mermaid blocks stay as code.
+    const diagrams = captureMermaidSvgs(section);
+    if (diagrams.length > 0) {
+      pageExport = pageExport.mermaidFilterSource(await fetchTextOnce(mermaidFilterUrl)).mermaidSvgs(diagrams);
+    }
+
+    const content = await format.build(pageExport, engines);
+    saveDownload(document, { filename: filenameFromTitle(title, format.extension), mime: format.mime, content });
+    for (const message of warnings) console.warn(`docs-export: ${message}`);
+    status.textContent = warnings.length > 0 ? `Listo, con ${warnings.length} aviso(s) en la consola.` : "";
+  } catch (error) {
+    console.error("docs-export:", error);
+    status.textContent = `No se pudo exportar: ${error.message}`;
+  }
+}
+
+/** Reads each text file the export needs (template, filter) from the network once, retrying after a failure. */
+function rememberedFetch(fetchText) {
+  const pending = new Map();
+  return (url) => {
+    if (!pending.has(url)) {
+      pending.set(url, fetchText(url).catch((error) => {
+        pending.delete(url);
+        throw error;
+      }));
+    }
+    return pending.get(url);
   };
 }
 

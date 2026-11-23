@@ -1,7 +1,7 @@
 // Compiles Typst text to PDF in the browser with typst.ts (Typst compiled to WebAssembly).
 // Used by transportes/browser/engines.js once the typst.ts module has been downloaded.
 
-/** Wraps a loaded typst-all-in-one.ts module so it turns Typst text into PDF bytes. */
+/** Turns the downloaded Typst compiler into a function from Typst text to PDF bytes. */
 export function typstCompilerFrom(typstModule) {
   const typst = typstModule?.$typst;
   if (!typst || typeof typst.pdf !== "function") {

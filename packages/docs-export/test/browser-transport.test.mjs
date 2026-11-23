@@ -102,7 +102,7 @@ test("compilePdf uses the typst address the site injects", async () => {
 });
 
 test("typstCompilerFrom explains a module without $typst and wraps compile errors", async () => {
-  assert.throws(() => typstCompilerFrom({}, { globalScope: {} }), /\$typst\.pdf/);
+  assert.throws(() => typstCompilerFrom({}), /\$typst\.pdf/);
   const failing = typstCompilerFrom({ $typst: { pdf: async () => { throw new Error("unknown variable"); } } });
   await assert.rejects(failing.compilePdf("#oops"), /typst no pudo compilar.*unknown variable/);
 });
@@ -142,6 +142,7 @@ test("without marked and before Docsify loads, components fail saying which pars
 test("pandoc runs one conversion at a time, because pandoc.wasm shares one virtual folder", async () => {
   // A WebAssembly stand-in: each conversion records which page it found in the shared folder.
   const seenStdin = [];
+  const seenTemplates = [];
   let folder;
   const exports = {
     memory: { buffer: new ArrayBuffer(4096) },
@@ -150,6 +151,7 @@ test("pandoc runs one conversion at a time, because pandoc.wasm shares one virtu
     hs_init_with_rtsopts() {},
     convert() {
       seenStdin.push(new TextDecoder().decode(folder.get("stdin").data));
+      seenTemplates.push(new TextDecoder().decode(folder.get("template.typ").data));
     },
   };
   const shim = {
@@ -174,4 +176,59 @@ test("pandoc runs one conversion at a time, because pandoc.wasm shares one virtu
     WebAssembly.instantiate = realInstantiate;
   }
   assert.deepEqual(seenStdin, ["# 1", "# 2", "# 3"]);
+  assert.deepEqual(seenTemplates, ["$body$", "$body$", "$body$"], "la plantilla llega a la carpeta de pandoc.wasm");
+});
+
+/** Runs one conversion against a pandoc.wasm stand-in that prints the given output and errors. */
+async function convertWithFakePandoc({ stdout, stderr }) {
+  let folder;
+  const encoder = new TextEncoder();
+  const exports = {
+    memory: { buffer: new ArrayBuffer(4096) },
+    malloc: (() => { let next = 8; return (n) => { const at = next; next += n + 8; return at; }; })(),
+    __wasm_call_ctors() {},
+    hs_init_with_rtsopts() {},
+    convert() {
+      folder.get("stdout").data = encoder.encode(stdout);
+      folder.get("stderr").data = encoder.encode(stderr);
+    },
+  };
+  const shim = {
+    WASI: class { constructor() { this.wasiImport = {}; } initialize() {} },
+    OpenFile: class {},
+    File: class { constructor(data) { this.data = data; } },
+    ConsoleStdout: { lineBuffered: () => ({}) },
+    PreopenDirectory: class { constructor(_name, map) { folder = map; } },
+  };
+  const engines = browserEngines({
+    pandocWasmUrl: PANDOC_URL,
+    importModule: async () => shim,
+    fetchWasm: async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(0) }),
+  });
+  const realInstantiate = WebAssembly.instantiate;
+  WebAssembly.instantiate = async () => ({ instance: { exports } });
+  try {
+    return await engines.pandoc({ options: {}, stdin: "x" });
+  } finally {
+    WebAssembly.instantiate = realInstantiate;
+  }
+}
+
+test("a pandoc.wasm run that prints only an error becomes an error with Pandoc's message", async () => {
+  await assert.rejects(
+    convertWithFakePandoc({ stdout: "", stderr: "Unknown reader: gfmx\n" }),
+    /pandoc\.wasm falló: Unknown reader: gfmx/,
+  );
+});
+
+test("a pandoc.wasm run with output and a warning returns the output", async () => {
+  const original = console.warn;
+  const warned = [];
+  console.warn = (m) => warned.push(m);
+  try {
+    assert.equal(await convertWithFakePandoc({ stdout: "= Doc\n", stderr: "aviso\n" }), "= Doc\n");
+  } finally {
+    console.warn = original;
+  }
+  assert.deepEqual(warned, ["pandoc.wasm: aviso"]);
 });
