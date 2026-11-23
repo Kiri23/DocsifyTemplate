@@ -131,11 +131,10 @@
         }
       ]
       #block(width: 100%, inset: 10pt)[
-        #show raw.where(block: true): it => it
         #show regex("█+"): it => text(fill: terminal-accent, it)
-        #set text(font: ("DejaVu Sans Mono", "New Computer Modern Mono"), size: 9pt, fill: text-primary)
+        #set text(font: "DejaVu Sans Mono", size: 9pt, fill: text-primary)
         #set par(justify: false, leading: 0.45em)
-        #raw(lines.join("\n"), block: true)
+        #lines.map(line => if line == "" { box(height: 0.9em) } else { raw(line) }).join(linebreak())
       ]
     ]
     #if nota != none [

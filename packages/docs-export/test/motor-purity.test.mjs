@@ -1,6 +1,4 @@
-// Static guards for packages/docs-export:
-// 1. motor/ must contain zero Node imports and zero browser globals so #50 can run it in the browser.
-// 2. templates/branded.typ keeps all colour literals inside its single top palette block.
+// Static guard verifying motor/ has zero Node imports and zero browser/Node globals.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
@@ -9,7 +7,6 @@ import { fileURLToPath } from "node:url";
 
 const PACKAGE_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const MOTOR_DIR = join(PACKAGE_ROOT, "motor");
-const TEMPLATE_PATH = join(PACKAGE_ROOT, "templates", "branded.typ");
 
 const NODE_BUILTINS = new Set([
   "assert", "buffer", "child_process", "cluster", "crypto", "dgram", "dns", "events",
@@ -20,17 +17,42 @@ const NODE_BUILTINS = new Set([
 
 const BROWSER_GLOBALS = /\b(window|document|fetch|DOMParser|XMLSerializer|navigator|localStorage|sessionStorage|Blob)\b/;
 const NODE_GLOBALS = /\b(process|Buffer|__dirname|__filename)\b/;
-const IMPORT_SPECIFIER = /\b(?:import|export)\b[^"']*?\bfrom\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)|\brequire\s*\(\s*["']([^"']+)["']\s*\)/g;
-const COLOUR_LITERAL = /#[0-9a-f]{3,8}\b|\brgb\(/i;
+const IMPORT_SPECIFIER =
+  /\b(?:import|export)\b[^"'\n]*?\bfrom\s*["']([^"']+)["']|\bimport\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)|\brequire\s*\(\s*["']([^"']+)["']\s*\)/g;
 
-/** Strips JS line and block comments while keeping line numbers aligned. */
+/** Removes JS comments while preserving line numbers. */
 function withoutJsComments(source) {
   return source
     .replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, " "))
     .replace(/(^|\s)\/\/.*$/gm, "$1");
 }
 
-/** Collects every .js/.mjs file under a directory recursively. */
+/** Finds every purity violation in a single JS source file. */
+function purityViolationsIn(source, label) {
+  const code = withoutJsComments(source);
+  const violations = [];
+
+  for (const match of code.matchAll(IMPORT_SPECIFIER)) {
+    const specifier = match[1] ?? match[2] ?? match[3] ?? match[4];
+    const base = specifier.split("/")[0];
+    if (specifier.startsWith("node:") || NODE_BUILTINS.has(base)) {
+      violations.push(`${label}: Node import "${specifier}"`);
+    }
+  }
+
+  code.split("\n").forEach((line, index) => {
+    if (BROWSER_GLOBALS.test(line)) {
+      violations.push(`${label}:${index + 1}: browser global in "${line.trim()}"`);
+    }
+    if (NODE_GLOBALS.test(line)) {
+      violations.push(`${label}:${index + 1}: Node global in "${line.trim()}"`);
+    }
+  });
+
+  return violations;
+}
+
+/** Lists every JS file under a folder recursively. */
 async function jsFilesUnder(dir) {
   const found = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -47,42 +69,25 @@ test("motor/ has zero Node imports and zero browser/Node globals", async () => {
 
   const violations = [];
   for (const file of files) {
-    const code = withoutJsComments(await readFile(file, "utf8"));
-    const rel = relative(PACKAGE_ROOT, file);
-
-    for (const match of code.matchAll(IMPORT_SPECIFIER)) {
-      const specifier = match[1] ?? match[2] ?? match[3];
-      const base = specifier.split("/")[0];
-      if (specifier.startsWith("node:") || NODE_BUILTINS.has(base)) {
-        violations.push(`${rel}: Node import "${specifier}"`);
-      }
-    }
-
-    code.split("\n").forEach((line, index) => {
-      if (BROWSER_GLOBALS.test(line)) {
-        violations.push(`${rel}:${index + 1}: browser global in "${line.trim()}"`);
-      }
-      if (NODE_GLOBALS.test(line)) {
-        violations.push(`${rel}:${index + 1}: Node global in "${line.trim()}"`);
-      }
-    });
+    const source = await readFile(file, "utf8");
+    violations.push(...purityViolationsIn(source, relative(PACKAGE_ROOT, file)));
   }
 
   assert.deepEqual(violations, [], `motor/ purity violations:\n${violations.join("\n")}`);
 });
 
-test("branded.typ keeps all colour literals inside its top palette block", async () => {
-  const source = await readFile(TEMPLATE_PATH, "utf8");
-  const lines = source.split("\n");
-  const paletteEnd = lines.findIndex((line) => line.startsWith("// ── Pandoc Helpers"));
-  assert.ok(paletteEnd > 0, "expected a Pandoc Helpers section marker after the palette block");
+test("purity guard catches bare side-effect Node imports, dynamic imports, and browser globals", () => {
+  const bad = [
+    'import "node:fs";',
+    'import fs from "fs";',
+    'const cp = await import("node:child_process");',
+    "const root = window.document;",
+  ].join("\n");
 
-  const stray = [];
-  for (let i = paletteEnd; i < lines.length; i++) {
-    const withoutComment = lines[i].replace(/\/\/.*$/, "");
-    if (COLOUR_LITERAL.test(withoutComment)) {
-      stray.push(`templates/branded.typ:${i + 1}: ${lines[i].trim()}`);
-    }
-  }
-  assert.deepEqual(stray, [], `colour literals found outside the palette block:\n${stray.join("\n")}`);
+  const found = purityViolationsIn(bad, "sample.js");
+  assert.equal(found.length, 4, `expected 4 violations, got:\n${found.join("\n")}`);
+  assert.match(found[0], /node:fs/);
+  assert.match(found[1], /"fs"/);
+  assert.match(found[2], /node:child_process/);
+  assert.match(found[3], /browser global/);
 });

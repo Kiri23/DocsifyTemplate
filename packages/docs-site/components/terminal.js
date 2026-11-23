@@ -13,6 +13,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { html } from "htm/preact";
 import { sequence, ShapeError } from "../as/shapes.js";
+import { escapeTypstString } from "../as/typst.js";
 
 /** Allowed values for `estado`; adding a new status is adding it here. */
 const ESTADOS = ["prototipo"];
@@ -72,16 +73,7 @@ export const terminal = {
   typst: terminalToTypst,
 };
 
-/** Escapes a string so it can be embedded inside a Typst double-quoted literal. */
-function escapeTypstString(value) {
-  return String(value)
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\r/g, "\\r")
-    .replace(/\n/g, "\\n");
-}
-
-/** Formats the terminal props as a `#terminal-window(...)` Typst call defined by branded.typ. */
+/** Formats a terminal block for Typst export, using the template's window helper. */
 function terminalToTypst({ command, label, lines, exit, nota, estado }) {
   const args = [];
   if (command !== null && command !== undefined) {

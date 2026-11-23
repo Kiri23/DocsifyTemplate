@@ -1,18 +1,12 @@
-// Expands `<!-- as: name -->` markers whose component defines a `.typst(props)` view into
-// fenced raw Typst blocks (`{=typst}`). Uses the exact same `findMarks` + `prepare` pipeline
-// as docs-site/bin/check.mjs and the live site, with the Markdown lexer and HTML parser
-// supplied by the transport so this module stays free of Node and browser globals.
+// Turns component markers in a Markdown page into their Typst views before Pandoc runs.
+// Reuses docs-site/as/core.js for parsing and receives the Markdown/HTML parsers from the
+// transport so this file never touches Node or browser APIs.
 import { findMarks, prepare, ShapeError } from "../../docs-site/as/core.js";
 
 const TOKEN_SENTINEL = /^\s*__docs_export_tok:(\d+)__\s*$/;
 const SINGLE_COMMENT = /^<!--[\s\S]*-->$/;
 
-/**
- * Wraps raw Typst markup in a fenced `{=typst}` block whose fence is longer than any run
- * of backticks inside the snippet, so Pandoc passes it through byte-for-byte.
- * @param {string} typstSource
- * @returns {string}
- */
+/** Wraps Typst output in a raw Markdown fence wide enough not to clash with backticks inside. */
 export function wrapRawTypst(typstSource) {
   let longest = 2;
   for (const match of typstSource.matchAll(/`+/g)) {
@@ -23,7 +17,7 @@ export function wrapRawTypst(typstSource) {
   return `\n${fence}{=typst}\n${body}${fence}\n`;
 }
 
-/** Finds the token index announced by the nearest preceding sentinel sibling. */
+/** Finds which top-level Markdown block produced a parsed node. */
 function tokenIndexOf(node) {
   for (let prev = node.previousSibling; prev; prev = prev.previousSibling) {
     if (prev.nodeType === 8) {
@@ -34,7 +28,7 @@ function tokenIndexOf(node) {
   return null;
 }
 
-/** Finds a closing `<!-- /as -->` comment right after the last consumed node, if present. */
+/** Finds an optional closing comment right after a component's last block. */
 function closingMarkerAfter(node) {
   for (let next = node.nextSibling; next; next = next.nextSibling) {
     if (next.nodeType === 3 && !next.textContent.trim()) continue;
@@ -47,7 +41,7 @@ function closingMarkerAfter(node) {
   return null;
 }
 
-/** Checks that a top-level Markdown token contains only the marker comment itself. */
+/** Ensures a top-level block holds only the marker comment so surrounding HTML is never dropped. */
 function isStandaloneCommentToken(token) {
   if (!token || token.type !== "html") return false;
   const trimmed = token.raw.trim();
@@ -55,20 +49,7 @@ function isStandaloneCommentToken(token) {
   return (trimmed.match(/<!--/g) || []).length === 1;
 }
 
-/**
- * Replaces every expandable `<!-- as: ... -->` block in `markdown` with a `{=typst}` raw block.
- * Components without `.typst(props)`, fenced code examples, nested markers, and malformed
- * markers are left as plain Markdown so Pandoc converts them normally.
- * @param {string} markdown source Markdown
- * @param {{
- *   components: Map<string, object>,
- *   parseMarkdown: { lexer: (src: string) => Array<object>, parser: (tokens: Array<object>) => string },
- *   parseHtml: (html: string) => object,
- *   load?: (src: string) => unknown,
- *   onWarning?: (message: string) => void,
- * }} options
- * @returns {string}
- */
+/** Replaces each component that defines a Typst view, leaving everything else as plain Markdown. */
 export function expandComponentsToTypst(
   markdown,
   { components, parseMarkdown, parseHtml, load, onWarning } = {},

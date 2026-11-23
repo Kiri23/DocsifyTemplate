@@ -1,28 +1,11 @@
-// Pure Pandoc defaults-file builder used by motor/export.js.
-// Both transports consume the same shape: Node writes defaults.json and runs `pandoc -d`,
-// while the browser transport passes `options` and `files` straight to pandoc.wasm.
+// Turns an export configuration into the settings and companion files Pandoc needs.
+// Used by motor/export.js so both the Node and browser transports send the same input.
 
 export const DEFAULT_INPUT_FORMAT = "gfm+raw_attribute";
 export const TEMPLATE_FILE = "template.typ";
 export const MERMAID_FILTER_FILE = "mermaid-placeholder.lua";
 
-/**
- * Builds the Pandoc defaults object and virtual text files for a Typst conversion.
- * Metadata fields (title, subtitle, author, date) go under `metadata` so Pandoc escapes
- * Typst syntax characters; `variables` are passed raw to the template.
- * @param {{
- *   inputFormat?: string,
- *   title?: string,
- *   subtitle?: string,
- *   author?: string,
- *   date?: string,
- *   toc?: boolean,
- *   templateSource?: string,
- *   templateVariables?: Record<string, string | boolean>,
- *   mermaidFilterSource?: string,
- * }} config
- * @returns {{ options: Record<string, unknown>, files: Record<string, string> }}
- */
+/** Builds the Pandoc settings and in-memory companion files for a document export. */
 export function buildPandocRequest(config = {}) {
   const options = {
     from: config.inputFormat ?? DEFAULT_INPUT_FORMAT,

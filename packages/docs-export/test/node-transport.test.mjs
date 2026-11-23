@@ -1,34 +1,27 @@
-// Integration tests for the Node transport against the local pandoc binary (and typst when present).
+// Integration tests for the Node transport against local Pandoc (and Typst when installed or in CI).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import * as builtIn from "../../docs-site/components/mod.js";
-import { Export } from "../motor/mod.js";
+import { expandComponentsToTypst, Export } from "../motor/mod.js";
 import {
-  defaultMermaidFilterSource,
-  defaultTemplateSource,
   hasCommand,
+  readDefaultMermaidFilter,
+  readDefaultTemplate,
   systemEngines,
 } from "../transportes/node/mod.js";
-
-const TERMINAL_DOC = fileURLToPath(
-  new URL("../../docs-site/docs/componentes/terminal.md", import.meta.url),
-);
-const BUILT_IN_MAP = new Map(Object.values(builtIn).map((c) => [c.name, c]));
+import { assertBalancedTypst, BUILT_IN_MAP, PARSERS, TERMINAL_DOC } from "./helpers.mjs";
 
 test("systemEngines converts real terminal.md to clean Typst with 3 terminal windows and intact example", async () => {
-  const [markdown, template, mermaidFilter] = await Promise.all([
+  const [markdown, template] = await Promise.all([
     readFile(TERMINAL_DOC, "utf8"),
-    defaultTemplateSource(),
-    defaultMermaidFilterSource(),
+    readDefaultTemplate(),
   ]);
 
   const typst = await Export.ofMarkdown(markdown)
     .title("Terminal")
     .toc()
     .templateSource(template)
-    .mermaidFilterSource(mermaidFilter)
     .components(BUILT_IN_MAP)
     .toTypst(systemEngines());
 
@@ -42,8 +35,20 @@ test("systemEngines converts real terminal.md to clean Typst with 3 terminal win
   assert.ok(typst.includes("#let horizontalrule ="));
 });
 
+test("raw {=typst} blocks pass through Pandoc verbatim, whereas plain-text placeholders get escaped", async () => {
+  const engines = systemEngines();
+  const rawTypst = await Export.ofMarkdown('```{=typst}\n#terminal-window(lines: ("ok",))\n```\n')
+    .toTypst(engines);
+  assert.ok(rawTypst.includes('#terminal-window(lines: ("ok",))'));
+
+  const plainPlaceholder = await Export.ofMarkdown("%%DOCS_EXPORT_COMPONENT_0%%\n")
+    .toTypst(engines);
+  assert.ok(!plainPlaceholder.includes("%%DOCS_EXPORT_COMPONENT_0%%"));
+  assert.ok(plainPlaceholder.includes("%%DOCS\\_EXPORT\\_COMPONENT\\_0%%"));
+});
+
 test("metadata title with # and $ is escaped by Pandoc, and --- emits #horizontalrule", async () => {
-  const template = await defaultTemplateSource();
+  const template = await readDefaultTemplate();
   const typst = await Export.ofMarkdown("# Intro\n\n---\n\nFin.\n")
     .title("C# & $5 #evil()")
     .templateSource(template)
@@ -56,8 +61,8 @@ test("metadata title with # and $ is escaped by Pandoc, and --- emits #horizonta
 
 test("mermaid-placeholder.lua + inlineMermaidSvgs splices SVGs into Pandoc Typst output", async () => {
   const [template, mermaidFilter] = await Promise.all([
-    defaultTemplateSource(),
-    defaultMermaidFilterSource(),
+    readDefaultTemplate(),
+    readDefaultMermaidFilter(),
   ]);
   const md = "# Diagrama\n\n```mermaid\ngraph LR\n  A --> B\n```\n";
 
@@ -73,7 +78,57 @@ test("mermaid-placeholder.lua + inlineMermaidSvgs splices SVGs into Pandoc Typst
   );
 });
 
-test("systemEngines reports clear errors when binaries are missing or virtual filenames escape tmpdir", async () => {
+test("every built-in component with .typst produces well-formed Typst (and compiles if typst is available)", async () => {
+  const samples = {
+    terminal: [
+      '<!-- as: terminal exit="0" estado="prototipo" nota="Ruta C:\\tmp\\out con barra." -->',
+      "```console",
+      '$ bench run --quick -m "con comillas"',
+      '│ limpio   ████░░  66% "ok" \\done',
+      "```",
+      "",
+    ].join("\n"),
+  };
+
+  const withTypst = Object.values(builtIn).filter((c) => typeof c.typst === "function");
+  assert.ok(withTypst.length >= 1, "expected at least terminal to define .typst");
+
+  const engines = systemEngines();
+  const template = await readDefaultTemplate();
+
+  for (const component of withTypst) {
+    const sample = samples[component.name];
+    assert.ok(sample, `missing sample Markdown for component "${component.name}"`);
+
+    const expanded = expandComponentsToTypst(sample, {
+      components: new Map([[component.name, component]]),
+      ...PARSERS,
+    });
+    assert.ok(expanded.includes("{=typst}"), `${component.name}: expected raw Typst block`);
+
+    const rawBody = expanded.split(/`+\{=typst\}\n/)[1].split(/\n`+\n/)[0];
+    assertBalancedTypst(rawBody, component.name);
+
+    const typstDoc = await Export.ofMarkdown(sample)
+      .title(`Test ${component.name}`)
+      .templateSource(template)
+      .components(new Map([[component.name, component]]))
+      .toTypst(engines);
+
+    assert.ok(typstDoc.includes(rawBody), `${component.name}: Pandoc must preserve raw Typst verbatim`);
+    assert.ok(!typstDoc.includes(`<!-- as: ${component.name}`), `${component.name}: marker should be expanded`);
+
+    if (hasCommand("typst")) {
+      const pdf = await engines.compilePdf(typstDoc);
+      assert.ok(pdf.byteLength > 100);
+      assert.equal(Buffer.from(pdf.slice(0, 5)).toString("ascii"), "%PDF-");
+    } else if (process.env.CI === "true") {
+      assert.fail("CI=true requires the typst binary to validate generated Typst documents");
+    }
+  }
+});
+
+test("systemEngines reports clear OS-agnostic errors when binaries are missing or virtual filenames escape tmpdir", async () => {
   const missing = systemEngines({
     pandocBin: "pandoc-definitely-not-installed",
     typstBin: "typst-definitely-not-installed",
@@ -81,12 +136,12 @@ test("systemEngines reports clear errors when binaries are missing or virtual fi
 
   await assert.rejects(
     () => Export.ofMarkdown("# Hola\n").toTypst(missing),
-    /pandoc no está instalado.*brew install pandoc/,
+    /pandoc no está instalado.*pandoc\.org/,
   );
 
   await assert.rejects(
-    () => Export.ofMarkdown("# Hola\n").toPdf({ ...systemEngines(), typst: missing.typst }),
-    /typst no está instalado.*brew install typst/,
+    () => Export.ofMarkdown("# Hola\n").toPdf({ ...systemEngines(), compilePdf: missing.compilePdf }),
+    /typst no está instalado.*typst\.app/,
   );
 
   await assert.rejects(
@@ -105,7 +160,7 @@ test(
   async () => {
     const [markdown, template] = await Promise.all([
       readFile(TERMINAL_DOC, "utf8"),
-      defaultTemplateSource(),
+      readDefaultTemplate(),
     ]);
 
     const pdf = await Export.ofMarkdown(markdown)

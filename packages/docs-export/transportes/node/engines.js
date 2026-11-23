@@ -1,5 +1,5 @@
-// Node transport engines backed by local `pandoc` and `typst` binaries, `marked`, and `linkedom`.
-// Writes virtual template/filter files and a Pandoc defaults.json to a temporary directory per call.
+// Node transport engines backed by the local pandoc and typst commands.
+// Used by transportes/node/bin/exportar.mjs and passed to motor/export.js.
 import { execFileSync, spawn } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -12,7 +12,7 @@ const PACKAGE_ROOT = fileURLToPath(new URL("../..", import.meta.url));
 export const DEFAULT_TEMPLATE_PATH = join(PACKAGE_ROOT, "templates", "branded.typ");
 export const DEFAULT_MERMAID_FILTER_PATH = join(PACKAGE_ROOT, "filters", "mermaid-placeholder.lua");
 
-/** Runs a child process with optional UTF-8 stdin and captures stdout and stderr. */
+/** Runs an external command in a working folder and returns what it printed. */
 function runProcess(bin, args, { cwd, stdin, missingMessage }) {
   return new Promise((resolve, reject) => {
     const child = spawn(bin, args, {
@@ -47,14 +47,14 @@ function runProcess(bin, args, { cwd, stdin, missingMessage }) {
   });
 }
 
-/** Rejects virtual file names that try to escape the temporary working directory. */
+/** Rejects companion file names that would leave the temporary folder. */
 function assertSafeFilename(name) {
   if (!name || basename(name) !== name || name === "." || name === "..") {
     throw new Error(`nombre de archivo virtual inválido: "${name}"`);
   }
 }
 
-/** Checks whether an executable is available in PATH (or at an explicit path). */
+/** Checks whether an external command is installed and runnable on this machine. */
 export function hasCommand(bin) {
   try {
     execFileSync(bin, ["--version"], { stdio: "ignore" });
@@ -64,21 +64,17 @@ export function hasCommand(bin) {
   }
 }
 
-/** Reads the bundled branded.typ Pandoc template as UTF-8 text. */
-export function defaultTemplateSource() {
+/** Reads the bundled branded Typst template from disk. */
+export function readDefaultTemplate() {
   return readFile(DEFAULT_TEMPLATE_PATH, "utf8");
 }
 
-/** Reads the bundled mermaid-placeholder.lua Pandoc filter as UTF-8 text. */
-export function defaultMermaidFilterSource() {
+/** Reads the bundled Mermaid placeholder filter from disk. */
+export function readDefaultMermaidFilter() {
   return readFile(DEFAULT_MERMAID_FILTER_PATH, "utf8");
 }
 
-/**
- * Creates the `engines` adapter expected by `Export.toTypst` / `Export.toPdf` using local binaries.
- * `toTypst` needs only `pandoc`; `toPdf` also invokes `typst` and raises an actionable error if missing.
- * @param {{ pandocBin?: string, typstBin?: string }} [options]
- */
+/** Creates the local Pandoc, Typst, and parser adapters consumed by Export. */
 export function systemEngines({ pandocBin = "pandoc", typstBin = "typst" } = {}) {
   return {
     parseMarkdown: {
@@ -103,7 +99,8 @@ export function systemEngines({ pandocBin = "pandoc", typstBin = "typst" } = {})
           cwd: dir,
           stdin,
           missingMessage:
-            `pandoc no está instalado o no está en PATH (probado: "${pandocBin}"). Instalalo con: brew install pandoc`,
+            `pandoc no está instalado o no está en PATH (probado: "${pandocBin}"). ` +
+            "Instalalo desde https://pandoc.org/installing.html",
         });
         return stdout.toString("utf8");
       } finally {
@@ -111,7 +108,7 @@ export function systemEngines({ pandocBin = "pandoc", typstBin = "typst" } = {})
       }
     },
 
-    async typst(typstSource) {
+    async compilePdf(typstSource) {
       const dir = await mkdtemp(join(tmpdir(), "docs-export-typst-"));
       try {
         const inputFile = join(dir, "main.typ");
@@ -121,7 +118,7 @@ export function systemEngines({ pandocBin = "pandoc", typstBin = "typst" } = {})
           cwd: dir,
           missingMessage:
             `typst no está instalado o no está en PATH (probado: "${typstBin}"). ` +
-            "Instalalo con: brew install typst (o exportá a .typ, que solo necesita pandoc).",
+            "Instalalo desde https://typst.app (o exportá a .typ, que solo necesita pandoc).",
         });
         return new Uint8Array(await readFile(outputFile));
       } finally {

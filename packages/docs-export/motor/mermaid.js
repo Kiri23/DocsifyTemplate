@@ -1,24 +1,10 @@
-// Replaces %%MERMAID_SVG_N%% placeholders emitted by filters/mermaid-placeholder.lua
-// with inline Typst image calls. Shared by both the Node and browser transports.
+// Turns the Mermaid placeholders left by filters/mermaid-placeholder.lua into inline images.
+// Called by motor/export.js after Pandoc finishes, and reused by the browser transport.
+import { escapeTypstString } from "../../docs-site/as/typst.js";
 
 const PLACEHOLDER = /%%MERMAID_SVG_(\d+)%%/g;
 
-/** Escapes a string for a Typst double-quoted literal. */
-function escapeTypstString(value) {
-  return String(value)
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\r/g, "\\r")
-    .replace(/\n/g, "\\n");
-}
-
-/**
- * Splices captured Mermaid SVGs into Typst source where the Lua filter left placeholders.
- * Placeholders without a matching SVG index are removed so Typst compilation still succeeds.
- * @param {string} typstSource Typst text produced by Pandoc
- * @param {string[]} svgs serialized SVG strings in document order
- * @returns {string}
- */
+/** Replaces each Mermaid placeholder with its matching diagram, or removes it when absent. */
 export function inlineMermaidSvgs(typstSource, svgs = []) {
   return typstSource.replace(PLACEHOLDER, (_match, indexText) => {
     const index = Number(indexText);

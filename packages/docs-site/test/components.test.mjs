@@ -267,6 +267,16 @@ test("terminal: typst view emits #terminal-window with escaped strings and singl
       ")",
     ].join("\n"),
   );
+
+  const noCommand = read(terminal, "<!-- as: terminal -->\n```console\n$ echo ok\n```\n");
+  assert.equal(
+    terminal.typst(noCommand),
+    '#terminal-window(\n  lines: (\n    "$ echo ok",\n  ),\n)',
+  );
+  assert.equal(
+    terminal.typst({ ...noCommand, label: "shell" }),
+    '#terminal-window(\n  label: "shell",\n  lines: (\n    "$ echo ok",\n  ),\n)',
+  );
 });
 
 test("check reports the line of each marker that fails", () => {
