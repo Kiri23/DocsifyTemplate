@@ -2,79 +2,87 @@
 // Lo usan core/chat-engine.js (prompt y autocompletado), core/worker.js (esquemas para el modelo)
 // y adapters/docsify.js (permisos por configuración).
 
-export const CHAT_TOOLS = Object.freeze([
-  Object.freeze({
+function deepFreeze(value) {
+  if (value && typeof value === 'object') {
+    Object.freeze(value);
+    for (const child of Object.values(value)) deepFreeze(child);
+  }
+  return value;
+}
+
+export const CHAT_TOOLS = deepFreeze([
+  {
     name: 'navigate_to_page',
     configKey: 'navigate',
     actionVerb: 'navigate',
     promptDescription: 'Go to a different doc page (use paths from context)',
     completionDescription: 'Go to a doc page',
-    schema: Object.freeze({
+    schema: {
       type: 'function',
-      function: Object.freeze({
+      function: {
         name: 'navigate_to_page',
         description: 'Navigate to a different documentation page. Use when the user asks to go to, open, or show a specific page or section.',
-        parameters: Object.freeze({
+        parameters: {
           type: 'object',
-          properties: Object.freeze({
-            path: Object.freeze({
+          properties: {
+            path: {
               type: 'string',
               description: 'The page path from the sidebar, e.g. /content/guide/getting-started',
-            }),
-          }),
-          required: Object.freeze(['path']),
-        }),
-      }),
-    }),
-  }),
-  Object.freeze({
+            },
+          },
+          required: ['path'],
+        },
+      },
+    },
+  },
+  {
     name: 'search_docs',
     configKey: 'search',
     actionVerb: 'search',
     promptDescription: 'Search across all documentation',
     completionDescription: 'Search all documentation',
-    schema: Object.freeze({
+    schema: {
       type: 'function',
-      function: Object.freeze({
+      function: {
         name: 'search_docs',
         description: 'Search across all documentation pages. Use when the user asks to find, search, or look up something across the docs.',
-        parameters: Object.freeze({
+        parameters: {
           type: 'object',
-          properties: Object.freeze({
-            query: Object.freeze({
+          properties: {
+            query: {
               type: 'string',
               description: 'The search query',
-            }),
-          }),
-          required: Object.freeze(['query']),
-        }),
-      }),
-    }),
-  }),
-  Object.freeze({
+            },
+          },
+          required: ['query'],
+        },
+      },
+    },
+  },
+  {
     name: 'scroll_to_section',
     configKey: 'scrollToSection',
     actionVerb: 'scroll',
     promptDescription: 'Scroll to a heading on the current page',
     completionDescription: 'Scroll to a heading',
-    schema: Object.freeze({
+    schema: {
       type: 'function',
-      function: Object.freeze({
+      function: {
         name: 'scroll_to_section',
         description: 'Scroll to a specific heading or section on the current page. Use when the user asks to go to a section, jump to a heading, or show a specific part.',
-        parameters: Object.freeze({
+        parameters: {
           type: 'object',
-          properties: Object.freeze({
-            heading: Object.freeze({
+          properties: {
+            heading: {
               type: 'string',
               description: 'The heading text to scroll to',
-            }),
-          }),
-          required: Object.freeze(['heading']),
-        }),
-      }),
-    }),
-  }),
+            },
+          },
+          required: ['heading'],
+        },
+      },
+    },
+  },
 ]);
 
 // Esquemas de herramienta que el worker pasa al modelo para llamadas nativas.

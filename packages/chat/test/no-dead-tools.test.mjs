@@ -37,11 +37,11 @@ const FORBIDDEN_PATTERNS = [
 async function sourceFilesIn(dir) {
   const found = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
-    if (entry.name === 'test' || entry.name === 'node_modules') continue;
+    if (entry.name === 'test' || entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
       found.push(...await sourceFilesIn(fullPath));
-    } else if (/\.(js|mjs|json|css|md|html)$/.test(entry.name)) {
+    } else if (entry.isFile()) {
       found.push(fullPath);
     }
   }
@@ -78,7 +78,7 @@ test('worker.js parses cleanly and consumes WORKER_TOOL_SCHEMAS from core/tools.
   assert.doesNotMatch(workerSource, /\bconst\s+TOOLS\s*=/);
 });
 
-test('adapters/docsify.js loads cleanly, uses shared TOOL_CONFIG_MAP, and defines only live tool executors', async () => {
+test('adapters/docsify.js loads cleanly, uses shared TOOL_CONFIG_MAP, and matches live tool names and parameters', async () => {
   const adapterMod = await import('../adapters/docsify.js');
   assert.equal(typeof adapterMod.injectGemmaChat, 'function');
 
@@ -89,6 +89,21 @@ test('adapters/docsify.js loads cleanly, uses shared TOOL_CONFIG_MAP, and define
   const blockMatch = adapterSource.match(/const toolExecutors = \{([\s\S]*?)\n\};/);
   assert.ok(blockMatch, 'toolExecutors block not found in adapters/docsify.js');
 
+  const executorSignatures = [...blockMatch[1].matchAll(/^  ['"]?([\w-]+)['"]?\s*:\s*async\s*\(\{\s*([^}]*)\}\)/gm)];
   const executorNames = [...blockMatch[1].matchAll(/^  ['"]?([\w-]+)['"]?\s*:/gm)].map(m => m[1]);
   assert.deepEqual(executorNames, CHAT_TOOLS.map(t => t.name));
+
+  const paramsByTool = Object.fromEntries(
+    executorSignatures.map(([, name, rawParams]) => [
+      name,
+      rawParams.split(',').map(p => p.trim().split(/[:=]/)[0].trim()).filter(Boolean),
+    ])
+  );
+  for (const tool of CHAT_TOOLS) {
+    assert.deepEqual(
+      paramsByTool[tool.name],
+      tool.schema.function.parameters.required,
+      `executor parameters for ${tool.name} must match schema.parameters.required`,
+    );
+  }
 });

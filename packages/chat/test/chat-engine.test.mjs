@@ -1,31 +1,11 @@
-// Pruebas del catálogo de herramientas vivas, el system prompt y el autocompletado de chat-engine.
+// Pruebas del system prompt, el autocompletado y el gating de herramientas en core/chat-engine.js.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CHAT_TOOLS, WORKER_TOOL_SCHEMAS, TOOL_CONFIG_MAP } from '../core/tools.js';
 import { buildSystemPrompt, createChatEngine } from '../core/chat-engine.js';
 import { buildSystemPrompt as publicBuildSystemPrompt } from '../index.js';
 
 const LIVE_TOOLS = ['navigate_to_page', 'search_docs', 'scroll_to_section'];
 const DEAD_TOOLS = ['export_page', 'switch_tab', 'generate_component'];
-
-test('CHAT_TOOLS, WORKER_TOOL_SCHEMAS and TOOL_CONFIG_MAP declare only the 3 live tools', () => {
-  assert.deepEqual(CHAT_TOOLS.map(t => t.name), LIVE_TOOLS);
-  assert.deepEqual(WORKER_TOOL_SCHEMAS.map(s => s.function.name), LIVE_TOOLS);
-  assert.deepEqual(TOOL_CONFIG_MAP, {
-    navigate_to_page: 'navigate',
-    search_docs: 'search',
-    scroll_to_section: 'scrollToSection',
-  });
-
-  for (const schema of WORKER_TOOL_SCHEMAS) {
-    assert.equal(schema.type, 'function');
-    assert.ok(schema.function.description.length > 0);
-    assert.equal(schema.function.parameters.type, 'object');
-    for (const req of schema.function.parameters.required) {
-      assert.ok(req in schema.function.parameters.properties, `missing property ${req}`);
-    }
-  }
-});
 
 test('buildSystemPrompt advertises only live tools and live action verbs by default', () => {
   assert.equal(publicBuildSystemPrompt, buildSystemPrompt);
