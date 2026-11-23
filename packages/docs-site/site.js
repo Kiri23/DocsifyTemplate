@@ -17,6 +17,15 @@
 // Every export of those modules is a component, added to the factory ones in the same plugin. A
 // module imports "preact", "htm/preact" and "docs-site/as/mod.js" through the import map below.
 //
+// A repo brings its own Docsify plugins the same way, by naming modules whose every export is a
+// plugin; they go after the theme's and before window.$docsify.plugins. This is how a site turns
+// on the export buttons of packages/docs-export (see its README):
+//
+//   window.$docsify = { name: "MyClaudeSkills", pluginModules: ["propios/exportar.js"] };
+//
+// A plugin can't come from a <script type="module"> of the page: placed before this file, Firefox
+// ignores the import map below; placed after, Docsify may already have started without it.
+//
 // Custom top-nav links can be passed in `window.$docsify.navLinks` as `[{ text, href }, ...]`:
 //
 //   window.$docsify = {
@@ -85,6 +94,12 @@
     return { name: "own" + i, src: src, url: new URL(src, document.baseURI).href };
   });
 
+  // The repo's plugin modules, imported by the same module, so they are ready before Docsify.
+  var pluginModules = (own.pluginModules || []).map(function (src, i) {
+    return { name: "plugins" + i, src: src, url: new URL(src, document.baseURI).href };
+  });
+  var repoModules = ownModules.concat(pluginModules);
+
   function escapeAttr(text) {
     return text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
   }
@@ -93,9 +108,9 @@
     '<link rel="stylesheet" href="' + docsify + 'themes/core.min.css">' +
       '<link rel="stylesheet" href="' + base + 'theme/themes/promptbench.css">' +
       '<script type="importmap">' + JSON.stringify({ imports: imports }) + "</script>" +
-      '<script type="module"' + (ownModules.length ? ' onerror="console.error(' + escapeAttr(JSON.stringify(
-        "as: uno de los módulos de window.$docsify.components no cargó (" +
-          ownModules.map(function (m) { return m.src; }).join(", ") +
+      '<script type="module"' + (repoModules.length ? ' onerror="console.error(' + escapeAttr(JSON.stringify(
+        "as: uno de los módulos de window.$docsify.components o pluginModules no cargó (" +
+          repoModules.map(function (m) { return m.src; }).join(", ") +
           "); el sitio sale sin los plugins del tema. Mirá el 404 de arriba.",
       )) + ')"' : "") + ">" +
       'import { codeWindow, onThisPage, prevNext, sidebarSections, topNav } from "' + base + 'theme/mod.js";' +
@@ -103,7 +118,7 @@
       'import { annotatedBlock, optionPicker, stepper, terminal } from "' + base + 'components/mod.js";' +
       'import { fileLinks } from "' + base + 'plugins/file-links.js";' +
       'import { addComponents } from "' + base + 'as/core.js";' +
-      ownModules.map(function (m) {
+      repoModules.map(function (m) {
         return "import * as " + m.name + " from " + JSON.stringify(m.url) + ";";
       }).join("") +
       "const c = window.$docsify;" +
@@ -128,7 +143,8 @@
       // blocks, and those two read them after.
       "asComponents(components)," +
       "onThisPage(), prevNext(), codeWindow()," +
-      "].concat(c.plugins || []);" +
+      "].concat([" + pluginModules.map(function (m) { return m.name; }).join(",") + "]" +
+      ".flatMap((m) => Object.values(m)), c.plugins || []);" +
       "</script>" +
       '<script defer src="' + docsify + 'docsify.min.js"></script>' +
       languages.map(function (l) {
