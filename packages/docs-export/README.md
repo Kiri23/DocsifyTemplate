@@ -52,3 +52,26 @@ export const exportar = exportButton({
   bloque de código; si faltan algunos, cada uno que falta deja una nota visible y un aviso en la consola.
 - **¿Por qué no un `<script type="module">` en la página?** Si va antes de `site.js`, Firefox
   ignora el import map. Si va después, Docsify puede haber arrancado sin el plugin.
+
+## Botón en un sitio Docsify sin site.js
+
+`site.js` es el camino corto, pero no hace falta. `exportButton` es un plugin de Docsify 5 como
+cualquier otro, y ni `motor/` ni los transportes del navegador usan el import map: todos sus imports
+son rutas relativas. Un sitio que carga Docsify por su cuenta lo suma a `plugins` desde un módulo
+que corre antes que Docsify (un `type="module"` y un `defer` respetan su orden):
+
+```html
+<script>window.$docsify = { name: "Mi sitio" };</script>
+<script type="module">
+  import { browserEngines } from "https://rawcdn.githack.com/Kiri23/DocsifyTemplate/<tag>/packages/docs-export/transportes/browser/mod.js";
+  import { exportButton } from "https://rawcdn.githack.com/Kiri23/DocsifyTemplate/<tag>/packages/docs-export/transportes/docsify/mod.js";
+
+  window.$docsify.plugins = [
+    ...(window.$docsify.plugins ?? []),
+    exportButton({ engines: browserEngines({ pandocWasmUrl: "https://<tu-host>/pandoc.wasm" }) }),
+  ];
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/docsify@5.1.0/dist/docsify.min.js"></script>
+```
+
+Sin `components`, cada página sale como su Markdown; los componentes de `docs-site` son opcionales.
