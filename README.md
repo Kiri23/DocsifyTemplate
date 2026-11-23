@@ -1,146 +1,61 @@
 # DocsifyTemplate
-A zero-build-step interactive documentation framework powered by Docsify with custom data-driven components.
 
-> **Docs as a service:** [`packages/docs-site`](packages/docs-site/README.md) serves any repo's folder of
-> Markdown with prompt-bench's theme (Docsify 5, no build) and components that read the Markdown itself,
-> marked with `<!-- as: component -->`. One `index.html` in the other repo, or
-> `npm run docs:serve -- <folder>` without touching it.
+Sitios de documentación interactivos sin paso de build sobre Docsify 5 y componentes que leen el
+propio Markdown (`<!-- as: componente -->`), más un widget de chat IA en el navegador (WebGPU).
 
-## Quick Start
+Sitio en producción: <https://doctemplate.kiri231.com/> (construido y servido desde
+[`packages/docs-site/`](packages/docs-site/README.md)).
 
-```bash
-git clone <this-repo> my-docs
-cd my-docs
+## Paquetes
+
+| Paquete | Qué es |
+| --- | --- |
+| [`packages/docs-site`](packages/docs-site/README.md) | Docsify 5 + tema prompt-bench + componentes Preact sin build (`site.js`, `as/`, `components/`, `theme/`, `plugins/`, CLIs `serve.mjs`, `check.mjs`, `armar.mjs`). |
+| [`packages/chat`](packages/chat/package.json) | Widget de chat IA en el navegador con inferencia WebGPU (`@huggingface/transformers`), worker dedicado y adaptador para Docsify. |
+
+## Uso rápido
+
+```sh
+# Servir los docs de docs-site en local
 npm run serve
-# → http://localhost:3000
+# → http://localhost:3010/packages/docs-site/docs/
+
+# Servir la carpeta de Markdown de otro repo sin copiar nada
+npm run docs:serve -- ~/Code/MyClaudeSkills --home bin/SCRIPTS.md
+# → http://localhost:3011/
+
+# Validar marcas <!-- as: ... --> sin navegador
+npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
+
+# Armar el catálogo (_catalogo/) desde docs/incluir.txt
+npm run docs:armar -- ~/Code/MyClaudeSkills/docs
+
+# Correr la suite de tests
+npm test
 ```
 
-## Customizing
-
-### Site Name
-
-Edit `docs/index.html`:
-- `<title>` tag
-- `window.$docsify.name`
-
-### Colors
-
-Edit `docs/styles/theme.css` — replace `#0891b2` with your brand color. Also update the Tailwind theme in `docs/index.html`:
+## Publicar docs de otro repo en una línea
 
 ```html
-<style type="text/tailwindcss">
-  @theme {
-    --color-primary: #your-color;
-    --color-brand: #your-secondary;
-  }
-</style>
+<!DOCTYPE html>
+<meta charset="UTF-8" />
+<div id="app"></div>
+<script>
+  window.$docsify = { name: "MiRepo", homepage: "README.md" };
+</script>
+<script src="https://rawcdn.githack.com/Kiri23/DocsifyTemplate/<sha-o-tag>/packages/docs-site/site.js"></script>
 ```
 
-### Adding Content
+Más detalle en [`packages/docs-site/README.md`](packages/docs-site/README.md) y
+[`packages/docs-site/docs/servir-otro-repo.md`](packages/docs-site/docs/servir-otro-repo.md).
 
-1. Create a `.md` file in `docs/content/`
-2. Add it to `docs/_sidebar.md`
-3. Write markdown — optionally use code fence components
+## Estructura
 
-### Adding Tabs to a Page
-
-Add YAML frontmatter + `## Quick Start` / `## Technical Reference` headings:
-
-```markdown
----
-type: guide
-category: api
-tags: [rest, users]
----
-
-# My Page
-
-## Quick Start
-Friendly, analogy-driven content.
-
-## Technical Reference
-Schema definitions, API details.
-```
-
-### Using Components
-
-Use any registered component name as a code fence language:
-
-````markdown
-```card-grid
-- title: "My Card"
-  description: "A description"
-  icon: "🎯"
-  href: "#/some-page"
-```
-````
-
-### Registering New Components
-
-1. Create `docs/components/my-component.js` — export `window.MyComponent = function(data) { return '<html>...'; }`
-2. Add `<script src="components/my-component.js"></script>` to `docs/index.html`
-3. Add `'my-component'` to `COMPONENT_REGISTRY` in `docs/plugins/component-renderer.js`
-
-## Available Components
-
-| Component | Code Fence | Description |
-|---|---|---|
-| CardGrid | `card-grid` | Responsive linked card grid |
-| EntitySchema | `entity-schema` | Expandable entity field cards |
-| ApiEndpoint | `api-endpoint` | REST endpoint with method badge |
-| StatusFlow | `status-flow` | Clickable state machine visualization |
-| DirectiveTable | `directive-table` | Searchable categorized reference table |
-| StepType | `step-type` | Workflow step card with sync/async badge |
-| ConfigExample | `config-example` | Annotated code with numbered callouts |
-
-Additional components (used differently, not in registry):
-- **Tabs** — auto-generated from frontmatter (Quick Start / Technical)
-- **CodeBlock** — inline syntax highlight + copy button
-- **RegionToggle** — DOM-level `data-region` directive processor
-
-## Export (Pandoc WASM)
-
-Each page has an Export button that converts your docs to PDF, LaTeX, HTML, RST, or Org — right in the browser, no server required. This runs on Pandoc compiled to WebAssembly.
-
-The binary (~56 MB) is not included in the repo. To enable export, download it after cloning:
-
-```bash
-curl -L -o lib/export/pandoc-wasm.zip \
-  "https://github.com/jgm/pandoc/releases/download/3.9/pandoc-3.9.wasm.zip"
-unzip lib/export/pandoc-wasm.zip -d lib/export/
-rm lib/export/pandoc-wasm.zip
-```
-
-The binary loads lazily — only when you click Export — so it does not affect page load. If you skip the download, the Export button appears but returns an error when clicked.
-
-## CDN Dependencies
-
-| Dep | Purpose |
-|---|---|
-| Docsify 4 | Routing, sidebar, search, markdown |
-| HTMX 2.0.3 | Tab content swapping |
-| Tailwind CSS v4 (browser) | Component styling |
-| Prism.js + languages | Syntax highlighting |
-| Mermaid 10.9 | Diagrams |
-| js-yaml | YAML parsing for code fence components |
-
-## Project Structure
-
-```
-├── lib/                        # Framework library
-│   ├── components/             # Data-driven template literal components
-│   ├── plugins/                # Docsify plugins
-│   │   ├── component-renderer.js  # Code fence → component pipeline + tabs
-│   │   ├── htmx-virtual.js        # HTMX /api/switch/* interceptor
-│   │   └── latex-export.js        # Export button plugin
-│   ├── styles/
-│   │   └── theme.css           # Theme overrides
-│   └── export/                 # Pandoc WASM export pipeline
-│       ├── pandoc.js           # Official Pandoc WASI interface
-│       └── pandoc.wasm         # Binary (~56 MB, not in repo — see above)
-└── docs/                       # Documentation content (served by Docsify)
-    ├── index.html              # Entry point: CDN deps + component scripts
-    ├── _sidebar.md             # Navigation tree
-    ├── README.md               # Home page
-    └── content/                # Your documentation pages
+```text
+DocsifyTemplate/
+├── packages/
+│   ├── docs-site/       # Runtime Docsify 5, tema, componentes, CLIs y docs del showcase
+│   └── chat/            # Chat IA en el navegador (WebGPU + adaptador Docsify)
+├── deploy/              # Dockerfile (Caddy), Caddyfile, compose.prod.yaml y smoke-image.mjs
+└── .github/workflows/   # CI y deploy automático a doctemplate.kiri231.com en push a main
 ```

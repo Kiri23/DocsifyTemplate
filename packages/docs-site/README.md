@@ -84,21 +84,3 @@ lateral elige cuál se ve:
 
 `check.mjs` y `serve.mjs` toman los mismos módulos con `--components`. La guía entera, con el
 ejemplo que corre en estos docs: [`docs/traer-tu-ui.md`](docs/traer-tu-ui.md).
-
-## Por qué convive con `docs-engine`
-
-Este paquete no importa nada de `packages/docs-engine`, y al revés. Los dos comparten la idea central: un componente es una función
-Preact pura que recibe datos y no sabe quién la monta. Cambia de dónde salen los datos:
-
-| | `docs-engine` | `docs-site` |
-| --- | --- | --- |
-| El dato | YAML dentro de un fence (` ```entity-schema `) | el Markdown mismo: una tabla, un bloque, unos `##` |
-| En GitHub | un bloque de YAML | la tabla, el bloque, la guía |
-| Cuándo convierte | `beforeEach`, sobre el texto, con unified | `doneEach`, sobre el HTML que Docsify ya dibujó |
-| Docsify | 4 | 5 |
-| Build | esbuild, se publica en npm | ninguno: el navegador carga los archivos |
-
-Reemplazar `docs-engine` rompería sus páginas YAML y su export a PDF; montarse encima obligaría a
-pasar este paquete por su build y a quedarse en Docsify 4. Conviviendo, cada uno sigue andando y
-un componente de `docs-engine` puede pasar a este lado cuando tenga una forma de Markdown (la tabla
-de `fable-markdown-to-components.md` dice cuál le toca a cada uno).
