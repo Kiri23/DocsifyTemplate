@@ -10,9 +10,35 @@ import { buildTools, filterTerms, glossaryTerms, landOn, markTerms, termSlug } f
 
 const ROOT = new URL("../../../", import.meta.url);
 
-/** The repo's GLOSSARY.md drawn as Docsify would draw it, inside #main. */
-async function glossaryPage() {
-  const markdown = await readFile(new URL("GLOSSARY.md", ROOT), "utf8");
+/** A glossary with two groups, as the search and the index need. */
+const TWO_GROUPS = `# Ejemplo
+
+Un glosario de prueba.
+
+## El sitio
+
+**site.js**:
+El Docsify de este repo ya armado.
+_Avoid_: el loader, el script de Docsify
+
+## Exportar
+
+**Motor**:
+La parte que convierte una página sin saber dónde corre.
+_Avoid_: core, engine
+
+**Transporte**:
+La parte que lleva el Motor a un lugar donde corre.
+_Avoid_: adapter, wrapper
+
+**engines**:
+Las herramientas con las que el Motor convierte.
+_Avoid_: motores, backends
+`;
+
+/** A GLOSSARY.md drawn as Docsify would draw it, inside #main: the repo's, or the given Markdown. */
+async function glossaryPage(markdown) {
+  markdown ??= await readFile(new URL("GLOSSARY.md", ROOT), "utf8");
   return parseHTML(`<main id="main"><section class="markdown-section">${marked.parse(markdown)}</section></main>`).document;
 }
 
@@ -50,9 +76,9 @@ test("an entry has its name and address on one side, its definition and the name
   assert.equal(term.querySelectorAll(".glossary-term-link").length, 1);
 });
 
-/** The repo's glossary with its entries laid out and its search box built. */
+/** The two-group glossary with its entries laid out and its search box built. */
 async function builtPage() {
-  const document = await glossaryPage();
+  const document = await glossaryPage(TWO_GROUPS);
   const main = document.querySelector("#main");
   // Docsify gives each heading an id; marked alone does not.
   for (const heading of main.querySelectorAll("h2")) heading.id = termSlug(heading.textContent);
@@ -146,7 +172,7 @@ test("landing on a term marks only that one and shows it even if a search was hi
 
 /** Runs the plugin on a page and returns the page's document afterwards. */
 async function afterPlugin(file, query) {
-  const document = await glossaryPage();
+  const document = await glossaryPage(TWO_GROUPS);
   globalThis.document = document;
   let scrolled = null;
   document.defaultView.HTMLElement.prototype.scrollIntoView = function () {
