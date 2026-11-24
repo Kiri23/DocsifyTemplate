@@ -13,6 +13,7 @@
   * [Términos del repo](/_catalogo/GLOSSARY.md)
 * Pull requests
   * [#55 · Exportar desde el navegador](/prs/55.md)
+  * [#59 · Glosario y resúmenes de PR](/prs/59.md)
 * Retro (un componente propio)
   * [Semana 46](/propios/semana-46.md)
   * [Semana 47](/propios/semana-47.md)
