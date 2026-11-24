@@ -659,7 +659,7 @@ script[type="text/plain"] { display: none; }
 	<header>
 		<h1>docs-site: glosario del repo en el sitio y resúmenes de PR (summarize-pr) enlazados a él</h1>
 		<div class="story">
-			<p class="lede"><b>Before</b>, ningún lugar definía los términos del repo. En <a href="https://github.com/Kiri23/DocsifyTemplate/pull/55" target="_blank" rel="noopener">#55</a> se confundieron <dfn class="term" data-glossary="site-js" data-tip="El Docsify de este repo ya armado, que un sitio carga con un solo script: Docsify 5, el tema, el import map y los componentes.">site.js</dfn>, <dfn class="term" data-tip="Las herramientas con las que el Motor convierte (pandoc, el compilador de Typst), que cada Transporte da a su manera.">engines</dfn>, <dfn class="term" data-tip="La parte que convierte una página (de Markdown a Typst o PDF) sin saber si corre en la terminal o en el navegador.">motor</dfn> y <dfn class="term" data-tip="La parte que lleva el Motor a un lugar donde corre (la terminal, el navegador, un sitio Docsify) y le da sus engines.">transporte</dfn>.</p>
+			<p class="lede"><b>Before</b>, ningún lugar definía los términos del repo. En <a href="https://github.com/Kiri23/DocsifyTemplate/pull/55" target="_blank" rel="noopener">#55</a> se confundieron <dfn class="term" data-glossary="site-js" data-tip="El script que un sitio carga en su index.html para levantar Docsify 5 con el tema, el import map y los componentes de este repo ya configurados.">site.js</dfn>, <dfn class="term" data-tip="Las herramientas con las que el Motor convierte (pandoc, el compilador de Typst), que cada Transporte da a su manera.">engines</dfn>, <dfn class="term" data-tip="La parte que convierte una página (de Markdown a Typst o PDF) sin saber si corre en la terminal o en el navegador.">motor</dfn> y <dfn class="term" data-tip="La parte que lleva el Motor a un lugar donde corre (la terminal, el navegador, un sitio Docsify) y le da sus engines.">transporte</dfn>.</p>
 			<p class="lede"><b>Now</b>, el sitio tiene una página “Glosario” armada de <code>GLOSSARY.md</code>, como un diccionario: cada término con su dirección (<code>?id=engines</code>), una búsqueda y un índice de grupos. Una sección “Pull requests” muestra el resumen de cada PR, y sus términos llevan al glosario.</p>
 		</div>
 		<div class="stats" data-pr-additions="2879" data-pr-deletions="6"></div>
@@ -716,8 +716,8 @@ sitio tal cual.
 ## El sitio
 
 **site.js**:
-El Docsify de este repo ya armado, que un sitio carga con un solo script: Docsify 5, el
-tema, el import map y los componentes.
+El script que un sitio carga en su index.html para levantar Docsify 5 con el tema, el
+import map y los componentes de este repo ya configurados.
 _Avoid_: el loader, el script de Docsify
 </script>
 		</figure>
@@ -727,7 +727,7 @@ _Avoid_: el loader, el script de Docsify
 glosario:site-js a skos:Concept ;
     skos:inScheme glosario:vocabulario ;
     skos:prefLabel "site.js"@es ;
-    skos:definition "El Docsify de este repo ya armado, que un sitio carga con un solo script (…)"@es ;
+    skos:definition "El script que un sitio carga en su index.html para levantar Docsify 5 (…)"@es ;
     skos:hiddenLabel "el loader"@es, "el script de Docsify"@es .
 </script>
 		</figure>

@@ -16,5 +16,5 @@ glosario:vocabulario a skos:ConceptScheme ;
 glosario:site-js a skos:Concept ;
     skos:inScheme glosario:vocabulario ;
     skos:prefLabel "site.js"@es ;
-    skos:definition "El Docsify de este repo ya armado, que un sitio carga con un solo script: Docsify 5, el tema, el import map y los componentes."@es ;
+    skos:definition "El script que un sitio carga en su index.html para levantar Docsify 5 con el tema, el import map y los componentes de este repo ya configurados."@es ;
     skos:hiddenLabel "el loader"@es, "el script de Docsify"@es .
