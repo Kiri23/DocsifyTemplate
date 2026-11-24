@@ -1,24 +1,212 @@
-/* The glossary-terms plugin: each term of a GLOSSARY.md as an entry, its name on top and the names
-   not to use below. The one a link points at is marked. */
+/* The glossary-terms plugin: a GLOSSARY.md as a dictionary. A search box and the index of groups on
+   top; then each term as a row, its name and address on the left, its definition on the right and
+   the names not to use struck out below. The amber is kept for the term a link points at. */
 
-.markdown-section p.glossary-term {
-  margin: 0 0 14px;
-  padding: 14px 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  scroll-margin-top: calc(var(--navbar-height) + 16px);
+/* ---------- Search and index ---------- */
+
+.glossary-tools {
+  margin: 28px 0 0;
 }
 
-.markdown-section p.glossary-term-wanted {
+.glossary-tools-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+  font-size: var(--fs-15);
+}
+
+.glossary-search-label {
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.glossary-status {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.glossary-search-field {
+  position: relative;
+}
+
+.glossary-search {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 44px 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--ink-code);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-17);
+  line-height: 1.4;
+  appearance: none;
+}
+
+.glossary-search::placeholder {
+  color: var(--text-dim);
+  opacity: 1;
+}
+
+.glossary-search::-webkit-search-cancel-button {
+  display: none;
+}
+
+.glossary-search:hover {
+  border-color: var(--text-dim);
+}
+
+.glossary-search:focus-visible {
   border-color: var(--amber);
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+  border-radius: var(--radius);
+}
+
+/* the key that takes the cursor here, shown while the box is not in use */
+.glossary-search-key {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  translate: 0 -50%;
+  min-width: 22px;
+  padding: 1px 0;
+  border: 1px solid var(--line);
+  border-radius: 5px;
   background: var(--ink-raised);
-  outline: none;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+  pointer-events: none;
+}
+
+.glossary-search:focus ~ .glossary-search-key,
+.glossary-search:not(:placeholder-shown) ~ .glossary-search-key {
+  display: none;
+}
+
+.glossary-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+  margin-top: 14px;
+  font-size: var(--fs-15);
+}
+
+.markdown-section a.glossary-index-entry {
+  padding: 4px 0;
+  color: var(--text-soft);
+  text-decoration: none;
+}
+
+.markdown-section a.glossary-index-entry:hover .glossary-index-name {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--text-dim);
+  text-underline-offset: 3px;
+}
+
+.glossary-index-count {
+  margin-left: 2px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.markdown-section a.glossary-index-empty {
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.markdown-section p.glossary-empty {
+  margin: 28px 0 0;
+  color: var(--text-soft);
+}
+
+.markdown-section button.glossary-empty-clear {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--amber);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--amber) 35%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.markdown-section button.glossary-empty-clear:hover {
+  background: none;
+  color: var(--amber-hover);
+}
+
+/* ---------- A group ---------- */
+
+.markdown-section .glossary-tools ~ h2 {
+  margin: 48px 0 12px;
+  font-size: var(--fs-20);
+  letter-spacing: -0.01em;
+}
+
+/* ---------- A term ---------- */
+
+.markdown-section p.glossary-term {
+  display: grid;
+  grid-template-columns: 10.5rem minmax(0, 1fr);
+  gap: 0 28px;
+  margin: 0;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  line-height: 1.6;
+  scroll-margin-top: calc(var(--pb-top) + 20px);
+}
+
+.markdown-section :is(p.glossary-term, h2, .glossary-empty, .glossary-index)[hidden] {
+  display: none;
+}
+
+.glossary-term-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
 }
 
 .glossary-term-name {
+  font-size: var(--fs-20);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+
+.markdown-section a.glossary-term-link {
+  margin-top: 2px;
+  color: var(--text-dim);
   font-family: var(--mono);
-  font-weight: 650;
+  font-size: 12.5px;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.markdown-section a.glossary-term-link:hover {
   color: var(--amber);
+}
+
+.glossary-term-body {
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.glossary-term-definition {
+  display: block;
 }
 
 .glossary-term-avoid {
@@ -26,4 +214,84 @@
   margin-top: 6px;
   color: var(--text-dim);
   font-size: var(--fs-15);
+}
+
+.glossary-term-avoid-label {
+  margin-right: 4px;
+}
+
+.glossary-term-avoid s {
+  color: var(--text-soft);
+  text-decoration-color: var(--text-dim);
+  text-decoration-thickness: 1px;
+}
+
+/* the term the link names: the only amber in the list */
+.markdown-section p.glossary-term-wanted {
+  margin-inline: -16px;
+  padding-inline: 16px;
+  border-top-color: transparent;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--ink-raised);
+  box-shadow: inset 3px 0 0 var(--amber);
+  animation: glossary-term-arrive 0.9s ease-out;
+}
+
+.glossary-term-wanted .glossary-term-name,
+.markdown-section .glossary-term-wanted a.glossary-term-link {
+  color: var(--amber);
+}
+
+/* the row after the marked one drops its rule, so the marked one reads as one block */
+.markdown-section p.glossary-term-wanted + p.glossary-term {
+  border-top-color: transparent;
+}
+
+@keyframes glossary-term-arrive {
+  from {
+    background: color-mix(in srgb, var(--amber) 22%, var(--ink-raised));
+  }
+}
+
+/* ---------- Phones: the name goes above its definition ---------- */
+
+@media (max-width: 640px) {
+  .markdown-section p.glossary-term {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 16px 0;
+  }
+
+  /* the marked term goes edge to edge, as code does on a phone */
+  .markdown-section p.glossary-term-wanted {
+    margin-inline: calc(-1 * var(--content-margin-inline));
+    padding-inline: var(--content-margin-inline);
+    border-radius: 0;
+  }
+
+  .glossary-term-head {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .markdown-section a.glossary-term-link {
+    padding: 4px 0;
+  }
+
+  .glossary-search-key {
+    display: none;
+  }
+
+  .glossary-tools-top {
+    flex-wrap: wrap;
+    gap: 0 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markdown-section p.glossary-term-wanted {
+    animation: none;
+  }
 }
