@@ -1,0 +1,2 @@
+# Lo que el sitio muestra del repo, además de packages/docs-site/docs (lo arma docs-armar en _catalogo/).
+GLOSSARY.md

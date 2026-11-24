@@ -9,6 +9,10 @@
   * [Servir los docs de otro repo](/servir-otro-repo.md)
   * [Mostrar archivos del repo: el catálogo](/catalogo.md)
   * [Traer tu propia UI](/traer-tu-ui.md)
+* Glosario
+  * [Términos del repo](/_catalogo/GLOSSARY.md)
+* Pull requests
+  * [#55 · Exportar desde el navegador](/prs/55.md)
 * Retro (un componente propio)
   * [Semana 46](/propios/semana-46.md)
   * [Semana 47](/propios/semana-47.md)

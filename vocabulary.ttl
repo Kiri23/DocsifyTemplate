@@ -1,0 +1,40 @@
+# Generado de GLOSSARY.md por kiri-glosario: no editar a mano, editá el .md y corré `kiri-glosario`.
+# Cada "Palabra — definición" es un skos:Concept del esquema vocabulario.glosario:vocabulario. Una definición que nombra
+# otra palabra del glosario es un skos:related, escrito una vez. Lo valida ontologyLearning
+# (domain/vocabulario-reglas.ttl, POST /vocabularios) y lo encuentra la action de ontology-client por el nombre.
+
+@prefix glosario: <https://kiri231.com/vocabulario/docsifytemplate#> .
+@prefix skos:     <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+glosario:vocabulario a skos:ConceptScheme ;
+    skos:prefLabel "DocsifyTemplate"@es ;
+    skos:definition "Sitios de documentación interactivos sin paso de build: el Markdown de un repo se ve como sitio tal cual."@es ;
+    rdfs:comment "Generado de GLOSSARY.md por kiri-glosario." .
+
+glosario:site-js a skos:Concept ;
+    skos:inScheme glosario:vocabulario ;
+    skos:prefLabel "site.js"@es ;
+    skos:definition "El Docsify de este repo ya armado, que un sitio carga con un solo script: Docsify 5, el tema, el import map y los componentes."@es ;
+    skos:hiddenLabel "el loader"@es, "el script de Docsify"@es .
+
+glosario:motor a skos:Concept ;
+    skos:inScheme glosario:vocabulario ;
+    skos:prefLabel "Motor"@es ;
+    skos:definition "La parte que convierte una página (de Markdown a Typst o PDF) sin saber si corre en la terminal o en el navegador."@es ;
+    skos:hiddenLabel "core"@es, "engine"@es .
+
+glosario:transporte a skos:Concept ;
+    skos:inScheme glosario:vocabulario ;
+    skos:prefLabel "Transporte"@es ;
+    skos:definition "La parte que lleva el Motor a un lugar donde corre (la terminal, el navegador, un sitio Docsify) y le da sus engines."@es ;
+    skos:hiddenLabel "adapter"@es, "wrapper"@es ;
+    skos:related glosario:motor, glosario:engines .
+
+glosario:engines a skos:Concept ;
+    skos:inScheme glosario:vocabulario ;
+    skos:prefLabel "engines"@es ;
+    skos:definition "Las herramientas con las que el Motor convierte (pandoc, el compilador de Typst), que cada Transporte da a su manera."@es ;
+    skos:hiddenLabel "motores"@es, "backends"@es ;
+    skos:related glosario:motor .

@@ -5,7 +5,8 @@ name: deploy
 # en el servidor con deploy/compose.prod.yaml, detrás del proxy que ya corre ahí.
 #
 # Tres jobs, cada uno con los permisos que usa y ninguno más:
-#   build     en un PR (o a mano desde otra rama): corre la suite y check:docs, construye la imagen
+#   build     en un PR (o a mano desde otra rama): corre la suite, check:docs y el --check del catálogo
+#             (que _catalogo/ tenga el GLOSSARY.md de la raíz al día), construye la imagen
 #             y le pasa deploy/smoke-image.mjs. No publica nada y su token solo lee el repo.
 #   publish   solo en main: corre las mismas pruebas, construye la imagen, pasa el humo y la sube a
 #             GHCR. El único job que escribe paquetes.
@@ -27,6 +28,8 @@ on:
     branches: [main]
     paths:
       - "packages/docs-site/**"
+      - "GLOSSARY.md"
+      - "vocabulary.ttl"
       - "package.json"
       - "package-lock.json"
       - "deploy/Dockerfile*"
@@ -37,6 +40,8 @@ on:
   pull_request:
     paths:
       - "packages/docs-site/**"
+      - "GLOSSARY.md"
+      - "vocabulary.ttl"
       - "package.json"
       - "package-lock.json"
       - "deploy/Dockerfile*"
@@ -77,6 +82,7 @@ jobs:
           npm ci --ignore-scripts
           npm test
           npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
+          npm run docs:armar -- packages/docs-site/docs --root . --check
 
       - name: Build the image
         run: docker build -f deploy/Dockerfile --build-arg "COMMIT=$GITHUB_SHA" -t "$IMAGE:ci" .
@@ -100,6 +106,7 @@ jobs:
           npm ci --ignore-scripts
           npm test
           npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
+          npm run docs:armar -- packages/docs-site/docs --root . --check
 
       - name: Build the image
         run: docker build -f deploy/Dockerfile --build-arg "COMMIT=$GITHUB_SHA" -t "$IMAGE:ci" .

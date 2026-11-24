@@ -1,0 +1,29 @@
+/* The glossary-terms plugin: each term of a GLOSSARY.md as an entry, its name on top and the names
+   not to use below. The one a link points at is marked. */
+
+.markdown-section p.glossary-term {
+  margin: 0 0 14px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  scroll-margin-top: calc(var(--navbar-height) + 16px);
+}
+
+.markdown-section p.glossary-term-wanted {
+  border-color: var(--amber);
+  background: var(--ink-raised);
+  outline: none;
+}
+
+.glossary-term-name {
+  font-family: var(--mono);
+  font-weight: 650;
+  color: var(--amber);
+}
+
+.glossary-term-avoid {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-dim);
+  font-size: var(--fs-15);
+}
