@@ -1,0 +1,20 @@
+# Generado de GLOSSARY.md por kiri-glosario: no editar a mano, editá el .md y corré `kiri-glosario`.
+# Cada "Palabra — definición" es un skos:Concept del esquema vocabulario.glosario:vocabulario. Una definición que nombra
+# otra palabra del glosario es un skos:related, escrito una vez. Lo valida ontologyLearning
+# (domain/vocabulario-reglas.ttl, POST /vocabularios) y lo encuentra la action de ontology-client por el nombre.
+
+@prefix glosario: <https://kiri231.com/vocabulario/docsifytemplate#> .
+@prefix skos:     <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+glosario:vocabulario a skos:ConceptScheme ;
+    skos:prefLabel "DocsifyTemplate"@es ;
+    skos:definition "Sitios de documentación interactivos sin paso de build: el Markdown de un repo se ve como sitio tal cual."@es ;
+    rdfs:comment "Generado de GLOSSARY.md por kiri-glosario." .
+
+glosario:site-js a skos:Concept ;
+    skos:inScheme glosario:vocabulario ;
+    skos:prefLabel "site.js"@es ;
+    skos:definition "El script que un sitio carga en su index.html para levantar Docsify 5 con el tema, el import map y los componentes de este repo ya configurados."@es ;
+    skos:hiddenLabel "el loader"@es, "el script de Docsify"@es .

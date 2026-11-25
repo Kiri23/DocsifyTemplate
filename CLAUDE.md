@@ -13,6 +13,8 @@ npm run check:docs -- packages/docs-site/docs --components packages/docs-site/do
 npm run serve                                        # → http://localhost:3010/packages/docs-site/docs/
 npm run docs:serve -- <carpeta> [--home README.md]   # → http://localhost:3011/
 npm run docs:armar -- <carpeta-docs> [--check]
+python3 ~/Code/MyClaudeSkills/bin/kiri-glosario GLOSSARY.md   # vocabulary.ttl de GLOSSARY.md
+npm run docs:armar -- packages/docs-site/docs --root .      # copia GLOSSARY.md al sitio (_catalogo/)
 ```
 
 ## Estructura
@@ -24,10 +26,10 @@ DocsifyTemplate/
 │   │   ├── site.js          # Entrada en una línea (import map, tema, plugins, componentes)
 │   │   ├── as/              # Parser de marcas <!-- as: ... -->, shapes y montaje Preact
 │   │   ├── components/      # Componentes integrados (annotated-block, option-picker, stepper, terminal)
-│   │   ├── plugins/         # file-links.js
+│   │   ├── plugins/         # file-links.js, glossary-terms.js (ancla de cada término del glosario)
 │   │   ├── theme/           # Tema prompt-bench (tokens.css, plugins, store)
 │   │   ├── bin/             # CLIs: serve.mjs, check.mjs, armar.mjs (+ lib/)
-│   │   ├── docs/            # Docs y showcase del paquete (incl. propios/retro-semanal.js)
+│   │   ├── docs/            # Docs y showcase del paquete (incl. propios/retro-semanal.js, prs/<n>.html de summarize-pr)
 │   │   └── test/            # Suite Node (`node --test`) + recorrido opcional en Chromium
 │   └── chat/
 │       ├── index.js
@@ -47,6 +49,8 @@ DocsifyTemplate/
 ```
 
 ## Reglas clave
+
+- **El glosario es `GLOSSARY.md`** (formato de Pocock: `**Término**:` + definición + `_Avoid_:`). De él salen `vocabulary.ttl` (`kiri-glosario`) y su página en el sitio (`incluir.txt` → `_catalogo/`). Al cambiarlo, regenerá los dos: CI corre el `--check` del catálogo y un test compara los términos con el `.ttl`.
 
 - **Sin colores fuera de `tokens.css`:** Todo valor de color (`#hex`, `rgb(...)`, colores nombrados) en `packages/docs-site/` vive únicamente en `packages/docs-site/theme/tokens.css`. Lo hace cumplir `packages/docs-site/test/theme.test.mjs`.
 - **Sin build:** El navegador carga `packages/docs-site/` tal cual vía ESM e import map en `site.js`.

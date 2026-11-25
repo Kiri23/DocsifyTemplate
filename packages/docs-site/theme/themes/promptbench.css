@@ -12,6 +12,7 @@
 @import url("promptbench/plugins/on-this-page.css");
 @import url("promptbench/plugins/prev-next.css");
 @import url("promptbench/plugins/code-window.css");
+@import url("promptbench/plugins/glossary-terms.css");
 
 /* The components a page names with <!-- as: … --> (packages/docs-site/components/), one file each. */
 @import url("promptbench/components/annotated-block.css");
