@@ -97,6 +97,10 @@ jobs:
           python -m playwright install --with-deps chromium
           python3 packages/docs-site/test/pr_agente.py
 
+      # The stepper, a UI SDK primitive of our own, used by a person and by an agent.
+      - name: The stepper in a browser, as a person and as an agent
+        run: python3 packages/docs-site/test/stepper_agente.py
+
       - name: Build the image
         run: docker build -f deploy/Dockerfile --build-arg "COMMIT=$GITHUB_SHA" -t "$IMAGE:ci" .
 

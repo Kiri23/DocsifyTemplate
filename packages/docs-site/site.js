@@ -42,6 +42,9 @@
   function uiSdk(part) {
     return "https://esm.sh/@ui-sdk/web@" + UI_SDK + "/" + part + "?deps=@ui-sdk/core@" + UI_SDK;
   }
+  function uiSdkCore(file) {
+    return "https://esm.sh/@ui-sdk/core@" + UI_SDK + "/" + file;
+  }
   var languages = ["bash", "json", "yaml", "typescript", "python", "turtle", "sparql", "markdown"];
   var imports = {
     "preact": "https://esm.sh/preact@10.29.8",
@@ -56,6 +59,10 @@
     "@ui-sdk/web/segmented-control": uiSdk("segmented-control"),
     "@ui-sdk/web/hover-card": uiSdk("hover-card"),
     "@ui-sdk/web/agent": uiSdk("agent"),
+    // For a primitive of our own (plugins/stepper.js): the same files the elements above load.
+    "@ui-sdk/web/define-element": uiSdk("dist/define-element.js"),
+    "@ui-sdk/core/primitive": uiSdkCore("dist/foundation/kernel/primitive.js"),
+    "@ui-sdk/core/input-source": uiSdkCore("dist/foundation/kernel/input-source.js"),
     // The diff viewer and the charts of a PR summary, the versions summarize-pr uses.
     "@pierre/diffs": "https://cdn.jsdelivr.net/npm/@pierre/diffs@1.5.2/+esm",
     "@viz-js/viz": "https://cdn.jsdelivr.net/npm/@viz-js/viz@3.31.0/dist/viz.js",

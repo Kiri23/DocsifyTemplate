@@ -43,7 +43,13 @@ test("A: every @ui-sdk module of the import map has one version and pins @ui-sdk
   assert.ok(entries.length >= 5, "the import map names the UI SDK modules");
   const versions = new Set();
   for (const [name, url] of entries) {
-    const m = /^https:\/\/esm\.sh\/@ui-sdk\/web@([^/]+)\/[a-z-]+\?deps=@ui-sdk\/core@([^&]+)$/.exec(url);
+    // A file of @ui-sdk/core itself (for a primitive of our own, plugins/stepper.js) needs no deps.
+    const core = /^https:\/\/esm\.sh\/@ui-sdk\/core@([^/]+)\/dist\/[a-z/-]+\.js$/.exec(url);
+    if (core) {
+      versions.add(core[1]);
+      continue;
+    }
+    const m = /^https:\/\/esm\.sh\/@ui-sdk\/web@([^/]+)\/[a-z/.-]+\?deps=@ui-sdk\/core@([^&]+)$/.exec(url);
     assert.ok(m, `${name} → ${url} no fija @ui-sdk/core con ?deps=`);
     assert.equal(m[1], m[2], `${name}: @ui-sdk/web ${m[1]} con @ui-sdk/core ${m[2]}`);
     versions.add(m[1]);

@@ -29,10 +29,10 @@ const template = () => readFileSync(TEMPLATE, "utf8")
   .replace("{{first changed line}}", "3").replaceAll("{{line}}", "7").replace("{{added, modified or removed}}", "added");
 // The real summaries, and a made-up one (test/fixtures/pr/7.html) with every block of the
 // catalog: hidden code, review threads, a before/after chart, test groups, a freeform table.
-const PAGES = ["55", "59", "63", "7"];
+const PAGES = ["55", "59", "63", "66", "7"];
 const FIXTURES = new URL("fixtures/pr/", import.meta.url);
 const folder = (n) => (n === "7" ? FIXTURES : DOCS);
-const SOURCE = { 55: "packages/docs-site/docs/prs/55.html", 59: "packages/docs-site/docs/prs/59.html", 63: "packages/docs-site/docs/prs/63.html", 7: "packages/docs-site/test/fixtures/pr/7.html" };
+const SOURCE = { 55: "packages/docs-site/docs/prs/55.html", 59: "packages/docs-site/docs/prs/59.html", 63: "packages/docs-site/docs/prs/63.html", 66: "packages/docs-site/docs/prs/66.html", 7: "packages/docs-site/test/fixtures/pr/7.html" };
 const COMPONENTS = new Map([...Object.values(builtIn), ...Object.values(prComponents)].map((c) => [c.name, c]));
 const page = (n) => readFileSync(new URL(`${n}.html`, folder(n)), "utf8");
 const markdown = (n) => readFileSync(new URL(`${n}.md`, folder(n)), "utf8");
@@ -45,6 +45,7 @@ const markdown = (n) => readFileSync(new URL(`${n}.md`, folder(n)), "utf8");
 const KNOWN = {
   55: [],
   63: [],
+  66: [],
   7: [],
   59: ["GLOSSARY.md (new): imports and re-exports are never shown: import map y los componentes de este repo ya configurados."],
 };

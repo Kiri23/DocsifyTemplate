@@ -14,6 +14,7 @@ import "@ui-sdk/web/collapsible";
 import "@ui-sdk/web/segmented-control";
 import "@ui-sdk/web/hover-card";
 import { createAgent, registerTools } from "@ui-sdk/web/agent";
+import { defineStepper } from "./stepper.js";
 import { pageText, readTool } from "./page-text.js";
 
 /**
@@ -22,6 +23,8 @@ import { pageText, readTool } from "./page-text.js";
  * @param {{ allow?: (step: object) => boolean | Promise<boolean> }} [options]
  */
 export function uiSdk({ allow = () => true } = {}) {
+  // Our own primitives, next to UI SDK's elements: the bridge sees them alike.
+  defineStepper();
   const agent = createAgent({ allow });
   const read = readTool();
   // For an agent that drives the browser (Playwright, an extension, agente/pagina_mcp.py): UI SDK's

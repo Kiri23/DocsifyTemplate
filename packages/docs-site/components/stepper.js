@@ -11,7 +11,11 @@
 //
 // The panels hold the page's own elements, moved, not copies: the code blocks still get their
 // copy button, and a link to a step's heading (from "On this page" or the search) opens that step.
-import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
+//
+// An AI agent uses it too, with the page's tools (plugins/ui-sdk.js): its snapshot lists the stepper
+// and its step, and act moves it (setValue, next, previous). See plugins/stepper.js: it is the
+// example of a component of our own built as a UI SDK primitive.
+import { useLayoutEffect, useRef } from "preact/hooks";
 import { html } from "htm/preact";
 import { section, ShapeError } from "../as/shapes.js";
 
@@ -31,13 +35,12 @@ export const stepper = {
   view: Stepper,
 };
 
-let steppers = 0;
-
+// The stepper's behavior (which step is open, the keys, what an agent can do) is a UI SDK primitive
+// in plugins/stepper.js; this view only draws its elements, and moves the page's nodes into the
+// panels. Before plugins/stepper.js loads (and in Node) the first view already shows one step.
 function Stepper({ steps }) {
-  const [current, setCurrent] = useState(() => Math.max(0, steps.findIndex((s) => s.id === linkedId())));
-  const [uid] = useState(() => `as-st-${++steppers}`);
+  const start = Math.max(0, steps.findIndex((s) => s.id === linkedId())) + 1;
   const panels = useRef([]);
-  const tabs = useRef([]);
 
   // Synchronous, inside Docsify's doneEach: the plugins after this one (onThisPage, codeWindow)
   // find the headings and the code blocks in the panels.
@@ -45,64 +48,32 @@ function Stepper({ steps }) {
     steps.forEach((step, i) => panels.current[i].append(...step.nodes));
   }, []);
 
-  // A link to one of the headings opens its step.
-  useEffect(() => {
-    const follow = () => {
-      const i = steps.findIndex((s) => s.id === linkedId());
-      if (i === -1) return;
-      setCurrent(i);
-      requestAnimationFrame(() => document.getElementById(steps[i].id)?.scrollIntoView());
-    };
-    addEventListener("hashchange", follow);
-    return () => removeEventListener("hashchange", follow);
-  }, []);
-
-  const go = (i, focus) => {
-    setCurrent(i);
-    if (focus) tabs.current[i].focus();
-  };
-  const onKey = (event, i) => {
-    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
-    if (step) go((i + step + steps.length) % steps.length, true);
-    if (event.key === "Home") go(0, true);
-    if (event.key === "End") go(steps.length - 1, true);
-  };
-
   return html`
-    <div class="as-st">
-      <div class="as-st-tabs" role="tablist" aria-label="Pasos"
-        style=${`--as-st-count: ${steps.length}`}>
+    <as-stepper class="as-st" count=${steps.length} default-value=${start} aria-label="Pasos">
+      <as-stepper-list class="as-st-tabs" aria-label="Pasos" style=${`--as-st-count: ${steps.length}`}>
         ${steps.map((s, i) => html`
-          <button key=${i} type="button" role="tab" id=${`${uid}-tab-${i}`}
-            ref=${(el) => (tabs.current[i] = el)}
-            aria-selected=${String(i === current)} aria-controls=${`${uid}-panel-${i}`}
-            tabindex=${i === current ? 0 : -1}
-            class=${i < current ? "done" : i === current ? "current" : undefined}
-            onClick=${() => go(i)} onKeyDown=${(e) => onKey(e, i)}>
-            <span class="as-st-dot" aria-hidden="true">${i + 1}</span>
-            <span class="as-st-title">${s.title}</span>
-          </button>
+          <as-stepper-tab key=${i} value=${i + 1}>
+            <button type="button" role="tab" aria-selected=${String(i + 1 === start)}>
+              <span class="as-st-dot" aria-hidden="true">${i + 1}</span>
+              <span class="as-st-title">${s.title}</span>
+            </button>
+          </as-stepper-tab>
         `)}
-      </div>
+      </as-stepper-list>
       ${steps.map((s, i) => html`
-        <div key=${i} role="tabpanel" id=${`${uid}-panel-${i}`} class="as-st-panel"
-          aria-labelledby=${`${uid}-tab-${i}`} hidden=${i !== current}
-          ref=${(el) => (panels.current[i] = el)}></div>
+        <as-stepper-panel key=${i} value=${i + 1} class="as-st-panel" role="tabpanel"
+          hidden=${i + 1 !== start} ref=${(el) => (panels.current[i] = el)}></as-stepper-panel>
       `)}
       <div class="as-st-nav">
-        <button type="button" disabled=${current === 0} onClick=${() => go(current - 1)}>
-          ← Paso anterior
-        </button>
-        <span>Paso ${current + 1} de ${steps.length}</span>
-        <button type="button" disabled=${current === steps.length - 1} onClick=${() => go(current + 1)}>
-          Paso siguiente →
-        </button>
+        <as-stepper-previous><button type="button">← Paso anterior</button></as-stepper-previous>
+        <as-stepper-status>Paso ${start} de ${steps.length}</as-stepper-status>
+        <as-stepper-next><button type="button">Paso siguiente →</button></as-stepper-next>
       </div>
-    </div>
+    </as-stepper>
   `;
 }
 
 /** The heading a Docsify link points at: the `id` in "#/how-to/page?id=step-two". */
 function linkedId() {
-  return new URLSearchParams(location.hash.split("?")[1] ?? "").get("id");
+  return new URLSearchParams(globalThis.location?.hash.split("?")[1] ?? "").get("id");
 }
