@@ -51,7 +51,7 @@ async function runSite(config, { pageUrl = "https://example.com/docs/#/" } = {})
   const noop = () => () => {};
   const runWiring = new Function(
     "window", "console", "topNav", "sidebarSections", "fileLinks",
-    "asComponents", "onThisPage", "prevNext", "codeWindow", "glossaryTerms",
+    "asComponents", "onThisPage", "prevNext", "codeWindow", "glossaryTerms", "frameOpen",
     "addComponents", "annotatedBlock", "optionPicker", "stepper", "terminal",
     body,
   );
@@ -62,7 +62,7 @@ async function runSite(config, { pageUrl = "https://example.com/docs/#/" } = {})
       topNavOpts = opts;
       return topNav(opts);
     },
-    noop, noop, noop, noop, noop, noop, noop,
+    noop, noop, noop, noop, noop, noop, noop, noop,
     (builtIn) => ({ components: builtIn, problems: [] }),
     {}, {}, {}, {},
   );
