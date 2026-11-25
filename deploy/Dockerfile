@@ -1,5 +1,6 @@
 # El sitio (https://doctemplate.kiri231.com): un servidor de archivos estáticos con los docs de
-# packages/docs-site/docs/ y su runtime (site.js, as/, components/, plugins/, theme/) en /.
+# packages/docs-site/docs/ y su runtime (site.js, as/, components/, plugins/, theme/ y
+# pr/summarize-pr/shown-lines.mjs) en /.
 # No hay paso de build: docs-site se sirve tal cual. El contexto es la raíz del repo y
 # deploy/Dockerfile.dockerignore deja pasar solo esos archivos y el Caddyfile:
 #
@@ -20,6 +21,8 @@ COPY packages/docs-site/as /srv/as
 COPY packages/docs-site/components /srv/components
 COPY packages/docs-site/plugins /srv/plugins
 COPY packages/docs-site/theme /srv/theme
+# The diffs of a PR summary count their lines with summarize-pr's own code (components/pr/code-lines.js).
+COPY packages/docs-site/pr/summarize-pr/shown-lines.mjs /srv/pr/summarize-pr/shown-lines.mjs
 
 # El commit del que salió la imagen, servido en /version.txt: el deploy lo lee para saber que lo que
 # contesta es este commit y no el anterior. Sin el build-arg dice "unknown".

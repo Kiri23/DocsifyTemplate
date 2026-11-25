@@ -5,8 +5,10 @@ name: deploy
 # en el servidor con deploy/compose.prod.yaml, detrás del proxy que ya corre ahí.
 #
 # Tres jobs, cada uno con los permisos que usa y ninguno más:
-#   build     en un PR (o a mano desde otra rama): corre la suite, check:docs y el --check del catálogo
-#             (que _catalogo/ tenga el GLOSSARY.md de la raíz al día), construye la imagen
+#   build     en un PR (o a mano desde otra rama): corre la suite, check:docs, el --check del catálogo
+#             (que _catalogo/ tenga el GLOSSARY.md de la raíz al día) y el de los resúmenes de PR
+#             (que cada prs/<n>.md salga de su .html), recorre esos resúmenes en Chromium como un
+#             agente (test/pr_agente.py), construye la imagen
 #             y le pasa deploy/smoke-image.mjs. No publica nada y su token solo lee el repo.
 #   publish   solo en main: corre las mismas pruebas, construye la imagen, pasa el humo y la sube a
 #             GHCR. El único job que escribe paquetes.
@@ -83,6 +85,15 @@ jobs:
           npm test
           npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
           npm run docs:armar -- packages/docs-site/docs --root . --check
+          npm run docs:pr -- packages/docs-site/docs/prs/*.html --check
+
+      # The PR summaries in Chromium, as a reader and as an AI agent sees them (test/pr_agente.py,
+      # tests A–D of DocsifyTemplate#62): it loads UI SDK, the diff viewer and Graphviz from their CDNs.
+      - name: PR summaries in a browser, as an agent sees them
+        run: |
+          pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+          python3 packages/docs-site/test/pr_agente.py
 
       - name: Build the image
         run: docker build -f deploy/Dockerfile --build-arg "COMMIT=$GITHUB_SHA" -t "$IMAGE:ci" .
@@ -107,6 +118,7 @@ jobs:
           npm test
           npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
           npm run docs:armar -- packages/docs-site/docs --root . --check
+          npm run docs:pr -- packages/docs-site/docs/prs/*.html --check
 
       - name: Build the image
         run: docker build -f deploy/Dockerfile --build-arg "COMMIT=$GITHUB_SHA" -t "$IMAGE:ci" .

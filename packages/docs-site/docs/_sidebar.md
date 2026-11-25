@@ -9,6 +9,7 @@
   * [Servir los docs de otro repo](/servir-otro-repo.md)
   * [Mostrar archivos del repo: el catálogo](/catalogo.md)
   * [Traer tu propia UI](/traer-tu-ui.md)
+  * [Resúmenes de PR (summarize-pr)](/resumenes-de-pr.md)
 * Glosario
   * [Términos del repo](/_catalogo/GLOSSARY.md)
 * Pull requests
