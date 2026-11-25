@@ -102,7 +102,10 @@ def visit_all(base, opts):
                 said.append("ventana .window envuelta dos veces por codeWindow()")
             # Each link to a file of the site (not a page, not another site) has to open it.
             for href in page.eval_on_selector_all(
-                "#main a[href]", "as => as.map(a => a.href).filter(h => h.startsWith(location.origin) && !h.includes('#'))"
+                "#main a[href]",
+                # A link in an SVG (a chart's box) has no string href: read the attribute.
+                "as => as.map(a => new URL(a.getAttribute('href'), location.href).href)"
+                ".filter(h => h.startsWith(location.origin) && !h.includes('#'))"
             ):
                 code = page.request.get(href).status
                 if code >= 400:

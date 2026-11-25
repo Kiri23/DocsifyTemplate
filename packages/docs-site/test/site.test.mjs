@@ -45,27 +45,21 @@ async function runSite(config, { pageUrl = "https://example.com/docs/#/" } = {})
 
   const match = written.match(/<script type="module"[^>]*>([\s\S]*?)<\/script>/);
   assert.ok(match, "site.js did not emit its module script");
-  // Strip ES module imports and run the wiring body with stubs + real topNav capture.
+  // Strip ES module imports and run the wiring body with stubs + real topNav capture. Every name
+  // the module imports gets a stub: a plugin factory, or an empty object for a component.
+  const imported = [...match[1].matchAll(/import\s*\{([^}]*)\}/g)].flatMap((m) => m[1].split(",").map((n) => n.trim()).filter(Boolean));
   const body = match[1].replace(/import\s+[^;]+;/g, "");
   let topNavOpts = null;
   const noop = () => () => {};
-  const runWiring = new Function(
-    "window", "console", "topNav", "sidebarSections", "fileLinks",
-    "asComponents", "onThisPage", "prevNext", "codeWindow", "glossaryTerms", "frameOpen",
-    "addComponents", "annotatedBlock", "optionPicker", "stepper", "terminal",
-    body,
-  );
-  runWiring(
-    windowObj,
-    { error: (...args) => errors.push(args.join(" ")) },
-    (opts) => {
-      topNavOpts = opts;
-      return topNav(opts);
-    },
-    noop, noop, noop, noop, noop, noop, noop, noop,
-    (builtIn) => ({ components: builtIn, problems: [] }),
-    {}, {}, {}, {},
-  );
+  const stubs = Object.fromEntries(imported.map((name) => [name, /^[a-z]/.test(name) && !/^(annotatedBlock|optionPicker|stepper|terminal|assumption|callout|chart|chartPair|decision|diff|discarded|example|prHeader|story|tests)$/.test(name) ? noop : {}]));
+  stubs.topNav = (opts) => {
+    topNavOpts = opts;
+    return topNav(opts);
+  };
+  stubs.addComponents = (builtIn) => ({ components: builtIn, problems: [] });
+  const names = Object.keys(stubs);
+  const runWiring = new Function("window", "console", ...names, body);
+  runWiring(windowObj, { error: (...args) => errors.push(args.join(" ")) }, ...names.map((n) => stubs[n]));
   return { config: windowObj.$docsify, topNavOpts, errors };
 }
 

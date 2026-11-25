@@ -1,0 +1,30 @@
+/* The terms of a PR summary (plugins/pr-terms.js): a dotted underline on the term, and its
+   explanation in a hover card with the term's name as a small label. */
+.pr-term { display: inline; }
+.pr-term-link { color: inherit; text-decoration: none; }
+.pr-term-link dfn, .pr-term-link .term {
+  font-style: normal;
+  text-decoration: underline dotted var(--text-dim);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+.pr-term-link:hover dfn, .pr-term-link:hover .term, .pr-term-link:focus-visible dfn {
+  text-decoration-color: var(--amber);
+}
+.pr-term ui-hover-card-content {
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--ink-raised);
+  color: var(--text);
+  font-size: var(--fs-15);
+  line-height: 1.5;
+  box-shadow: 0 8px 24px -8px var(--ink-code);
+}
+.pr-term-name {
+  margin-bottom: 4px;
+  color: var(--amber);
+  font-family: var(--mono);
+  font-size: 12px;
+}

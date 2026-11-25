@@ -11,7 +11,8 @@ export class ShapeError extends Error {}
 
 /**
  * Elements one after the other, right after the marker: `sequence("pre", "ol")` is a code block
- * followed by a numbered list.
+ * followed by a numbered list. A tag that ends in "?" may be missing: `sequence("pre", "pre?")` is
+ * one code block or two. The props get only the elements that are there.
  * @param {...string} tags the tag of each element, in order
  */
 export function sequence(...tags) {
@@ -20,14 +21,19 @@ export function sequence(...tags) {
     collect(mark) {
       const nodes = [];
       let at = mark;
-      for (const tag of tags) {
+      let last = null;
+      for (const said of tags) {
+        const optional = said.endsWith("?");
+        const tag = optional ? said.slice(0, -1) : said;
         const next = nextElement(at);
         if (!next || next.localName !== tag) {
-          const after = nodes.length ? `después de <${tags[nodes.length - 1]}>` : "después de la marca";
+          if (optional) continue;
+          const after = last ? `después de <${last}>` : "después de la marca";
           throw new ShapeError(`esperaba <${tag}> ${after}, encontré ${found(next)}`);
         }
         nodes.push(next);
         at = next;
+        last = tag;
       }
       return nodes;
     },

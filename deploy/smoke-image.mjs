@@ -64,6 +64,8 @@ function collectAllowlist() {
       files.set(`/${posix.join(dirName, rel)}`, full);
     }
   }
+  // The one file of pr/ that the browser loads: the diffs of a PR summary count lines with it.
+  files.set("/pr/summarize-pr/shown-lines.mjs", resolve(SITE_DIR, "pr/summarize-pr/shown-lines.mjs"));
   return files;
 }
 

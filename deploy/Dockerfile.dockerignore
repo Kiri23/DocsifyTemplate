@@ -9,3 +9,4 @@
 !packages/docs-site/components
 !packages/docs-site/plugins
 !packages/docs-site/theme
+!packages/docs-site/pr/summarize-pr/shown-lines.mjs
