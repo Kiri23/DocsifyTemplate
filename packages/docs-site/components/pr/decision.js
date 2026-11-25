@@ -59,9 +59,10 @@ function Decision({ title, label, implicit, slack, why, cost, discarded }) {
         <h4 class="pr-decision-head">
           <ui-accordion-trigger>
             <button type="button" aria-expanded="false" aria-controls=${id}>
-              <span class="pr-label">Decision</span>
+              <span class="pr-label" aria-hidden="true">Decision</span>
               <span class="pr-decision-title" dangerouslySetInnerHTML=${{ __html: title }} />
-              ${implicit && html`<span class="pr-decision-origin" title="Made while implementing, without being discussed.">Implicit</span>`}
+              ${implicit && html`<span class="pr-decision-origin" aria-hidden="true" title="Made while implementing, without being discussed.">Implicit</span>
+                <span class="pr-sr-only"> (implicit decision)</span>`}
               <span class="pr-decision-arrow" aria-hidden="true"></span>
             </button>
           </ui-accordion-trigger>

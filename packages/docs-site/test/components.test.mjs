@@ -249,6 +249,6 @@ test("terminal: invalid shape, unknown attributes and bad values fail in check.m
 test("check reports the line of each marker that fails", () => {
   const md = "# Page\n\n<!-- as: stepper -->\n\n## A\n\n## B\n\n<!-- /as -->\n\ntext\n\n<!-- as: nope -->\n\ntext\n";
   assert.deepEqual(problemsIn(md), [
-    "13: no hay un componente \"nope\"; los que hay: annotated-block, option-picker, stepper, terminal",
+    "13: no hay un componente \"nope\"; los que hay: annotated-block, assumption, callout, chart, chart-pair, decision, diff, discarded, example, option-picker, pr-header, stepper, story, terminal, tests",
   ]);
 });

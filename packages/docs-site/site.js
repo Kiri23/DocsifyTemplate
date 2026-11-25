@@ -38,6 +38,10 @@
   var prism = "https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/";
   // In load order: sparql extends turtle, so it goes after it. The catalog shows a .rq file as a
   // block of language "rq", an alias prism-sparql defines.
+  var UI_SDK = "0.1.0-beta.17";
+  function uiSdk(part) {
+    return "https://esm.sh/@ui-sdk/web@" + UI_SDK + "/" + part + "?deps=@ui-sdk/core@" + UI_SDK;
+  }
   var languages = ["bash", "json", "yaml", "typescript", "python", "turtle", "sparql", "markdown"];
   var imports = {
     "preact": "https://esm.sh/preact@10.29.8",
@@ -45,6 +49,16 @@
     "@preact/signals":
       "https://esm.sh/@preact/signals@2.11.4?external=preact&deps=@preact/signals-core@1.14.5",
     "htm/preact": "https://esm.sh/htm@3.1.1/preact?external=preact",
+    // UI SDK: one version, and every element pinned to the same @ui-sdk/core (`deps`), so the page
+    // has one copy of it. With two, the agent's snapshot comes back empty (test/ui-sdk.test.mjs).
+    "@ui-sdk/web/accordion": uiSdk("accordion"),
+    "@ui-sdk/web/collapsible": uiSdk("collapsible"),
+    "@ui-sdk/web/segmented-control": uiSdk("segmented-control"),
+    "@ui-sdk/web/hover-card": uiSdk("hover-card"),
+    "@ui-sdk/web/agent": uiSdk("agent"),
+    // The diff viewer and the charts of a PR summary, the versions summarize-pr uses.
+    "@pierre/diffs": "https://cdn.jsdelivr.net/npm/@pierre/diffs@1.5.2/+esm",
+    "@viz-js/viz": "https://cdn.jsdelivr.net/npm/@viz-js/viz@3.31.0/dist/viz.js",
     "docs-site/": base,
   };
 
@@ -100,7 +114,8 @@
       )) + ')"' : "") + ">" +
       'import { codeWindow, onThisPage, prevNext, sidebarSections, topNav } from "' + base + 'theme/mod.js";' +
       'import { asComponents } from "' + base + 'as/mod.js";' +
-      'import { annotatedBlock, optionPicker, stepper, terminal } from "' + base + 'components/mod.js";' +
+      'import { annotatedBlock, optionPicker, stepper, terminal, assumption, callout, chart, chartPair, decision, diff, discarded, example, prHeader, story, tests } from "' + base + 'components/mod.js";' +
+      'import { uiSdk } from "' + base + 'plugins/ui-sdk.js";' +
       'import { fileLinks } from "' + base + 'plugins/file-links.js";' +
       'import { glossaryTerms } from "' + base + 'plugins/glossary-terms.js";' +
       'import { frameOpen } from "' + base + 'plugins/frame-open.js";' +
@@ -109,7 +124,7 @@
         return "import * as " + m.name + " from " + JSON.stringify(m.url) + ";";
       }).join("") +
       "const c = window.$docsify;" +
-      "const { components, problems } = addComponents([annotatedBlock, optionPicker, stepper, terminal], {" +
+      "const { components, problems } = addComponents([annotatedBlock, optionPicker, stepper, terminal, assumption, callout, chart, chartPair, decision, diff, discarded, example, prHeader, story, tests], {" +
       ownModules.map(function (m) { return JSON.stringify(m.src) + ": " + m.name; }).join(",") +
       "});" +
       "problems.forEach((p) => console.error(\"as: \" + p));" +
@@ -129,7 +144,7 @@
       // Before onThisPage and codeWindow: a component moves the page's own headings and code
       // blocks, and those two read them after.
       "asComponents(components)," +
-      "onThisPage(), prevNext(), codeWindow(), glossaryTerms(), frameOpen()," +
+      "onThisPage(), prevNext(), codeWindow(), glossaryTerms(), frameOpen(), uiSdk()," +
       "].concat(c.plugins || []);" +
       "</script>" +
       '<script defer src="' + docsify + 'docsify.min.js"></script>' +
