@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The PR summaries of the site in a headless Chromium, as a reader and as an AI agent sees them.
 
-For docs/prs/55.md, docs/prs/59.md, docs/prs/63.md and test/fixtures/pr/7.md (every block of
+For docs/prs/55.md, docs/prs/59.md, docs/prs/63.md, docs/prs/66.md and test/fixtures/pr/7.md (every block of
 summarize-pr's catalog), it opens the page that bin/serve.mjs serves and checks:
 
   A. One copy of @ui-sdk/core: the agent's snapshot is not empty, and the page loads one version.
@@ -35,6 +35,7 @@ PAGES = {
     "55": ROOT / "docs/prs/55.html",
     "59": ROOT / "docs/prs/59.html",
     "63": ROOT / "docs/prs/63.html",
+    "66": ROOT / "docs/prs/66.html",
     "7": ROOT / "test/fixtures/pr/7.html",
 }
 PAGE_COMMENT_TITLE = "Not in the code: this comment is only on this page."
@@ -42,7 +43,7 @@ PAGE_COMMENT_TITLE = "Not in the code: this comment is only on this page."
 
 def main():
     args = argparse.ArgumentParser()
-    args.add_argument("--only", action="append", help="a page: 55, 59, 63 or 7")
+    args.add_argument("--only", action="append", help="a page: 55, 59, 63, 66 or 7")
     args.add_argument("--shots", help="a folder for screenshots at 1400 and 390")
     opts = args.parse_args()
     pages = {n: p for n, p in PAGES.items() if not opts.only or n in opts.only}
