@@ -77,7 +77,7 @@ function Diff({ path, lang, name, href, old, new: neu, threads }) {
   const hidden = toHidden(old, neu);
   const code = (expanded) => html`<${CodeView} lang=${lang} oldCode=${old} newCode=${neu} threads=${threads}
     expanded=${expanded} repo=${repo} name=${shown} />`;
-  return html`<figure class="pr-diff" data-path=${path}>
+  return html`<figure class="pr-diff" data-path=${path} data-sides=${old !== null && neu !== null ? 2 : 1}>
     <figcaption class="pr-diff-head">
       <span class="pr-diff-name">${shown}</span>
       <a class="pr-diff-link" href=${href} target="_blank" rel="noopener" title="Open on GitHub" aria-label=${`Open ${shown} on GitHub`}>↗</a>

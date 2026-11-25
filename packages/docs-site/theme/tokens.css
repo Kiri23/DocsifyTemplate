@@ -19,6 +19,12 @@
   --syn-s: #a6d9a1;
   --syn-n: #f0a988;
 
+  /* a diff: what a change adds and removes, and the wash behind each line */
+  --add: #7fd6a0;
+  --del: #f59a9f;
+  --add-wash: #12302b;
+  --del-wash: #3a1a2a;
+
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
