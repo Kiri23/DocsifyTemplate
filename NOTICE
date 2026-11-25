@@ -1,0 +1,20 @@
+DocsifyTemplate
+https://github.com/Kiri23/DocsifyTemplate
+
+This repo reuses code of the summarize-pr skill:
+
+  MeLlamoPablo/skills, skills/summarize-pr
+  https://github.com/MeLlamoPablo/skills/tree/72199a8/skills/summarize-pr
+  commit 72199a8 ("summarize-pr: write the page comment marker as `//! <text>`")
+
+The upstream repo has no LICENSE file. Its author gave Christian Nogueras permission to reuse the
+code (by Twitter, 2026-11). This notice keeps the attribution with the code.
+
+What comes from there:
+
+- packages/docs-site/pr/summarize-pr/template.html, check.mjs and shown-lines.mjs: copies of the
+  upstream files. check.mjs changes one line: it finds template.html in its own folder.
+- packages/docs-site/components/pr/: the views of the summary blocks (decision, diff, chart, tests,
+  terms...) reuse the template's CSS and its module script (hidden blocks, page comments, the diff
+  viewer and chart options, the term tooltip), adapted to the site's theme and to Preact.
+- packages/docs-site/docs/prs/*.html: pages that summarize-pr made.

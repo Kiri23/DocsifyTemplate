@@ -7,7 +7,8 @@
     "test": "node --test \"packages/docs-site/test/*.test.mjs\"",
     "check:docs": "node packages/docs-site/bin/check.mjs",
     "docs:serve": "node packages/docs-site/bin/serve.mjs",
-    "docs:armar": "node packages/docs-site/bin/armar.mjs"
+    "docs:armar": "node packages/docs-site/bin/armar.mjs",
+    "docs:pr": "node packages/docs-site/bin/pr.mjs"
   },
   "description": "A zero-build-step interactive documentation framework powered by Docsify 5 with Markdown-driven components and browser-native AI chat.",
   "directories": {
