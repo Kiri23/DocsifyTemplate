@@ -103,6 +103,7 @@
       'import { annotatedBlock, optionPicker, stepper, terminal } from "' + base + 'components/mod.js";' +
       'import { fileLinks } from "' + base + 'plugins/file-links.js";' +
       'import { glossaryTerms } from "' + base + 'plugins/glossary-terms.js";' +
+      'import { frameOpen } from "' + base + 'plugins/frame-open.js";' +
       'import { addComponents } from "' + base + 'as/core.js";' +
       ownModules.map(function (m) {
         return "import * as " + m.name + " from " + JSON.stringify(m.url) + ";";
@@ -128,7 +129,7 @@
       // Before onThisPage and codeWindow: a component moves the page's own headings and code
       // blocks, and those two read them after.
       "asComponents(components)," +
-      "onThisPage(), prevNext(), codeWindow(), glossaryTerms()," +
+      "onThisPage(), prevNext(), codeWindow(), glossaryTerms(), frameOpen()," +
       "].concat(c.plugins || []);" +
       "</script>" +
       '<script defer src="' + docsify + 'docsify.min.js"></script>' +
