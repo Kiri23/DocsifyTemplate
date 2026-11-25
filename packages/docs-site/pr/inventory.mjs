@@ -186,3 +186,19 @@ export function drawnText(markdown, components) {
   }
   return plain(main.textContent);
 }
+
+/** The prose an agent must be able to read from the page, as plain text: each decision's title,
+ *  why and trade-off, the notes, and each term with its definition. test/pr_agente.py uses it. */
+export function proseOfSummary(page) {
+  const blocks = blocksOfSummary(page);
+  return {
+    decisions: blocks.filter((b) => b.kind === "decision").map((d) => ({
+      title: textOf(d.title), why: textOf(d.why), cost: textOf(d.cost), discarded: d.discarded.flat().map(textOf),
+    })),
+    notes: blocks.filter((b) => b.kind === "note").map((b) => textOf(b.html)),
+    terms: blocks.flatMap(proseOf).flatMap((p) => [...p.matchAll(/<dfn\b([^>]*)>([\s\S]*?)<\/dfn>/g)]).map((m) => ({
+      term: textOf(m[2]),
+      definition: decode(/data-tip="([^"]*)"/.exec(m[1])[1]),
+    })),
+  };
+}

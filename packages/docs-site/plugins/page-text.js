@@ -36,7 +36,9 @@ export function sectionsOf(markdown) {
 /** The terms a page explains, each with its definition (the tooltip of its `<dfn>`). */
 export function termsOf(markdown) {
   const decode = (t) => t.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
-  return [...markdown.matchAll(/<dfn\b([^>]*)>([\s\S]*?)<\/dfn>/g)].map((m) => ({
+  // A <dfn> inside a code block is code that the page shows, not a term.
+  const prose = markdown.replace(/^(\s*)(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1\2\s*$/gm, "");
+  return [...prose.matchAll(/<dfn\b([^>]*)>([\s\S]*?)<\/dfn>/g)].map((m) => ({
     term: m[2].replace(/<[^>]*>/g, "").trim(),
     definition: decode(/data-tip="([^"]*)"/.exec(m[1])?.[1] ?? ""),
   }));

@@ -7,6 +7,7 @@
 //
 //   node packages/docs-site/bin/pr.mjs packages/docs-site/docs/prs/59.html
 //   node packages/docs-site/bin/pr.mjs packages/docs-site/docs/prs/*.html --check
+//   node packages/docs-site/bin/pr.mjs packages/docs-site/docs/prs/59.html --json   (what the page has)
 import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { basename, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,7 +16,7 @@ import { pathToFileURL } from "node:url";
 import { readSummary, SummaryError } from "../pr/read-summary.mjs";
 import { toMarkdown } from "../pr/write-markdown.mjs";
 import { checkSummary } from "../pr/upstream.mjs";
-import { drawnText, factsOfMarkdown, factsOfSummary, inventoryOfMarkdown, inventoryOfSummary, textOfSummary } from "../pr/inventory.mjs";
+import { drawnText, factsOfMarkdown, factsOfSummary, inventoryOfMarkdown, inventoryOfSummary, proseOfSummary, textOfSummary } from "../pr/inventory.mjs";
 import * as builtIn from "../components/mod.js";
 import * as prComponents from "../components/pr/mod.js";
 
@@ -56,10 +57,19 @@ export function convert(file) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
-  const { values, positionals: files } = parseArgs({ allowPositionals: true, options: { check: { type: "boolean", default: false } } });
+  const { values, positionals: files } = parseArgs({ allowPositionals: true, options: { check: { type: "boolean", default: false }, json: { type: "boolean", default: false } } });
   if (!files.length || files.some((f) => !f.endsWith(".html") || !existsSync(f))) {
-    console.error("uso: pr.mjs <página de summarize-pr .html>… [--check]");
+    console.error("uso: pr.mjs <página de summarize-pr .html>… [--check | --json]");
     process.exit(2);
+  }
+  // What each page has, as JSON, for a test that compares it with the drawn page (test/pr_agente.py).
+  if (values.json) {
+    const out = Object.fromEntries(files.map((file) => {
+      const page = readSummary(readFileSync(file, "utf8"));
+      return [basename(file, ".html"), { inventory: inventoryOfSummary(page), facts: factsOfSummary(page), prose: proseOfSummary(page) }];
+    }));
+    console.log(JSON.stringify(out));
+    process.exit(0);
   }
   let failed = 0;
   for (const file of files) {
