@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """The PR summaries of the site in a headless Chromium, as a reader and as an AI agent sees them.
 
-For docs/prs/55.md, docs/prs/59.md and test/fixtures/pr/7.md (every block of summarize-pr's
-catalog), it opens the page that bin/serve.mjs serves and checks:
+For docs/prs/55.md, docs/prs/59.md, docs/prs/63.md and test/fixtures/pr/7.md (every block of
+summarize-pr's catalog), it opens the page that bin/serve.mjs serves and checks:
 
   A. One copy of @ui-sdk/core: the agent's snapshot is not empty, and the page loads one version.
   B. The agent sees what the page has: a decision per decision, the Split/Unified control, a group
@@ -34,6 +34,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 PAGES = {
     "55": ROOT / "docs/prs/55.html",
     "59": ROOT / "docs/prs/59.html",
+    "63": ROOT / "docs/prs/63.html",
     "7": ROOT / "test/fixtures/pr/7.html",
 }
 PAGE_COMMENT_TITLE = "Not in the code: this comment is only on this page."
@@ -41,7 +42,7 @@ PAGE_COMMENT_TITLE = "Not in the code: this comment is only on this page."
 
 def main():
     args = argparse.ArgumentParser()
-    args.add_argument("--only", action="append", help="a page: 55, 59 or 7")
+    args.add_argument("--only", action="append", help="a page: 55, 59, 63 or 7")
     args.add_argument("--shots", help="a folder for screenshots at 1400 and 390")
     opts = args.parse_args()
     pages = {n: p for n, p in PAGES.items() if not opts.only or n in opts.only}
@@ -98,7 +99,9 @@ class Checks:
 
 
 def open_page(browser, base, route, width):
-    page = browser.new_page(viewport={"width": width, "height": 1000})
+    # A phone has a touch screen and no mouse: no hover, only taps.
+    phone = width < 640
+    page = browser.new_page(viewport={"width": width, "height": 1000}, has_touch=phone, is_mobile=phone)
     logs, requests = [], []
     page.on("console", lambda m: logs.append(f"{m.type}: {m.text}") if m.type in ("error", "warning") else None)
     page.on("pageerror", lambda e: logs.append(f"pageerror: {e}"))
@@ -334,9 +337,46 @@ def t_phone(c, browser, base, route, n, shots):
         c.check("T (390px): the layout control hides", hidden)
     wide = page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1")
     c.check("T (390px): the page does not scroll sideways", wide, page.evaluate("document.documentElement.scrollWidth"))
+    t_phone_code(c, page)
+    t_phone_terms(c, page)
     if shots:
         page.screenshot(path=f"{shots}/{n}-390.png", full_page=True)
     page.close()
+
+
+def t_phone_code(c, page):
+    """The code windows go edge to edge, and their code starts where the text of the page starts."""
+    starts = page.evaluate("""() => {
+      const text = document.querySelector('.markdown-section > p').getBoundingClientRect().left;
+      return [...document.querySelectorAll('.pr-example diffs-container, .pr-diff diffs-container')].map((host) => {
+        const code = [...host.shadowRoot.querySelectorAll('[data-line] span')].find((s) => s.textContent.trim() && s.getClientRects().length);
+        return code ? Math.round(code.getBoundingClientRect().left - text) : null;
+      }).filter((x) => x !== null);
+    }""")
+    if starts:
+        c.check("T (390px): the code starts no closer to the edge than the text", min(starts) >= -1, f"{starts} px from the text")
+
+
+def t_phone_terms(c, page):
+    """A tap on a term shows its explanation, as a hover does with a mouse, and leaves the page where it is."""
+    term = page.locator("ui-hover-card.pr-term:not([data-agent-hidden]) .pr-term-link").first
+    if not term.count():
+        return
+    term.scroll_into_view_if_needed()
+    page.wait_for_timeout(300)
+    before = page.evaluate("[scrollY, location.hash]")
+    term.tap()
+    page.wait_for_timeout(800)
+    shown = page.evaluate("(() => { const c = [...document.querySelectorAll('ui-hover-card.pr-term ui-hover-card-content')].find((e) => !e.hidden && e.getClientRects().length); return c && c.querySelector('.pr-term-tip').textContent; })()")
+    after = page.evaluate("[scrollY, location.hash]")
+    c.check("T (390px): a tap on a term shows its explanation", bool(shown), "no card opened")
+    c.check("T (390px): the tap leaves the page where it was", after == before, f"{before} → {after}")
+    # Somewhere that is neither the card nor a term: the side of the page, above or below the card.
+    box = page.evaluate("(() => { const c = [...document.querySelectorAll('ui-hover-card.pr-term ui-hover-card-content')].find((e) => !e.hidden && e.getClientRects().length); const r = c.getBoundingClientRect(); return [r.top, r.bottom]; })()")
+    page.touchscreen.tap(4, box[1] + 40 if box[1] + 40 < 990 else box[0] - 40)
+    page.wait_for_timeout(800)
+    gone = page.evaluate("[...document.querySelectorAll('ui-hover-card.pr-term ui-hover-card-content')].every((e) => e.hidden || !e.getClientRects().length)")
+    c.check("T (390px): a tap elsewhere closes it", gone)
 
 
 if __name__ == "__main__":

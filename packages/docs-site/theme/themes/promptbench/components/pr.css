@@ -1130,6 +1130,16 @@
     border-radius: 0;
   }
 
+  /* ...and the code inside starts where the text of the page starts (components/pr/diff.js reads
+     --pr-code-inset; 1ch is the viewer's own space) */
+  .markdown-section :is(.pr-diff, .pr-example) {
+    --pr-code-inset: calc(var(--content-margin-inline) - 1ch);
+  }
+
+  .markdown-section .pr-example .pr-fallback pre {
+    padding-inline: var(--content-margin-inline);
+  }
+
   .pr-decision-head button {
     padding-inline: 14px;
     column-gap: 10px;

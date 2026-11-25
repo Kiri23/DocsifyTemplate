@@ -62,6 +62,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
     console.error("uso: pr.mjs <página de summarize-pr .html>… [--check | --json]");
     process.exit(2);
   }
+  // No process.exit() from here on: it cuts what is still on its way down a pipe (at 64 KiB).
   // What each page has, as JSON, for a test that compares it with the drawn page (test/pr_agente.py).
   if (values.json) {
     const out = Object.fromEntries(files.map((file) => {
@@ -69,8 +70,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
       return [basename(file, ".html"), { inventory: inventoryOfSummary(page), facts: factsOfSummary(page), prose: proseOfSummary(page) }];
     }));
     console.log(JSON.stringify(out));
-    process.exit(0);
+  } else {
+    process.exitCode = convertAll(files, values.check) ? 1 : 0;
   }
+}
+
+/** Converts each page next to it (or, with check, says which .md is not up to date). How many failed. */
+function convertAll(files, check) {
   let failed = 0;
   for (const file of files) {
     const out = file.replace(/\.html$/, ".md");
@@ -81,7 +87,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
       failed++;
       continue;
     }
-    if (values.check) {
+    if (check) {
       const same = existsSync(out) && readFileSync(out, "utf8") === markdown;
       if (!same) {
         console.log(`${relative(process.cwd(), out)} no está al día: corré node packages/docs-site/bin/pr.mjs ${relative(process.cwd(), file)}`);
@@ -92,5 +98,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
       console.log(`${relative(process.cwd(), out)} ← ${basename(file)}`);
     }
   }
-  process.exit(failed ? 1 : 0);
+  return failed;
 }

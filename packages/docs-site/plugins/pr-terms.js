@@ -1,7 +1,7 @@
 // The terms of a PR summary (docs/prs/<n>.md), as summarize-pr shows them: the page explains each
 // term once, in a `<dfn class="term" data-tip="…">` at its first use, and every other use of the
 // term on the page (also its plural, in any case) gets the same dotted underline and explanation.
-// Here the explanation is a UI SDK hover card, on hover, keyboard focus or tap. A term that is also
+// Here the explanation is a UI SDK hover card, on hover, keyboard focus or (on a phone) a tap. A term that is also
 // in the repo's glossary (`data-glossary="<id>"`) links to its entry there (glossary-terms.js gives
 // each entry that id); any other term links to its first use. Adapted from summarize-pr's
 // template.html (see NOTICE). The agent reads the definitions with the `read` tool
@@ -91,8 +91,33 @@ function card(doc, { name, tip, href, inner, first }) {
   return root;
 }
 
+/**
+ * A phone has no hover, and UI SDK's hover card opens only on hover and focus. There a first tap
+ * on a term opens its card (with the card's `open` property) instead of following the link, a
+ * second tap follows it, and a tap elsewhere closes the card. A mouse click still follows the link.
+ * @param {Document} doc
+ */
+export function tapToOpen(doc) {
+  let touch = false;
+  doc.addEventListener("pointerdown", (event) => {
+    touch = event.pointerType === "touch";
+    if (!touch) return;
+    const here = event.target.closest?.("ui-hover-card.pr-term");
+    for (const card of doc.querySelectorAll("ui-hover-card.pr-term")) {
+      if (card !== here && card.open) card.open = false;
+    }
+  }, true);
+  doc.addEventListener("click", (event) => {
+    const card = touch && event.target.closest?.("ui-hover-card.pr-term");
+    if (!card || card.open) return;
+    event.preventDefault();
+    card.open = true;
+  }, true);
+}
+
 export function prTerms() {
   return (hook, vm) => {
+    hook.mounted(() => tapToOpen(document));
     hook.doneEach(() => {
       const main = document.querySelector("#main");
       if (main && main.querySelector("dfn.term[data-tip]")) markPrTerms(main, vm.route.path);

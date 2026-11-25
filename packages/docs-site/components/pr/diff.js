@@ -99,6 +99,10 @@ function toHidden(old, neu) {
   return rows.reduce((sum, row) => sum + Number(/(\d+)/.exec(row)[1]), 0);
 }
 
+/** The space before each line of code. The theme widens it with `--pr-code-inset` on a phone, where
+ * the code window goes edge to edge and its code has to line up with the text of the page. */
+const INSET = "[data-line] { padding-inline-start: calc(1ch + var(--pr-code-inset, 0px)); }";
+
 let viewer = null;
 
 /** @pierre/diffs, loaded once for the whole page. */
@@ -127,7 +131,7 @@ export function CodeView({ lang, oldCode = null, newCode, threads = [], expanded
       const theme = { dark: "pierre-dark", light: "pierre-light" };
       const comments = new Set([...oldSide.pageComments, ...newSide.pageComments]);
       if (isExample) {
-        instance.current = new File({ theme, themeType: "dark", overflow: "wrap", disableFileHeader: true, disableLineNumbers: true });
+        instance.current = new File({ theme, themeType: "dark", overflow: "wrap", disableFileHeader: true, disableLineNumbers: true, unsafeCSS: INSET });
         instance.current.render({ file: { name, lang, contents: newSide.text }, containerWrapper: box.current });
       } else {
         instance.current = new FileDiff({
@@ -143,7 +147,8 @@ export function CodeView({ lang, oldCode = null, newCode, threads = [], expanded
           // As GitHub's "Hide whitespace": a line that only changes its indentation is unchanged.
           parseDiffOptions: { ignoreWhitespace: true },
           renderAnnotation: (annotation) => threadElement(annotation.metadata, repo),
-          unsafeCSS: `[data-page-comment] { cursor: help; }
+          unsafeCSS: `${INSET}
+            [data-page-comment] { cursor: help; }
             [data-page-comment] span { color: color-mix(in srgb, var(--amber) 55%, var(--text-dim)) !important; }
             [data-expander] { cursor: pointer; }
             [data-expander] span { color: var(--amber) !important; }`,

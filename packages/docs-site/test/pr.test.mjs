@@ -10,6 +10,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { checkSummary } from "../pr/upstream.mjs";
 import { readSummary, SummaryError } from "../pr/read-summary.mjs";
@@ -26,12 +27,12 @@ const template = () => readFileSync(TEMPLATE, "utf8")
   .replace("{{owner}}/{{repo}}", "o/r").replace("{{PR number}}", "1").replace("{{head commit SHA}}", "a".repeat(40))
   .replace("{{PR additions}}", "10").replace("{{PR deletions}}", "2")
   .replace("{{first changed line}}", "3").replaceAll("{{line}}", "7").replace("{{added, modified or removed}}", "added");
-// The two real summaries, and a made-up one (test/fixtures/pr/7.html) with every block of the
+// The real summaries, and a made-up one (test/fixtures/pr/7.html) with every block of the
 // catalog: hidden code, review threads, a before/after chart, test groups, a freeform table.
-const PAGES = ["55", "59", "7"];
+const PAGES = ["55", "59", "63", "7"];
 const FIXTURES = new URL("fixtures/pr/", import.meta.url);
 const folder = (n) => (n === "7" ? FIXTURES : DOCS);
-const SOURCE = { 55: "packages/docs-site/docs/prs/55.html", 59: "packages/docs-site/docs/prs/59.html", 7: "packages/docs-site/test/fixtures/pr/7.html" };
+const SOURCE = { 55: "packages/docs-site/docs/prs/55.html", 59: "packages/docs-site/docs/prs/59.html", 63: "packages/docs-site/docs/prs/63.html", 7: "packages/docs-site/test/fixtures/pr/7.html" };
 const COMPONENTS = new Map([...Object.values(builtIn), ...Object.values(prComponents)].map((c) => [c.name, c]));
 const page = (n) => readFileSync(new URL(`${n}.html`, folder(n)), "utf8");
 const markdown = (n) => readFileSync(new URL(`${n}.md`, folder(n)), "utf8");
@@ -43,6 +44,7 @@ const markdown = (n) => readFileSync(new URL(`${n}.md`, folder(n)), "utf8");
 // the check reads a Markdown line "import map y…" of GLOSSARY.md as an import.
 const KNOWN = {
   55: [],
+  63: [],
   7: [],
   59: ["GLOSSARY.md (new): imports and re-exports are never shown: import map y los componentes de este repo ya configurados."],
 };
@@ -120,3 +122,11 @@ for (const n of PAGES) {
     assert.deepEqual({ additions: Number(header?.[1]), deletions: Number(header?.[2]) }, shown);
   });
 }
+
+test("pr.mjs --json: the whole JSON comes down a pipe, also past 64 KiB (test/pr_agente.py reads it)", () => {
+  const files = PAGES.map((n) => fileURLToPath(new URL(`${n}.html`, folder(n))));
+  const run = spawnSync(process.execPath, [fileURLToPath(new URL("../bin/pr.mjs", import.meta.url)), ...files, "--json"], { encoding: "utf8", maxBuffer: 1 << 24 });
+  assert.equal(run.status, 0, run.stderr);
+  assert.ok(run.stdout.length > 65536, `${run.stdout.length} bytes: the pages no longer test the 64 KiB cut`);
+  assert.deepEqual(Object.keys(JSON.parse(run.stdout)).sort(), [...PAGES].sort());
+});
