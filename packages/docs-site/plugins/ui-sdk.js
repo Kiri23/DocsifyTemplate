@@ -24,7 +24,7 @@ export function uiSdk({ allow = () => true } = {}) {
   const agent = createAgent({ allow });
   const read = readTool();
   // The page's agent, for an agent that drives the browser (Playwright, an extension).
-  window.agent = Object.assign(agent, { read: read.run });
+  window.agent = Object.assign(agent, { read: read.run, readTool: read.tool });
   // WebMCP: a browser that has an agent of its own gets the four tools.
   if (document.modelContext) {
     registerTools(agent, { allow });
