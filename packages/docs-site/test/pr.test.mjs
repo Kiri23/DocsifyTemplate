@@ -26,10 +26,15 @@ const template = () => readFileSync(TEMPLATE, "utf8")
   .replace("{{owner}}/{{repo}}", "o/r").replace("{{PR number}}", "1").replace("{{head commit SHA}}", "a".repeat(40))
   .replace("{{PR additions}}", "10").replace("{{PR deletions}}", "2")
   .replace("{{first changed line}}", "3").replaceAll("{{line}}", "7").replace("{{added, modified or removed}}", "added");
-const PAGES = ["55", "59"];
+// The two real summaries, and a made-up one (test/fixtures/pr/7.html) with every block of the
+// catalog: hidden code, review threads, a before/after chart, test groups, a freeform table.
+const PAGES = ["55", "59", "7"];
+const FIXTURES = new URL("fixtures/pr/", import.meta.url);
+const folder = (n) => (n === "7" ? FIXTURES : DOCS);
+const SOURCE = { 55: "packages/docs-site/docs/prs/55.html", 59: "packages/docs-site/docs/prs/59.html", 7: "packages/docs-site/test/fixtures/pr/7.html" };
 const COMPONENTS = new Map([...Object.values(builtIn), ...Object.values(prComponents)].map((c) => [c.name, c]));
-const page = (n) => readFileSync(new URL(`${n}.html`, DOCS), "utf8");
-const markdown = (n) => readFileSync(new URL(`${n}.md`, DOCS), "utf8");
+const page = (n) => readFileSync(new URL(`${n}.html`, folder(n)), "utf8");
+const markdown = (n) => readFileSync(new URL(`${n}.md`, folder(n)), "utf8");
 
 // 1. summarize-pr's check on what comes in.
 
@@ -38,6 +43,7 @@ const markdown = (n) => readFileSync(new URL(`${n}.md`, DOCS), "utf8");
 // the check reads a Markdown line "import map y…" of GLOSSARY.md as an import.
 const KNOWN = {
   55: [],
+  7: [],
   59: ["GLOSSARY.md (new): imports and re-exports are never shown: import map y los componentes de este repo ya configurados."],
 };
 
@@ -83,8 +89,8 @@ test("template.html, with every block of the catalog, converts and draws", () =>
 // 3 and 4, on the real pages.
 
 for (const n of PAGES) {
-  test(`#${n}: prs/${n}.md is what the converter writes from prs/${n}.html`, () => {
-    assert.equal(markdown(n), toMarkdown(readSummary(page(n)), { original: `${n}.html` }));
+  test(`#${n}: ${n}.md is what the converter writes from ${n}.html`, () => {
+    assert.equal(markdown(n), toMarkdown(readSummary(page(n)), { original: `${n}.html`, source: SOURCE[n] }));
   });
 
   test(`#${n}: every marker of the Markdown draws`, () => {
@@ -94,6 +100,7 @@ for (const n of PAGES) {
   test(`#${n}: the Markdown has the same blocks as the page`, () => {
     const want = inventoryOfSummary(readSummary(page(n)));
     assert.ok(want.decisions > 0 && want.diffs > 0 && want.tests > 0, "the page has blocks to count");
+    if (n === "7") assert.ok(Object.entries(want).every(([, count]) => count > 0), `the fixture has every block: ${JSON.stringify(want)}`);
     assert.deepEqual(inventoryOfMarkdown(markdown(n), COMPONENTS), want);
   });
 

@@ -12,14 +12,15 @@ const SKILL = "https://github.com/MeLlamoPablo/skills/tree/72199a8/skills/summar
 
 /**
  * @param {ReturnType<import("./read-summary.mjs").readSummary>} page the summary as data
- * @param {{ original: string }} where the page's file name, for the "see the original" link
+ * @param {{ original: string, source?: string }} where the page's file name, for the "see the original"
+ *   link, and its path from the repo's root, for the command that makes it again
  * @returns {string} the Markdown
  */
-export function toMarkdown(page, { original }) {
+export function toMarkdown(page, { original, source }) {
   const links = linksOf(page);
   const shown = shownLines(page);
   const out = [
-    `<!-- Hecho con \`npm run docs:pr -- ${original}\` desde la página de summarize-pr. Para cambiarlo, cambiá ${original} y regeneralo. -->`,
+    `<!-- Hecho con \`npm run docs:pr -- ${source ?? original}\` desde la página de summarize-pr. Para cambiarlo, cambiá ${original} y regeneralo. -->`,
     `# ${escapeTitle(page.title)}`,
     marker("pr-header", {
       repo: page.repo,

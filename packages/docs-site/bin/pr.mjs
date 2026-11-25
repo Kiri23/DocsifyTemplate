@@ -8,7 +8,8 @@
 //   node packages/docs-site/bin/pr.mjs packages/docs-site/docs/prs/59.html
 //   node packages/docs-site/bin/pr.mjs packages/docs-site/docs/prs/*.html --check
 import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
-import { basename, relative } from "node:path";
+import { basename, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual, parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
 import { readSummary, SummaryError } from "../pr/read-summary.mjs";
@@ -18,6 +19,7 @@ import { drawnText, factsOfMarkdown, factsOfSummary, inventoryOfMarkdown, invent
 import * as builtIn from "../components/mod.js";
 import * as prComponents from "../components/pr/mod.js";
 
+const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 const COMPONENTS = new Map([...Object.values(builtIn), ...Object.values(prComponents)].map((c) => [c.name, c]));
 
 /**
@@ -35,7 +37,7 @@ export function convert(file) {
     if (error instanceof SummaryError) return { markdown: null, problems: [error.message], warnings: errors };
     throw error;
   }
-  const markdown = toMarkdown(page, { original: basename(file) });
+  const markdown = toMarkdown(page, { original: basename(file), source: relative(ROOT, resolve(file)) });
   const problems = [];
   const want = inventoryOfSummary(page);
   const got = inventoryOfMarkdown(markdown, COMPONENTS);

@@ -116,6 +116,7 @@
       'import { asComponents } from "' + base + 'as/mod.js";' +
       'import { annotatedBlock, optionPicker, stepper, terminal, assumption, callout, chart, chartPair, decision, diff, discarded, example, prHeader, story, tests } from "' + base + 'components/mod.js";' +
       'import { uiSdk } from "' + base + 'plugins/ui-sdk.js";' +
+      'import { prTerms } from "' + base + 'plugins/pr-terms.js";' +
       'import { fileLinks } from "' + base + 'plugins/file-links.js";' +
       'import { glossaryTerms } from "' + base + 'plugins/glossary-terms.js";' +
       'import { frameOpen } from "' + base + 'plugins/frame-open.js";' +
@@ -144,7 +145,7 @@
       // Before onThisPage and codeWindow: a component moves the page's own headings and code
       // blocks, and those two read them after.
       "asComponents(components)," +
-      "onThisPage(), prevNext(), codeWindow(), glossaryTerms(), frameOpen(), uiSdk()," +
+      "onThisPage(), prevNext(), codeWindow(), glossaryTerms(), frameOpen(), prTerms(), uiSdk()," +
       "].concat(c.plugins || []);" +
       "</script>" +
       '<script defer src="' + docsify + 'docsify.min.js"></script>' +
