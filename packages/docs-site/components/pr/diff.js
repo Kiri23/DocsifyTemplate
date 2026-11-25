@@ -99,9 +99,11 @@ function toHidden(old, neu) {
   return rows.reduce((sum, row) => sum + Number(/(\d+)/.exec(row)[1]), 0);
 }
 
-/** The space before each line of code. The theme widens it with `--pr-code-inset` on a phone, where
- * the code window goes edge to edge and its code has to line up with the text of the page. */
-const INSET = "[data-line] { padding-inline-start: calc(1ch + var(--pr-code-inset, 0px)); }";
+/** The space before each line of code, and before the green or red bar of a changed line. The theme
+ * widens them with `--pr-code-inset` and `--pr-bar-inset` on a phone, where the code window goes
+ * edge to edge: the code lines up with the text of the page, and the bar is off the screen's edge. */
+const INSET = `[data-line] { padding-inline-start: calc(1ch + var(--pr-code-inset, 0px)); }
+  [data-indicators=bars] [data-column-number]::before { left: var(--pr-bar-inset, 0px); }`;
 
 let viewer = null;
 

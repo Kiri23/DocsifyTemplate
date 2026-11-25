@@ -355,6 +355,11 @@ def t_phone_code(c, page):
     }""")
     if starts:
         c.check("T (390px): the code starts no closer to the edge than the text", min(starts) >= -1, f"{starts} px from the text")
+    bars = page.evaluate("""() => [...document.querySelectorAll('.pr-diff diffs-container')].flatMap((host) =>
+      [...host.shadowRoot.querySelectorAll('[data-column-number][data-line-type^=change]')].filter((l) => l.getClientRects().length).slice(0, 1).map((l) =>
+        Math.round(l.getBoundingClientRect().left + parseFloat(getComputedStyle(l, '::before').left))))""")
+    if bars:
+        c.check("T (390px): the bar of a changed line is off the screen's edge", min(bars) >= 6, f"{bars} px from the edge")
 
 
 def t_phone_terms(c, page):

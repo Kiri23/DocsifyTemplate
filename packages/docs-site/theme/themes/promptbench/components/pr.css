@@ -1130,10 +1130,11 @@
     border-radius: 0;
   }
 
-  /* ...and the code inside starts where the text of the page starts (components/pr/diff.js reads
-     --pr-code-inset; 1ch is the viewer's own space) */
+  /* ...and the code inside starts where the text of the page starts, with the bar of a changed line
+     off the screen's edge (components/pr/diff.js reads both; 1ch is the viewer's own space) */
   .markdown-section :is(.pr-diff, .pr-example) {
     --pr-code-inset: calc(var(--content-margin-inline) - 1ch);
+    --pr-bar-inset: 8px;
   }
 
   .markdown-section .pr-example .pr-fallback pre {
