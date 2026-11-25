@@ -50,7 +50,7 @@ def main():
             page.goto(f"http://localhost:{port}/#/{opts.page}")
             page.wait_for_function("window.agent && window.agent.snapshot().length > 0", timeout=30000)
             page.wait_for_timeout(500)
-            tools = page.evaluate("[...window.agent.tools, window.agent.readTool]")
+            tools = page.evaluate("[...window.agent.tools, window.pageText.tool]")
             serve_mcp(page, tools)
             browser.close()
     finally:
@@ -95,7 +95,8 @@ def serve_mcp(page, tools):
         elif method == "tools/call" and params.get("name") in names:
             name, arguments = params["name"], params.get("arguments") or {}
             try:
-                out = page.evaluate("([name, input]) => Promise.resolve(window.agent[name](input))", [name, arguments])
+                # `read` is the site's (window.pageText); the other three are UI SDK's agent.
+                out = page.evaluate("([name, input]) => Promise.resolve(name === 'read' ? window.pageText.read(input) : window.agent[name](input))", [name, arguments])
                 result = {"content": [{"type": "text", "text": json.dumps(out, ensure_ascii=False)}]}
             except Exception as error:  # the page said no: the agent reads why
                 result = {"content": [{"type": "text", "text": str(error)}], "isError": True}

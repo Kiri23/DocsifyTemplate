@@ -30,10 +30,12 @@ segmentado), y la página crea su agente. Desde la consola, una extensión o Pla
 ```js
 window.agent.snapshot()   // las decisiones, el control Split/Unified, los tests por archivo
 await window.agent.act({ steps: [{ ref: "Diff layout", action: "setValue", args: ["unified"] }] })
-window.agent.read({ section: "Tests" })   // la prosa: por qué, trade-off, notas, términos
+window.pageText.read({ section: "Tests" })   // la prosa: por qué, trade-off, notas, términos
 ```
 
-`read` es del sitio: el snapshot de UI SDK trae el estado de cada componente, no lo que dice.
+`window.agent` es el agente de UI SDK tal cual; `read` es del sitio y va aparte, en `window.pageText`: el
+snapshot de UI SDK trae el estado de cada componente, no lo que dice. En un navegador con WebMCP
+(`document.modelContext`), la página registra las cuatro.
 
 Para un agente de afuera (Claude Code, Codex), la página es un servidor MCP con esas cuatro
 herramientas y ninguna más:

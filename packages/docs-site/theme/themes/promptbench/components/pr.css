@@ -346,9 +346,15 @@
   cursor: pointer;
 }
 
-.pr-decision-head button:focus-visible {
-  outline-offset: -2px;
-  border-radius: var(--radius);
+/* The focus ring goes around the whole card: a ring around the title alone would look like a
+   second card, with the open body outside it. */
+.markdown-section .pr-decision-head button:is(:focus, :focus-visible) {
+  outline: none;
+}
+
+.pr-decision:has(.pr-decision-head button:focus-visible) {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
 }
 
 .pr-decision-head .pr-label {
@@ -788,9 +794,12 @@
   margin: 0 auto;
 }
 
+/* Graphviz lays out each label at 16 Helvetica units; the text stays that size so it fits the
+   room Graphviz left for it and labels don't run into each other. */
 .pr-chart-svg svg text {
   fill: var(--text);
   font-family: var(--sans);
+  font-size: 16px;
   text-decoration: none;
 }
 

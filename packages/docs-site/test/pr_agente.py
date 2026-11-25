@@ -103,6 +103,11 @@ def open_page(browser, base, route, width):
     page.on("console", lambda m: logs.append(f"{m.type}: {m.text}") if m.type in ("error", "warning") else None)
     page.on("pageerror", lambda e: logs.append(f"pageerror: {e}"))
     page.on("request", lambda r: requests.append(r.url))
+    # A browser with WebMCP, faked: it keeps what the page registers (plugins/ui-sdk.js).
+    page.add_init_script("""
+      window.__registered = [];
+      document.modelContext = { registerTool: (tool, options) => { window.__registered.push(tool); return Promise.resolve(); } };
+    """)
     page.goto(base["base"] + "#/" + route)
     page.wait_for_selector(".as-pr-header", timeout=30000)
     # The diff viewer and Graphviz load after the page is drawn.
@@ -173,12 +178,21 @@ def check_page(browser, base, route, n, said, shots):
         visible = page.evaluate("(label) => { const b = [...document.querySelectorAll('.pr-hidden button')].find((e) => e.textContent === label); const p = b?.closest('.pr-hidden').querySelector('ui-collapsible-panel'); return !!p && !p.hidden && p.offsetHeight > 0; }", h["label"])
         c.check(f"C: the agent shows “{h['label']}”", result["ok"] and visible, json.dumps(result)[:200])
 
+    # WebMCP: the page registers the four tools, each with something to run, and read answers.
+    registered = page.evaluate("window.__registered.map((t) => [t.name, typeof t.execute, !!t.inputSchema, !!t.description])")
+    c.check("W: WebMCP gets snapshot, query, act and read", sorted(r[0] for r in registered) == ["act", "query", "read", "snapshot"]
+            and all(r[1] == "function" and r[2] and r[3] for r in registered), f"{registered}")
+    sections = page.evaluate("Promise.resolve(window.__registered.find((t) => t.name === 'read').execute({})).then((o) => o.sections.length)")
+    c.check("W: read, through WebMCP, answers the outline", sections == inv["sections"] + 1, f"{sections}")
+    untouched = page.evaluate("!('read' in window.agent) && !('readTool' in window.agent)")
+    c.check("the page leaves UI SDK's agent as the library made it", untouched)
+
     # D. The agent reads the prose through `read`, without the DOM. UI SDK's snapshot alone doesn't
     # carry it (not even of an open decision): that is why the page adds `read`.
     carried = json.dumps(page.evaluate("window.agent.snapshot()"), ensure_ascii=False)
     c.check("D: the snapshot alone has no decision's why (why `read` exists)", not any(d["why"][:40] in carried for d in prose["decisions"]))
-    outline = page.evaluate("window.agent.read()")
-    text = plain(" ".join(page.evaluate("(s) => window.agent.read({ section: s }).text", s) for s in outline["sections"]))
+    outline = page.evaluate("window.pageText.read()")
+    text = plain(" ".join(page.evaluate("(s) => window.pageText.read({ section: s }).text", s) for s in outline["sections"]))
     for d in prose["decisions"]:
         c.check(f"D: why and trade-off of “{d['title'][:40]}…”", d["why"] in text and d["cost"] in text and all(x in text for x in d["discarded"]),
                 f"falta en read(): {d['why'][:60]}")
@@ -276,6 +290,13 @@ def t_charts(c, page, inv, facts):
     links = page.evaluate("document.querySelectorAll('.pr-chart-svg svg a[href]').length")
     want = sum(len(ch["links"]) for ch in facts["charts"])
     c.check("T: each box with a link opens its code at the head commit", links == want, f"{links} de {want}")
+    # Graphviz lays each label out like a box, so no two labels overlap (summarize-pr's render-charts.mjs checks the same).
+    overlaps = page.evaluate("""[...document.querySelectorAll('.pr-chart-svg svg')].flatMap((svg) => {
+      const boxes = [...svg.querySelectorAll('text')].map((t) => [t.textContent, t.getBoundingClientRect()]);
+      return boxes.flatMap(([a, r], i) => boxes.slice(i + 1).filter(([, q]) =>
+        r.left < q.right - 1 && q.left < r.right - 1 && r.top < q.bottom - 1 && q.top < r.bottom - 1).map(([b]) => a + ' / ' + b));
+    })""")
+    c.check("T: no two labels of a chart overlap", not overlaps, f"{overlaps}")
 
 
 def t_tests(c, page, inv):
