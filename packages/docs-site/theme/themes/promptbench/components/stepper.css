@@ -1,7 +1,17 @@
 /* stepper: the steps of a how-to one at a time, numbered dots on top. */
 
 .as-st {
+  display: block;
   margin: var(--margin-block) 0;
+}
+
+/* the stepper's own elements (plugins/stepper.js) */
+as-stepper-panel {
+  display: block;
+}
+
+as-stepper-panel[hidden] {
+  display: none;
 }
 
 .as-st-tabs {
@@ -27,7 +37,7 @@
 }
 
 /* the line between two dots; amber up to the step the reader is at */
-.as-st-tabs [role="tab"] + [role="tab"]::before {
+as-stepper-tab + as-stepper-tab > [role="tab"]::before {
   content: "";
   position: absolute;
   top: 16px;
@@ -36,7 +46,7 @@
   border-top: 2px solid var(--line);
 }
 
-.as-st-tabs [role="tab"].done + [role="tab"]::before {
+as-stepper-tab:has(> [data-done]) + as-stepper-tab > [role="tab"]::before {
   border-color: var(--amber);
 }
 
@@ -54,7 +64,7 @@
   font-weight: 700;
 }
 
-.as-st-tabs .done .as-st-dot {
+.as-st-tabs [data-done] .as-st-dot {
   border-color: var(--amber);
   color: var(--amber);
 }
