@@ -1,5 +1,12 @@
 <!-- El sidebar se ve en todas las páginas, así que sus links empiezan en la raíz del sitio. -->
 * [docs-site](/README.md)
+* UI SDK paso a paso
+  * [1. Getting Started (Hello World)](/ui-sdk/01-getting-started.md)
+  * [2. Varios componentes y query](/ui-sdk/02-varios-y-query.md)
+  * [3. Permisos con allow](/ui-sdk/03-permisos-allow.md)
+  * [4. Primitivo propio: stepper (#66)](/ui-sdk/04-primitivo-propio.md)
+  * [5. WebMCP y la herramienta read](/ui-sdk/05-webmcp.md)
+  * [6. Agente afuera: Claude Code + MCP](/ui-sdk/06-agente-externo-mcp.md)
 * Componentes
   * [annotated-block](/componentes/annotated-block.md)
   * [option-picker](/componentes/option-picker.md)

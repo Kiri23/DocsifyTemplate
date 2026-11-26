@@ -1,0 +1,993 @@
+/* ui-demo: los bancos de prueba de la guía de UI SDK. Un solo marco con tres franjas: el escenario
+   (lo que toca la persona), el cable (quién movió el estado) y la consola (lo que llama el agente).
+   Solo nombra los tokens del tema (theme/tokens.css). */
+
+.uid {
+  --uid-soft: color-mix(in srgb, var(--amber) 12%, transparent);
+  --uid-pad: 16px;
+  container: uid / inline-size;
+  display: flex;
+  flex-direction: column;
+  margin: var(--margin-block, 1.4em) 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--ink-code);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: var(--fs-15);
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* Docsify le pone márgenes y sangría a la prosa: adentro del banco no corren. */
+.markdown-section .uid :where(p, ul, ol, dl, dd, li) {
+  margin: 0;
+  padding: 0;
+}
+
+.markdown-section .uid :where(ul, ol) {
+  list-style: none;
+}
+
+.uid button {
+  margin: 0;
+  font: inherit;
+}
+
+/* ---------- El escenario y los elementos ui-* ---------- */
+
+.uid-stage {
+  display: grid;
+  gap: 10px;
+  padding: var(--uid-pad);
+  background: var(--ink-raised);
+}
+
+.uid-stage :is(ui-collapsible, ui-accordion) {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--ink);
+  transition: border-color 0.15s;
+}
+
+.uid-stage :is(ui-collapsible, ui-accordion):has(button[aria-expanded="true"]) {
+  border-color: color-mix(in srgb, var(--amber) 40%, var(--line));
+}
+
+.uid-stage :is(ui-collapsible-trigger, ui-accordion-item, ui-accordion-header, ui-accordion-trigger) {
+  display: block;
+}
+
+.uid-stage :is(ui-collapsible-trigger, ui-accordion-trigger) > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--text);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.uid-stage :is(ui-collapsible-trigger, ui-accordion-trigger) > button::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border: solid var(--text-dim);
+  border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(-45deg);
+  transition: transform 0.16s ease, border-color 0.15s;
+}
+
+.uid-stage :is(ui-collapsible-trigger, ui-accordion-trigger) > button:hover {
+  color: var(--amber-hover);
+}
+
+.uid-stage :is(ui-collapsible-trigger, ui-accordion-trigger) > button:hover::before {
+  border-color: var(--amber);
+}
+
+.uid-stage :is(ui-collapsible-trigger, ui-accordion-trigger) > button[aria-expanded="true"]::before {
+  border-color: var(--amber);
+  transform: translateY(-3px) rotate(45deg);
+}
+
+.uid-stage :is(ui-collapsible-panel, ui-accordion-panel) {
+  display: grid;
+  gap: 8px;
+  padding: 0 14px 13px 33px;
+  color: var(--text-soft);
+}
+
+.uid-stage ui-collapsible-panel[hidden],
+.uid-stage ui-accordion-panel[hidden] {
+  display: none;
+}
+
+.uid-stage :is(ui-collapsible-panel, ui-accordion-panel) strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* un control con su nombre al lado */
+.uid-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 2px 2px 2px 14px;
+}
+
+.uid-field-name {
+  color: var(--text-soft);
+}
+
+.uid-stage ui-segmented-control {
+  position: relative;
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--ink-code);
+  isolation: isolate;
+}
+
+/* UI SDK mide el ítem marcado y deja las cuatro variables */
+.uid-stage ui-segmented-control-indicator {
+  position: absolute;
+  top: var(--segmented-control-indicator-top);
+  left: var(--segmented-control-indicator-left);
+  width: var(--segmented-control-indicator-width);
+  height: var(--segmented-control-indicator-height);
+  z-index: -1;
+  border-radius: 5px;
+  background: var(--uid-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--amber) 45%, transparent);
+  transition: left 0.18s ease, width 0.18s ease;
+}
+
+.uid-stage ui-segmented-control-indicator[data-activation-direction="none"] {
+  transition: none;
+}
+
+.uid-stage ui-segmented-control-item {
+  padding: 5px 14px;
+  border-radius: 5px;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.uid-stage ui-segmented-control-item:hover {
+  color: var(--text);
+}
+
+.uid-stage ui-segmented-control-item:is([data-checked], [aria-checked="true"], [aria-selected="true"], [data-state="on"]) {
+  color: var(--amber);
+}
+
+/* ---------- El cable: Persona a un lado, Agente al otro ---------- */
+
+.uid-wire {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px var(--uid-pad);
+  border-block: 1px solid var(--line);
+  background: var(--ink);
+}
+
+.uid-wire:first-child {
+  border-top: 0;
+}
+
+.uid-who {
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+}
+
+.uid-who[data-on="true"] {
+  border-color: var(--amber);
+  background: var(--amber);
+  color: var(--amber-ink);
+}
+
+.uid-change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 14px;
+  min-width: 0;
+  color: var(--text-dim);
+  font-size: 13.5px;
+  text-align: center;
+}
+
+.uid-moved {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 10px;
+  min-width: 0;
+  color: var(--text-soft);
+  animation: uid-arrive 0.3s ease-out;
+}
+
+/* el cambio entra desde el lado de quien lo hizo */
+.uid-wire[data-who="persona"] .uid-moved {
+  --uid-from: -14px;
+}
+
+.uid-wire[data-who="agente"] .uid-moved {
+  --uid-from: 14px;
+}
+
+.uid-delta {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--amber);
+  overflow-wrap: anywhere;
+}
+
+/* el stepper en chico: dónde está ahora */
+.uid-rail {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.uid-rail-dot {
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--ink-code);
+}
+
+.uid-rail-dot[data-done="true"] {
+  border-color: var(--amber);
+}
+
+.uid-rail-dot[data-on="true"] {
+  border-color: var(--amber);
+  background: var(--amber);
+}
+
+.uid-rail-value {
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--amber);
+  animation: uid-flash 1.1s ease-out;
+}
+
+/* ---------- La consola ---------- */
+
+.uid-console {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  padding: var(--uid-pad);
+}
+
+.uid-console-next {
+  border-top: 1px solid var(--line);
+}
+
+.uid-calls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* un botón que corre una llamada: el triángulo dice "correr" */
+.markdown-section .uid button.uid-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 7px 12px 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--ink-raised);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.45;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.markdown-section .uid button.uid-run {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.markdown-section .uid button.uid-run::before {
+  content: "";
+  flex: none;
+  border-style: solid;
+  border-width: 4.5px 0 4.5px 7px;
+  border-color: transparent transparent transparent var(--amber);
+}
+
+/* una llamada que la página va a rechazar */
+.markdown-section .uid button.uid-run[data-expect="rechazo"]::before {
+  border-left-color: var(--del);
+}
+
+.markdown-section .uid button.uid-run:hover {
+  border-color: color-mix(in srgb, var(--amber) 55%, var(--line));
+}
+
+.markdown-section .uid button.uid-run:active {
+  background: var(--uid-soft);
+}
+
+.markdown-section .uid button.uid-run[data-last="true"] {
+  border-color: color-mix(in srgb, var(--amber) 55%, var(--line));
+  background: var(--uid-soft);
+}
+
+.markdown-section .uid button.uid-run-wide {
+  justify-self: start;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.markdown-section .uid button.uid-run-wide .uid-inline {
+  font-weight: 400;
+}
+
+/* el visor: la llamada arriba, lo que devolvió abajo */
+.uid-view,
+.uid-verdict {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.uid-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--ink-raised);
+}
+
+.uid-code {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+
+.uid-bar .uid-code::before {
+  content: "› ";
+  color: var(--amber);
+}
+
+.uid-badge,
+.uid-tag {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.uid-badge[data-ok="true"] {
+  border-color: color-mix(in srgb, var(--add) 45%, var(--line));
+  background: var(--add-wash);
+  color: var(--add);
+}
+
+.uid-badge[data-ok="false"] {
+  border-color: color-mix(in srgb, var(--del) 45%, var(--line));
+  background: var(--del-wash);
+  color: var(--del);
+}
+
+.uid .uid-why {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--del-wash);
+  color: var(--del);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+.uid-console > .uid-why {
+  border: 1px solid color-mix(in srgb, var(--del) 45%, var(--line));
+  border-radius: 8px;
+}
+
+.uid-json {
+  max-height: 300px;
+  padding: 12px 14px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre;
+  color: var(--text-dim);
+  tab-size: 2;
+}
+
+.uid-json:focus-visible {
+  outline-offset: -2px;
+}
+
+.uid-j-k {
+  color: var(--syn-f);
+}
+
+.uid-j-s {
+  color: var(--syn-s);
+}
+
+.uid-j-n {
+  color: var(--syn-n);
+}
+
+.uid-j-b {
+  color: var(--syn-k);
+}
+
+/* la clave que el banco sigue: ámbar siempre, y un destello cuando cambia */
+.uid-hot {
+  border-radius: 3px;
+  color: var(--amber);
+  font-weight: 700;
+  animation: uid-flash 1.1s ease-out;
+}
+
+.uid .uid-empty {
+  padding: 14px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.uid .uid-note {
+  color: var(--text-dim);
+  font-size: 14px;
+  max-width: 68ch;
+}
+
+.uid-inline {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+
+/* dos visores lado a lado cuando hay lugar */
+.uid-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+@container uid (min-width: 640px) {
+  .uid-pair {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+/* ---------- allow: la regla y lo que decidió ---------- */
+
+.uid-policy {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--ink);
+}
+
+.markdown-section .uid button.uid-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 10px;
+  padding: 2px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.uid-switch-track {
+  flex: none;
+  width: 36px;
+  height: 20px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--ink-code);
+  transition: background-color 0.16s, border-color 0.16s;
+}
+
+.uid-switch-thumb {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: transform 0.16s ease, background-color 0.16s;
+}
+
+.markdown-section .uid button.uid-switch[aria-checked="true"] .uid-switch-track {
+  border-color: var(--amber);
+  background: var(--amber);
+}
+
+.markdown-section .uid button.uid-switch[aria-checked="true"] .uid-switch-thumb {
+  background: var(--amber-ink);
+  transform: translateX(16px);
+}
+
+.uid-rule {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+
+.uid-policy[data-on="false"] .uid-rule {
+  color: var(--text-dim);
+}
+
+.uid-verdict[data-ok="true"] {
+  border-color: color-mix(in srgb, var(--add) 40%, var(--line));
+}
+
+.uid-verdict[data-ok="false"] {
+  border-color: color-mix(in srgb, var(--del) 40%, var(--line));
+}
+
+.uid-verdict .uid-badge {
+  animation: uid-arrive 0.25s ease-out;
+}
+
+/* ---------- WebMCP: el navegador y las cuatro herramientas ---------- */
+
+.uid-probe {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.uid-probe .uid-code {
+  color: var(--text);
+  font-size: 13.5px;
+}
+
+.uid .uid-probe p {
+  grid-column: 1 / -1;
+  max-width: 68ch;
+  color: var(--text-soft);
+}
+
+.uid .uid-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+@container uid (min-width: 600px) {
+  .uid .uid-tools {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.uid .uid-tool {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--ink);
+}
+
+/* read es la nuestra: la única con el ámbar */
+.uid .uid-tool[data-ours="true"] {
+  border-color: color-mix(in srgb, var(--amber) 55%, var(--line));
+  background: color-mix(in srgb, var(--amber) 5%, var(--ink));
+}
+
+.uid-tool[data-ours="true"] .uid-tag {
+  border-color: color-mix(in srgb, var(--amber) 45%, var(--line));
+  background: var(--uid-soft);
+  color: var(--amber);
+}
+
+.uid-tool-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.uid-tool-name {
+  font-family: var(--mono);
+  font-size: var(--fs-17);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.uid .uid-tool-about {
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.uid .uid-hints {
+  display: grid;
+  gap: 2px;
+  margin-top: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.uid-hints > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-dim);
+}
+
+.uid-hints > div[data-on="true"] dd {
+  color: var(--syn-k);
+}
+
+.uid-more {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.uid-more summary {
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.uid-more summary:hover {
+  color: var(--amber-hover);
+}
+
+.uid-more .uid-json {
+  max-height: 200px;
+  padding: 8px 0 0;
+}
+
+.uid .uid-tool-full {
+  max-height: 200px;
+  margin-top: 8px;
+  overflow: auto;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.uid .uid-compare {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--add) 40%, var(--line));
+  border-radius: 8px;
+  background: var(--add-wash);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.uid .uid-compare[data-ok="false"] {
+  border-color: var(--line);
+  background: var(--ink);
+}
+
+.uid-quote {
+  color: var(--add);
+}
+
+/* ---------- MCP: los seis saltos ---------- */
+
+.uid-hops {
+  --uid-hop: var(--amber);
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  background: var(--ink);
+}
+
+.markdown-section .uid .uid-hops {
+  padding: 18px 8px 6px;
+}
+
+.uid-hops[data-tone="ok"] {
+  --uid-hop: var(--add);
+}
+
+.uid-hops[data-tone="error"] {
+  --uid-hop: var(--del);
+}
+
+.uid-hop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  text-align: center;
+}
+
+.markdown-section .uid .uid-hop {
+  padding: 0 4px;
+}
+
+/* el tramo que llega a este salto desde el anterior */
+.uid-hop + .uid-hop::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 50%;
+  width: 100%;
+  border-top: 2px solid var(--line);
+  transition: border-color 0.2s;
+}
+
+.uid-hop[data-lit="true"] + .uid-hop[data-lit="true"]::before {
+  border-color: var(--uid-hop);
+}
+
+.uid-hop-dot {
+  position: relative;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--ink-code);
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+.uid-hop[data-lit="true"] .uid-hop-dot {
+  border-color: var(--uid-hop);
+}
+
+.uid-hop[data-on="true"] .uid-hop-dot {
+  background: var(--uid-hop);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--uid-hop) 22%, transparent);
+}
+
+.uid-hop-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.uid-hop-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+  transition: color 0.2s;
+}
+
+.uid-hop[data-lit="true"] .uid-hop-name {
+  color: var(--text);
+}
+
+.uid-hop-kind {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-dim);
+}
+
+.uid .uid-say {
+  min-height: 3em;
+  padding: 8px var(--uid-pad) 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--ink);
+  color: var(--text-soft);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* angosto: los saltos bajan en columna, con el cable a la izquierda */
+@container uid (max-width: 599px) {
+  .uid-hops {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .markdown-section .uid .uid-hops {
+    padding: 14px var(--uid-pad) 4px;
+  }
+
+  .uid-hop {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .markdown-section .uid .uid-hop {
+    padding: 0;
+  }
+
+  .uid-hop + .uid-hop::before {
+    top: auto;
+    right: auto;
+    bottom: 50%;
+    left: 8px;
+    width: 0;
+    height: calc(100% + 10px);
+    border-top: 0;
+    border-left: 2px solid var(--line);
+  }
+
+  .uid-hop-text {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .uid-hop-name {
+    font-size: 13px;
+  }
+
+  .uid .uid-say {
+    min-height: 4.5em;
+    text-align: left;
+  }
+}
+
+/* el registro que guarda el collapsible */
+.uid .uid-log {
+  display: grid;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.uid .uid-log li {
+  display: grid;
+  grid-template-columns: 6ch minmax(0, 1fr);
+  gap: 10px;
+  color: var(--text-dim);
+}
+
+.uid-log-way {
+  color: var(--amber);
+}
+
+.uid-log li[data-way="out"] .uid-log-way {
+  color: var(--add);
+}
+
+.uid-log-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Angosto y movimiento ---------- */
+
+@container uid (max-width: 479px) {
+  .uid-wire {
+    gap: 8px;
+  }
+
+  .uid-who {
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+
+  .uid-field {
+    padding-left: 2px;
+  }
+}
+
+@media (max-width: 640px) {
+  .uid {
+    --uid-pad: 12px;
+  }
+}
+
+@keyframes uid-flash {
+  from {
+    background: color-mix(in srgb, var(--amber) 40%, transparent);
+  }
+
+  to {
+    background: transparent;
+  }
+}
+
+@keyframes uid-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(var(--uid-from, 0));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uid *,
+  .uid *::before {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Docsify le da margen a cada botón de la prosa; y el botón ancho es una frase, no una fila */
+.markdown-section .uid button {
+  margin: 0;
+}
+
+.markdown-section .uid button.uid-run-wide {
+  display: block;
+  overflow-wrap: normal;
+}
+
+.markdown-section .uid button.uid-run-wide::before {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.markdown-section .uid .uid-calls button.uid-run {
+  margin: 0;
+}
+
+/* angosto: la llamada ocupa su renglón y las etiquetas bajan */
+@container uid (max-width: 479px) {
+  .uid-bar {
+    flex-wrap: wrap;
+  }
+
+  .uid-bar .uid-code {
+    flex-basis: 100%;
+  }
+}

@@ -10,7 +10,7 @@
 //
 //   <!-- as: terminal estado="prototipo" nota="Salida simulada." -->
 //   <!-- as: terminal line-ms="95" -->
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { html } from "htm/preact";
 import { sequence, ShapeError } from "../as/shapes.js";
 
@@ -270,30 +270,38 @@ function TerminalBar({ command, label, copyText, exit, estado, controls = null }
           ? html`<span class="terminal-badge terminal-exit" data-exit=${Number(exit) === 0 ? "ok" : "fail"}>exit ${exit}</span>`
           : null}
         ${controls}
-        <${CopyButton} text=${copyText} />
+        <${CopyButton} text=${copyText} label=${command ? `Copy: ${command}` : "Copy terminal"} />
       </span>
     </figcaption>
   `;
 }
 
 /** Copies the command (or output when there is no command) and briefly confirms. */
-function CopyButton({ text }) {
+function CopyButton({ text, label }) {
+  const host = useRef(null);
   const [said, say] = useState("Copy");
+  useLayoutEffect(() => {
+    if (host.current) host.current.text = text;
+  }, [text]);
   useEffect(() => {
     if (said === "Copy") return;
     const back = setTimeout(() => say("Copy"), 1600);
     return () => clearTimeout(back);
   }, [said]);
-  const copy = () =>
+  const copy = () => {
+    if (typeof customElements !== "undefined" && customElements.get("as-copy-button")) return;
     navigator.clipboard.writeText(text).then(
       () => say("Copied"),
       () => say("Copy failed"),
     );
+  };
   const copied = said === "Copied" || undefined;
   return html`
-    <button class="copy-button" type="button" onClick=${copy} aria-live="polite" data-copied=${copied}>
-      ${said}
-    </button>
+    <as-copy-button ref=${host}>
+      <button class="copy-button" type="button" aria-label=${label} onClick=${copy} aria-live="polite" data-copied=${copied}>
+        ${said}
+      </button>
+    </as-copy-button>
   `;
 }
 
