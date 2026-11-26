@@ -98,6 +98,17 @@
   overflow-x: auto;
 }
 
+.markdown-section .terminal-window[data-wrap] .terminal-stage {
+  overflow-x: hidden;
+}
+
+.markdown-section .terminal-window[data-wrap] pre.terminal-output,
+.markdown-section .terminal-window[data-wrap] pre.terminal-ghost,
+.markdown-section .terminal-window[data-wrap] pre.terminal-live {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .markdown-section .terminal-window pre.terminal-ghost,
 .markdown-section .terminal-window pre.terminal-live {
   grid-area: 1 / 1;
@@ -145,6 +156,12 @@
 }
 
 @media (max-width: 640px) {
+  .terminal-bar {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    padding-block: 6px;
+  }
+
   .markdown-section .terminal-window pre.terminal-output,
   .markdown-section .terminal-window pre.terminal-ghost,
   .markdown-section .terminal-window pre.terminal-live {

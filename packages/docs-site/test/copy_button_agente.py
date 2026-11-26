@@ -118,7 +118,40 @@ def run(browser, base):
     )
     check("act copy shows Copied feedback on the button", btn_text == "Copied", repr(btn_text))
 
-    # Human click after clipboard reset
+    # Word wrap toggle on the fenced HTML block
+    wrap_btn = 'button[aria-label="Toggle word wrap for html"]'
+    before_w = page.evaluate(
+        """(sel) => {
+          const btn = document.querySelector(sel);
+          const code = btn.closest('figure.window').querySelector('pre[data-lang] > code');
+          return { pressed: btn.getAttribute('aria-pressed'), ws: getComputedStyle(code).whiteSpace, scrollW: code.scrollWidth, clientW: code.clientWidth };
+        }""",
+        wrap_btn,
+    )
+    page.click(wrap_btn)
+    page.wait_for_timeout(100)
+    wrapped_w = page.evaluate(
+        """(sel) => {
+          const btn = document.querySelector(sel);
+          const code = btn.closest('figure.window').querySelector('pre[data-lang] > code');
+          return { pressed: btn.getAttribute('aria-pressed'), ws: getComputedStyle(code).whiteSpace, scrollW: code.scrollWidth, clientW: code.clientWidth };
+        }""",
+        wrap_btn,
+    )
+    page.click(wrap_btn)
+    page.wait_for_timeout(100)
+    after_w = page.evaluate("(sel) => document.querySelector(sel).getAttribute('aria-pressed')", wrap_btn)
+    check(
+        "word wrap toggles pre-wrap on and off without horizontal overflow",
+        before_w["pressed"] == "false"
+        and wrapped_w["pressed"] == "true"
+        and wrapped_w["ws"] == "pre-wrap"
+        and wrapped_w["scrollW"] <= wrapped_w["clientW"] + 1
+        and after_w == "false",
+        f"{before_w} -> {wrapped_w} -> {after_w}",
+    )
+
+        # Human click after clipboard reset
     page.evaluate("navigator.clipboard.writeText('')")
     page.click('button[aria-label="Copy html"]')
     page.wait_for_timeout(150)

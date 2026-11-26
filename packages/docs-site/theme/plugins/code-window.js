@@ -1,6 +1,7 @@
-// Puts each code block of the page in the landing's window: a bar on top with the language and a
-// copy button. The bar never changes, so it is plain DOM; the button keeps a little state ("Copied")
-// so it is a Preact component, one per block, taken down before the next page is drawn.
+// Puts each code block of the page in the landing's window: a bar on top with the language, a
+// word-wrap toggle and a copy button. The bar never changes, so it is plain DOM; the controls keep
+// small local state (wrap on/off, "Copied") so they are Preact components, taken down before the
+// next page is drawn.
 import { render } from "preact";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { html } from "htm/preact";
@@ -32,17 +33,40 @@ export function codeWindow({ labels = { markup: "" } } = {}) {
         const name = document.createElement("span");
         name.textContent = title;
         const slot = document.createElement("span");
+        slot.className = "window-actions";
         bar.append(name, slot);
         const frame = document.createElement("figure");
         frame.className = "window";
         pre.replaceWith(frame);
         frame.append(bar, pre);
-        const copyLabel = title ? `Copy ${title}` : lang ? `Copy ${lang}` : "Copy code";
-        render(html`<${CopyButton} pre=${pre} label=${copyLabel} />`, slot);
+        const subject = title || lang || "code";
+        render(
+          html`<${WindowActions} frame=${frame} pre=${pre} copyLabel=${`Copy ${subject}`} wrapLabel=${`Toggle word wrap for ${subject}`} />`,
+          slot,
+        );
         mounted.push(slot);
       }
     });
   };
+}
+
+function WindowActions({ frame, pre, copyLabel, wrapLabel }) {
+  const [wrapped, setWrapped] = useState(false);
+  useLayoutEffect(() => {
+    frame.toggleAttribute("data-wrap", wrapped);
+  }, [frame, wrapped]);
+  return html`
+    <button
+      type="button"
+      class="wrap-button"
+      aria-pressed=${String(wrapped)}
+      aria-label=${wrapLabel}
+      onClick=${() => setWrapped((on) => !on)}
+    >
+      Wrap
+    </button>
+    <${CopyButton} pre=${pre} label=${copyLabel} />
+  `;
 }
 
 function CopyButton({ pre, label }) {

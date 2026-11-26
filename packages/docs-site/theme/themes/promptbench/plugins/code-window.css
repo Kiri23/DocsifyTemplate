@@ -23,6 +23,13 @@
   color: var(--text-dim);
 }
 
+.window-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .markdown-section .window pre[data-lang] {
   margin: 0;
   border: 0;
@@ -30,11 +37,17 @@
   background: transparent;
 }
 
+.markdown-section .window[data-wrap] pre[data-lang] {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .markdown-section .window pre[data-lang]::after {
   content: none;
 }
 
-.copy-button {
+.copy-button,
+.wrap-button {
   padding: 5px 10px;
   border: 1px solid transparent;
   border-radius: 6px;
@@ -44,16 +57,23 @@
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
 }
 
-.copy-button:hover {
+.copy-button:hover,
+.wrap-button:hover {
   color: var(--text);
   border-color: var(--line);
 }
 
 .copy-button[data-copied] {
   color: var(--amber);
+}
+
+.wrap-button[aria-pressed="true"] {
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 45%, var(--line));
+  background: color-mix(in srgb, var(--amber) 12%, transparent);
 }
 
 @media (max-width: 640px) {
@@ -67,7 +87,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .copy-button {
+  .copy-button,
+  .wrap-button {
     transition: none;
   }
 }
