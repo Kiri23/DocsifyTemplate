@@ -228,3 +228,21 @@ test("topNav does not mark hash/query links as current and tolerates invalid URL
     .map((a) => a.getAttribute("aria-current"));
   assert.deepEqual(currents, [null, null, null, null]);
 });
+
+test("topNav leaves Docsify's left-edge three-dot sidebar handle alone (no hamburger button)", () => {
+  const { document } = parseHTML('<body><main><button class="sidebar-toggle"></button></main></body>');
+  const prevDoc = globalThis.document;
+  const prevLoc = globalThis.location;
+  globalThis.document = document;
+  globalThis.location = new URL("https://example.com/docs/#/");
+  try {
+    let mounted;
+    topNav({ home: "#/", links: [] })({ mounted: (fn) => (mounted = fn) }, { config: { name: "docs" } });
+    mounted();
+    assert.equal(document.querySelector("header.top-nav .top-nav-menu"), null);
+    assert.ok(document.querySelector("button.sidebar-toggle"));
+  } finally {
+    globalThis.document = prevDoc;
+    globalThis.location = prevLoc;
+  }
+});

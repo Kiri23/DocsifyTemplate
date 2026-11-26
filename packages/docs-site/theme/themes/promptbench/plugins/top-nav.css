@@ -15,9 +15,9 @@ body:has(.top-nav) .github-corner {
   display: none;
 }
 
-/* the top nav has its own menu button, so Docsify's handle is not drawn */
+/* Docsify's three-dot handle starts below the top nav, aligned with the sidebar */
 body:has(.top-nav) .sidebar-toggle {
-  display: none;
+  top: var(--pb-top);
 }
 
 .top-nav {
@@ -79,29 +79,7 @@ body:has(.top-nav) .sidebar-toggle {
   background: color-mix(in srgb, var(--amber) 11%, transparent);
 }
 
-.top-nav-menu {
-  display: none;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.top-nav-menu svg {
-  width: 20px;
-  height: 20px;
-}
-
 @media (max-width: 640px) {
-  .top-nav-menu {
-    display: grid;
-  }
-
   .top-nav {
     gap: 4px;
   }
@@ -114,16 +92,6 @@ body:has(.top-nav) .sidebar-toggle {
   .top-nav-links a {
     padding: 6px 9px;
     font-size: 14px;
-  }
-
-  /* with the drawer open, the rest of the page is one big "close" target */
-  body:has(.top-nav):has(.sidebar.show) .sidebar-toggle {
-    display: flex;
-    top: var(--pb-top);
-  }
-
-  body:has(.top-nav) .sidebar-toggle-button {
-    visibility: hidden;
   }
 }
 

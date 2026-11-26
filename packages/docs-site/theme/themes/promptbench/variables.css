@@ -62,6 +62,8 @@
   --sidebar-pagelink-bg-empty: var(--sidebar-pagelink-bg-expanded);
   --sidebar-toggle-bg: var(--ink-raised);
   --sidebar-toggle-color: var(--text-soft);
+  --sidebar-toggle-bg-hover: var(--amber);
+  --sidebar-toggle-color-hover: var(--amber-ink);
 
   /* How far the page starts below the top of the window: the top nav sets it when it is there. */
   --pb-top: 0px;

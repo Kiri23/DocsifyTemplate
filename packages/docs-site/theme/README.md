@@ -14,7 +14,7 @@ import { codeWindow, onThisPage, prevNext, sidebarSections, topNav } from "./the
 window.$docsify = {
   // ...
   plugins: [
-    topNav({ brand, home, links }), // the bar on top; on a phone, the button that opens the sidebar
+    topNav({ brand, home, links }), // the bar on top; Docsify's left-edge three-dot handle toggles the sidebar
     sidebarSections(), // the sidebar in sections, the drawer closes after picking a page
     onThisPage({ title }), // the headings of the page on the right, from 1280 px
     prevNext({ previous, next }), // the pages before and after, in the order of _sidebar.md
