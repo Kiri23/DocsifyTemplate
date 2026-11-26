@@ -37,6 +37,7 @@ export function codeWindow({ labels = { markup: "" } } = {}) {
         bar.append(name, slot);
         const frame = document.createElement("figure");
         frame.className = "window";
+        frame.setAttribute("data-wrap", "");
         pre.replaceWith(frame);
         frame.append(bar, pre);
         const subject = title || lang || "code";
@@ -51,7 +52,7 @@ export function codeWindow({ labels = { markup: "" } } = {}) {
 }
 
 function WindowActions({ frame, pre, copyLabel, wrapLabel }) {
-  const [wrapped, setWrapped] = useState(false);
+  const [wrapped, setWrapped] = useState(true);
   useLayoutEffect(() => {
     frame.toggleAttribute("data-wrap", wrapped);
   }, [frame, wrapped]);

@@ -144,7 +144,7 @@ function prefersReducedMotion() {
 /** Chooses the static view when `lineMs` is 0 or the reader prefers reduced motion. */
 function Terminal(props) {
   const [reduced] = useState(prefersReducedMotion);
-  const [wrapped, setWrapped] = useState(false);
+  const [wrapped, setWrapped] = useState(true);
   const onToggleWrap = () => setWrapped((on) => !on);
   if (props.lineMs === 0 || reduced) {
     return html`<${TerminalStatic} ...${props} wrapped=${wrapped} onToggleWrap=${onToggleWrap} />`;
@@ -265,7 +265,7 @@ function TerminalAnimated({ command, label, copyText, lines, exit, nota, estado,
 }
 
 /** The window header bar: command title, optional status/exit badges, playback buttons and Copy. */
-function TerminalBar({ command, label, copyText, exit, estado, wrapped = false, onToggleWrap, controls = null }) {
+function TerminalBar({ command, label, copyText, exit, estado, wrapped = true, onToggleWrap, controls = null }) {
   const title = command ? `$ ${command}` : label;
   return html`
     <figcaption class="window-bar terminal-bar">

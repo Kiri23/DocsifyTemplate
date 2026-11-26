@@ -118,9 +118,9 @@ def run(browser, base):
     )
     check("act copy shows Copied feedback on the button", btn_text == "Copied", repr(btn_text))
 
-    # Word wrap toggle on the fenced HTML block
+    # Word wrap is on by default on the fenced HTML block and can be toggled off and back on
     wrap_btn = 'button[aria-label="Toggle word wrap for html"]'
-    before_w = page.evaluate(
+    initial_w = page.evaluate(
         """(sel) => {
           const btn = document.querySelector(sel);
           const code = btn.closest('figure.window').querySelector('pre[data-lang] > code');
@@ -130,7 +130,7 @@ def run(browser, base):
     )
     page.click(wrap_btn)
     page.wait_for_timeout(100)
-    wrapped_w = page.evaluate(
+    off_w = page.evaluate(
         """(sel) => {
           const btn = document.querySelector(sel);
           const code = btn.closest('figure.window').querySelector('pre[data-lang] > code');
@@ -140,15 +140,17 @@ def run(browser, base):
     )
     page.click(wrap_btn)
     page.wait_for_timeout(100)
-    after_w = page.evaluate("(sel) => document.querySelector(sel).getAttribute('aria-pressed')", wrap_btn)
+    back_on_w = page.evaluate("(sel) => document.querySelector(sel).getAttribute('aria-pressed')", wrap_btn)
     check(
-        "word wrap toggles pre-wrap on and off without horizontal overflow",
-        before_w["pressed"] == "false"
-        and wrapped_w["pressed"] == "true"
-        and wrapped_w["ws"] == "pre-wrap"
-        and wrapped_w["scrollW"] <= wrapped_w["clientW"] + 1
-        and after_w == "false",
-        f"{before_w} -> {wrapped_w} -> {after_w}",
+        "word wrap starts on (pre-wrap, no horizontal overflow) and toggles off/on",
+        initial_w["pressed"] == "true"
+        and initial_w["ws"] == "pre-wrap"
+        and initial_w["scrollW"] <= initial_w["clientW"] + 1
+        and off_w["pressed"] == "false"
+        and off_w["ws"] == "pre"
+        and off_w["scrollW"] > off_w["clientW"]
+        and back_on_w == "true",
+        f"{initial_w} -> {off_w} -> {back_on_w}",
     )
 
         # Human click after clipboard reset
