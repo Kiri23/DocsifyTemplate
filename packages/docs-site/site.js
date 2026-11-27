@@ -147,8 +147,16 @@
       "if (c.navLinks != null) console.error(\"site: window.$docsify.navLinks debe ser un arreglo de { text, href }\");" +
       "links = c.repo ? [{ text: \"GitHub\", href: c.repo }] : [];" +
       "}" +
+      "let sidebarToggle = \"hamburger\";" +
+      "if (c.sidebarToggle != null) {" +
+      "if (c.sidebarToggle === \"hamburger\" || c.sidebarToggle === \"dots\") {" +
+      "sidebarToggle = c.sidebarToggle;" +
+      "} else {" +
+      "console.error(\"site: window.$docsify.sidebarToggle debe ser 'hamburger' o 'dots'\");" +
+      "}" +
+      "}" +
       "c.plugins = [" +
-      "topNav({ home: \"#/\", links }), sidebarSections(), fileLinks()," +
+      "topNav({ home: \"#/\", links, sidebarToggle }), sidebarSections(), fileLinks()," +
       // Before onThisPage and codeWindow: a component moves the page's own headings and code
       // blocks, and those two read them after.
       "asComponents(components)," +

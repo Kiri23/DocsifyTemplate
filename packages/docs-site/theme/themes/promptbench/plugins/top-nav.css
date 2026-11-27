@@ -15,8 +15,13 @@ body:has(.top-nav) .github-corner {
   display: none;
 }
 
-/* Docsify's three-dot handle starts below the top nav, aligned with the sidebar */
-body:has(.top-nav) .sidebar-toggle {
+/* hamburger mode: the top nav carries its own menu button, so Docsify's handle is hidden */
+body:has(.top-nav[data-sidebar-toggle="hamburger"]) .sidebar-toggle {
+  display: none;
+}
+
+/* dots mode: Docsify's three-dot handle starts below the top nav, aligned with the sidebar */
+body:has(.top-nav[data-sidebar-toggle="dots"]) .sidebar-toggle {
   top: var(--pb-top);
 }
 
@@ -79,7 +84,29 @@ body:has(.top-nav) .sidebar-toggle {
   background: color-mix(in srgb, var(--amber) 11%, transparent);
 }
 
+.top-nav-menu {
+  display: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.top-nav-menu svg {
+  width: 20px;
+  height: 20px;
+}
+
 @media (max-width: 640px) {
+  .top-nav-menu {
+    display: grid;
+  }
+
   .top-nav {
     gap: 4px;
   }
@@ -92,6 +119,16 @@ body:has(.top-nav) .sidebar-toggle {
   .top-nav-links a {
     padding: 6px 9px;
     font-size: 14px;
+  }
+
+  /* with the drawer open in hamburger mode, the rest of the page is one big "close" target */
+  body:has(.top-nav[data-sidebar-toggle="hamburger"]):has(.sidebar.show) .sidebar-toggle {
+    display: flex;
+    top: var(--pb-top);
+  }
+
+  body:has(.top-nav[data-sidebar-toggle="hamburger"]) .sidebar-toggle-button {
+    visibility: hidden;
   }
 }
 
