@@ -110,13 +110,14 @@ test("site.js defaults topNav links to GitHub from repo when navLinks is omitted
   assert.deepEqual(topNavOpts, {
     home: "#/",
     links: [{ text: "GitHub", href: "https://github.com/Kiri23/DocsifyTemplate" }],
+    sidebarToggle: "hamburger",
   });
 });
 
 test("site.js passes no topNav links when neither navLinks nor repo is set", async () => {
   const { topNavOpts, errors } = await runSite({ name: "only-docs" });
   assert.deepEqual(errors, []);
-  assert.deepEqual(topNavOpts, { home: "#/", links: [] });
+  assert.deepEqual(topNavOpts, { home: "#/", links: [], sidebarToggle: "hamburger" });
 });
 
 test("site.js passes custom navLinks to topNav and overrides repo", async () => {
@@ -131,7 +132,7 @@ test("site.js passes custom navLinks to topNav and overrides repo", async () => 
     navLinks,
   });
   assert.deepEqual(errors, []);
-  assert.deepEqual(topNavOpts, { home: "#/", links: navLinks });
+  assert.deepEqual(topNavOpts, { home: "#/", links: navLinks, sidebarToggle: "hamburger" });
 });
 
 test("site.js respects an explicit empty navLinks array even when repo is set", async () => {
@@ -141,11 +142,11 @@ test("site.js respects an explicit empty navLinks array even when repo is set", 
     navLinks: [],
   });
   assert.deepEqual(withRepo.errors, []);
-  assert.deepEqual(withRepo.topNavOpts, { home: "#/", links: [] });
+  assert.deepEqual(withRepo.topNavOpts, { home: "#/", links: [], sidebarToggle: "hamburger" });
 
   const withoutRepo = await runSite({ name: "clean-bar", navLinks: [] });
   assert.deepEqual(withoutRepo.errors, []);
-  assert.deepEqual(withoutRepo.topNavOpts, { home: "#/", links: [] });
+  assert.deepEqual(withoutRepo.topNavOpts, { home: "#/", links: [], sidebarToggle: "hamburger" });
 });
 
 test("site.js logs an error and falls back to repo when navLinks is not an array", async () => {
@@ -159,6 +160,7 @@ test("site.js logs an error and falls back to repo when navLinks is not an array
   assert.deepEqual(topNavOpts, {
     home: "#/",
     links: [{ text: "GitHub", href: "https://github.com/Kiri23/DocsifyTemplate" }],
+    sidebarToggle: "hamburger",
   });
 });
 
@@ -208,7 +210,7 @@ test("site.js skips malformed navLinks entries and logs an error instead of cras
     navLinks: [null, { text: "Home", href: "/" }, { text: "Broken" }, "str"],
   });
   assert.equal(errors.length, 3);
-  assert.deepEqual(topNavOpts, { home: "#/", links: [{ text: "Home", href: "/" }] });
+  assert.deepEqual(topNavOpts, { home: "#/", links: [{ text: "Home", href: "/" }], sidebarToggle: "hamburger" });
 });
 
 test("topNav does not mark hash/query links as current and tolerates invalid URLs", () => {
@@ -227,4 +229,64 @@ test("topNav does not mark hash/query links as current and tolerates invalid URL
   const currents = [...doc.querySelectorAll("header.top-nav ul.top-nav-links a")]
     .map((a) => a.getAttribute("aria-current"));
   assert.deepEqual(currents, [null, null, null, null]);
+});
+
+test("site.js passes sidebarToggle='dots' and falls back to 'hamburger' on invalid values", async () => {
+  const dots = await runSite({ name: "docs", sidebarToggle: "dots" });
+  assert.deepEqual(dots.errors, []);
+  assert.equal(dots.topNavOpts.sidebarToggle, "dots");
+
+  const invalid = await runSite({ name: "docs", sidebarToggle: "swipe" });
+  assert.equal(invalid.errors.length, 1);
+  assert.match(invalid.errors[0], /sidebarToggle/);
+  assert.equal(invalid.topNavOpts.sidebarToggle, "hamburger");
+});
+
+test("topNav defaults to hamburger menu button and delegates clicks to Docsify's toggle", () => {
+  const { document } = parseHTML('<body><main><button class="sidebar-toggle"></button></main></body>');
+  const prevDoc = globalThis.document;
+  const prevLoc = globalThis.location;
+  globalThis.document = document;
+  globalThis.location = new URL("https://example.com/docs/#/");
+  try {
+    let clicks = 0;
+    document.querySelector("button.sidebar-toggle").addEventListener("click", () => {
+      clicks += 1;
+    });
+    let mounted;
+    topNav({ home: "#/", links: [] })({ mounted: (fn) => (mounted = fn) }, { config: { name: "docs" } });
+    mounted();
+    const header = document.querySelector("header.top-nav");
+    assert.equal(header.dataset.sidebarToggle, "hamburger");
+    const menu = header.querySelector("button.top-nav-menu");
+    assert.ok(menu);
+    menu.click();
+    assert.equal(clicks, 1);
+  } finally {
+    globalThis.document = prevDoc;
+    globalThis.location = prevLoc;
+  }
+});
+
+test("topNav with sidebarToggle='dots' keeps Docsify's left-edge three-dot handle (no hamburger button)", () => {
+  const { document } = parseHTML('<body><main><button class="sidebar-toggle"></button></main></body>');
+  const prevDoc = globalThis.document;
+  const prevLoc = globalThis.location;
+  globalThis.document = document;
+  globalThis.location = new URL("https://example.com/docs/#/");
+  try {
+    let mounted;
+    topNav({ home: "#/", links: [], sidebarToggle: "dots" })(
+      { mounted: (fn) => (mounted = fn) },
+      { config: { name: "docs" } },
+    );
+    mounted();
+    const header = document.querySelector("header.top-nav");
+    assert.equal(header.dataset.sidebarToggle, "dots");
+    assert.equal(header.querySelector(".top-nav-menu"), null);
+    assert.ok(document.querySelector("button.sidebar-toggle"));
+  } finally {
+    globalThis.document = prevDoc;
+    globalThis.location = prevLoc;
+  }
 });

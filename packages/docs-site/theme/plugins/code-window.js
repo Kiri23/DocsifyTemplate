@@ -1,8 +1,9 @@
-// Puts each code block of the page in the landing's window: a bar on top with the language and a
-// copy button. The bar never changes, so it is plain DOM; the button keeps a little state ("Copied")
-// so it is a Preact component, one per block, taken down before the next page is drawn.
+// Puts each code block of the page in the landing's window: a bar on top with the language, a
+// word-wrap toggle and a copy button. The bar never changes, so it is plain DOM; the controls keep
+// small local state (wrap on/off, "Copied") so they are Preact components, taken down before the
+// next page is drawn.
 import { render } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { html } from "htm/preact";
 
 /**
@@ -28,37 +29,72 @@ export function codeWindow({ labels = { markup: "" } } = {}) {
         const lang = pre.dataset.lang;
         const bar = document.createElement("figcaption");
         bar.className = "window-bar";
+        const title = lang in labels ? labels[lang] : lang;
         const name = document.createElement("span");
-        name.textContent = lang in labels ? labels[lang] : lang;
+        name.textContent = title;
         const slot = document.createElement("span");
+        slot.className = "window-actions";
         bar.append(name, slot);
         const frame = document.createElement("figure");
         frame.className = "window";
+        frame.setAttribute("data-wrap", "");
         pre.replaceWith(frame);
         frame.append(bar, pre);
-        render(html`<${CopyButton} pre=${pre} />`, slot);
+        const subject = title || lang || "code";
+        render(
+          html`<${WindowActions} frame=${frame} pre=${pre} copyLabel=${`Copy ${subject}`} wrapLabel=${`Toggle word wrap for ${subject}`} />`,
+          slot,
+        );
         mounted.push(slot);
       }
     });
   };
 }
 
-function CopyButton({ pre }) {
+function WindowActions({ frame, pre, copyLabel, wrapLabel }) {
+  const [wrapped, setWrapped] = useState(true);
+  useLayoutEffect(() => {
+    frame.toggleAttribute("data-wrap", wrapped);
+  }, [frame, wrapped]);
+  return html`
+    <button
+      type="button"
+      class="wrap-button"
+      aria-pressed=${String(wrapped)}
+      aria-label=${wrapLabel}
+      onClick=${() => setWrapped((on) => !on)}
+    >
+      Wrap
+    </button>
+    <${CopyButton} pre=${pre} label=${copyLabel} />
+  `;
+}
+
+function CopyButton({ pre, label }) {
+  const host = useRef(null);
   const [said, say] = useState("Copy");
+  useLayoutEffect(() => {
+    if (host.current) host.current.text = pre.textContent;
+  }, [pre]);
   useEffect(() => {
     if (said === "Copy") return;
     const back = setTimeout(() => say("Copy"), 1600);
     return () => clearTimeout(back);
   }, [said]);
-  const copy = () =>
+  // Si el sitio usa el tema sin plugins/ui-sdk.js, el clic sigue copiando igual.
+  const copy = () => {
+    if (typeof customElements !== "undefined" && customElements.get("as-copy-button")) return;
     navigator.clipboard.writeText(pre.textContent).then(
       () => say("Copied"),
       () => say("Copy failed"),
     );
+  };
   const copied = said === "Copied" || undefined;
   return html`
-    <button class="copy-button" onClick=${copy} aria-live="polite" data-copied=${copied}>
-      ${said}
-    </button>
+    <as-copy-button ref=${host}>
+      <button type="button" class="copy-button" aria-label=${label} onClick=${copy} aria-live="polite" data-copied=${copied}>
+        ${said}
+      </button>
+    </as-copy-button>
   `;
 }

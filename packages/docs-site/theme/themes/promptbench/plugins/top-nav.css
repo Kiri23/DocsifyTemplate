@@ -15,9 +15,14 @@ body:has(.top-nav) .github-corner {
   display: none;
 }
 
-/* the top nav has its own menu button, so Docsify's handle is not drawn */
-body:has(.top-nav) .sidebar-toggle {
+/* hamburger mode: the top nav carries its own menu button, so Docsify's handle is hidden */
+body:has(.top-nav[data-sidebar-toggle="hamburger"]) .sidebar-toggle {
   display: none;
+}
+
+/* dots mode: Docsify's three-dot handle starts below the top nav, aligned with the sidebar */
+body:has(.top-nav[data-sidebar-toggle="dots"]) .sidebar-toggle {
+  top: var(--pb-top);
 }
 
 .top-nav {
@@ -116,13 +121,13 @@ body:has(.top-nav) .sidebar-toggle {
     font-size: 14px;
   }
 
-  /* with the drawer open, the rest of the page is one big "close" target */
-  body:has(.top-nav):has(.sidebar.show) .sidebar-toggle {
+  /* with the drawer open in hamburger mode, the rest of the page is one big "close" target */
+  body:has(.top-nav[data-sidebar-toggle="hamburger"]):has(.sidebar.show) .sidebar-toggle {
     display: flex;
     top: var(--pb-top);
   }
 
-  body:has(.top-nav) .sidebar-toggle-button {
+  body:has(.top-nav[data-sidebar-toggle="hamburger"]) .sidebar-toggle-button {
     visibility: hidden;
   }
 }

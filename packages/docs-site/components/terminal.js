@@ -10,7 +10,7 @@
 //
 //   <!-- as: terminal estado="prototipo" nota="Salida simulada." -->
 //   <!-- as: terminal line-ms="95" -->
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { html } from "htm/preact";
 import { sequence, ShapeError } from "../as/shapes.js";
 
@@ -144,17 +144,22 @@ function prefersReducedMotion() {
 /** Chooses the static view when `lineMs` is 0 or the reader prefers reduced motion. */
 function Terminal(props) {
   const [reduced] = useState(prefersReducedMotion);
-  if (props.lineMs === 0 || reduced) return html`<${TerminalStatic} ...${props} />`;
-  return html`<${TerminalAnimated} ...${props} />`;
+  const [wrapped, setWrapped] = useState(true);
+  const onToggleWrap = () => setWrapped((on) => !on);
+  if (props.lineMs === 0 || reduced) {
+    return html`<${TerminalStatic} ...${props} wrapped=${wrapped} onToggleWrap=${onToggleWrap} />`;
+  }
+  return html`<${TerminalAnimated} ...${props} wrapped=${wrapped} onToggleWrap=${onToggleWrap} />`;
 }
 
 /** Renders the complete output immediately, with no timers, observer or ghost element. */
-function TerminalStatic({ command, label, copyText, lines, exit, nota, estado }) {
+function TerminalStatic({ command, label, copyText, lines, exit, nota, estado, wrapped, onToggleWrap }) {
   return html`
     <figure
       class="window terminal-window"
       aria-label=${command ? `Terminal: ${command}` : "Terminal"}
       data-estado=${estado || undefined}
+      data-wrap=${wrapped ? "" : undefined}
     >
       <${TerminalBar}
         command=${command}
@@ -162,6 +167,8 @@ function TerminalStatic({ command, label, copyText, lines, exit, nota, estado })
         copyText=${copyText}
         exit=${exit}
         estado=${estado}
+        wrapped=${wrapped}
+        onToggleWrap=${onToggleWrap}
       />
       <pre class="terminal-output">${lines.map((line, i) =>
         renderLine({ line, isFirst: i === 0, withCursor: false })
@@ -172,7 +179,7 @@ function TerminalStatic({ command, label, copyText, lines, exit, nota, estado })
 }
 
 /** Reveals lines one by one when the window enters the viewport, with Show all and Replay. */
-function TerminalAnimated({ command, label, copyText, lines, exit, nota, estado }) {
+function TerminalAnimated({ command, label, copyText, lines, exit, nota, estado, wrapped, onToggleWrap }) {
   const figureRef = useRef(null);
   const replayRef = useRef(null);
   const [shown, setShown] = useState(() => (lines.length <= 1 ? lines.length : 1));
@@ -229,6 +236,7 @@ function TerminalAnimated({ command, label, copyText, lines, exit, nota, estado 
       ref=${figureRef}
       aria-label=${command ? `Terminal: ${command}` : "Terminal"}
       data-estado=${estado || undefined}
+      data-wrap=${wrapped ? "" : undefined}
     >
       <${TerminalBar}
         command=${command}
@@ -236,6 +244,8 @@ function TerminalAnimated({ command, label, copyText, lines, exit, nota, estado 
         copyText=${copyText}
         exit=${exit}
         estado=${estado}
+        wrapped=${wrapped}
+        onToggleWrap=${onToggleWrap}
         controls=${html`
           ${!done
             ? html`<button class="terminal-btn" type="button" onClick=${finish}>Show all</button>`
@@ -255,7 +265,7 @@ function TerminalAnimated({ command, label, copyText, lines, exit, nota, estado 
 }
 
 /** The window header bar: command title, optional status/exit badges, playback buttons and Copy. */
-function TerminalBar({ command, label, copyText, exit, estado, controls = null }) {
+function TerminalBar({ command, label, copyText, exit, estado, wrapped = true, onToggleWrap, controls = null }) {
   const title = command ? `$ ${command}` : label;
   return html`
     <figcaption class="window-bar terminal-bar">
@@ -270,30 +280,47 @@ function TerminalBar({ command, label, copyText, exit, estado, controls = null }
           ? html`<span class="terminal-badge terminal-exit" data-exit=${Number(exit) === 0 ? "ok" : "fail"}>exit ${exit}</span>`
           : null}
         ${controls}
-        <${CopyButton} text=${copyText} />
+        <button
+          class="wrap-button"
+          type="button"
+          aria-pressed=${String(wrapped)}
+          aria-label=${command ? `Toggle word wrap for ${command}` : "Toggle word wrap"}
+          onClick=${onToggleWrap}
+        >
+          Wrap
+        </button>
+        <${CopyButton} text=${copyText} label=${command ? `Copy: ${command}` : "Copy terminal"} />
       </span>
     </figcaption>
   `;
 }
 
 /** Copies the command (or output when there is no command) and briefly confirms. */
-function CopyButton({ text }) {
+function CopyButton({ text, label }) {
+  const host = useRef(null);
   const [said, say] = useState("Copy");
+  useLayoutEffect(() => {
+    if (host.current) host.current.text = text;
+  }, [text]);
   useEffect(() => {
     if (said === "Copy") return;
     const back = setTimeout(() => say("Copy"), 1600);
     return () => clearTimeout(back);
   }, [said]);
-  const copy = () =>
+  const copy = () => {
+    if (typeof customElements !== "undefined" && customElements.get("as-copy-button")) return;
     navigator.clipboard.writeText(text).then(
       () => say("Copied"),
       () => say("Copy failed"),
     );
+  };
   const copied = said === "Copied" || undefined;
   return html`
-    <button class="copy-button" type="button" onClick=${copy} aria-live="polite" data-copied=${copied}>
-      ${said}
-    </button>
+    <as-copy-button ref=${host}>
+      <button class="copy-button" type="button" aria-label=${label} onClick=${copy} aria-live="polite" data-copied=${copied}>
+        ${said}
+      </button>
+    </as-copy-button>
   `;
 }
 

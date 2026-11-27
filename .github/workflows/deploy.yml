@@ -85,7 +85,7 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npm test
-          npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
+          npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js --components packages/docs-site/docs/propios/ui-sdk-demos.js
           npm run docs:armar -- packages/docs-site/docs --root . --check
           npm run docs:pr -- packages/docs-site/docs/prs/*.html --check
 
@@ -100,6 +100,10 @@ jobs:
       # The stepper, a UI SDK primitive of our own, used by a person and by an agent.
       - name: The stepper in a browser, as a person and as an agent
         run: python3 packages/docs-site/test/stepper_agente.py
+
+      # The copy button, a UI SDK primitive of our own, on code blocks, terminals and PR diffs.
+      - name: The copy button in a browser, as a person and as an agent
+        run: python3 packages/docs-site/test/copy_button_agente.py
 
       - name: Build the image
         run: docker build -f deploy/Dockerfile --build-arg "COMMIT=$GITHUB_SHA" -t "$IMAGE:ci" .
@@ -122,7 +126,7 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npm test
-          npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js
+          npm run check:docs -- packages/docs-site/docs --components packages/docs-site/docs/propios/retro-semanal.js --components packages/docs-site/docs/propios/ui-sdk-demos.js
           npm run docs:armar -- packages/docs-site/docs --root . --check
           npm run docs:pr -- packages/docs-site/docs/prs/*.html --check
 

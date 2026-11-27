@@ -18,7 +18,7 @@
 //
 // `only="new"` (or "old") says the diff has one side: a new or a deleted file.
 import { html } from "htm/preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { sequence, ShapeError } from "../../as/shapes.js";
 import { codeBlock } from "./read.js";
 import { EXPANDER, PAGE_COMMENT_TITLE, readSide, rowsOf } from "./code-lines.js";
@@ -75,12 +75,16 @@ function Diff({ path, lang, name, href, old, new: neu, threads }) {
   const shown = name ?? path;
   const repo = href.split("/pull/")[0];
   const hidden = toHidden(old, neu);
+  const copyText = readSide(neu ?? old).expandedText;
   const code = (expanded) => html`<${CodeView} lang=${lang} oldCode=${old} newCode=${neu} threads=${threads}
     expanded=${expanded} repo=${repo} name=${shown} />`;
   return html`<figure class="pr-diff" data-path=${path} data-sides=${old !== null && neu !== null ? 2 : 1}>
     <figcaption class="pr-diff-head">
       <span class="pr-diff-name">${shown}</span>
-      <a class="pr-diff-link" href=${href} target="_blank" rel="noopener" title="Open on GitHub" aria-label=${`Open ${shown} on GitHub`}>↗</a>
+      <span class="pr-diff-actions">
+        <${PrCopyButton} text=${copyText} label=${`Copy ${shown}`} />
+        <a class="pr-diff-link" href=${href} target="_blank" rel="noopener" title="Open on GitHub" aria-label=${`Open ${shown} on GitHub`}>↗</a>
+      </span>
     </figcaption>
     ${hidden ? html`<ui-collapsible class="pr-hidden">
       <ui-collapsible-trigger>
@@ -272,4 +276,15 @@ function threadElement(thread, repo) {
     box.append(comment);
   }
   return box;
+}
+
+/** Botón de copiar para diffs y ejemplos de PR; usa el primitivo `as-copy-button` de UI SDK. */
+export function PrCopyButton({ text, label }) {
+  const host = useRef(null);
+  useLayoutEffect(() => {
+    if (host.current) host.current.text = text;
+  }, [text]);
+  return html`<as-copy-button ref=${host}>
+    <button type="button" class="copy-button" aria-label=${label}>Copy</button>
+  </as-copy-button>`;
 }
